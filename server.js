@@ -18,10 +18,18 @@ app.post("/generate", async (req, res) => {
 
     try {
 
-        const { styleName, imageBase64, mood, strength, variation } = req.body
+        const {
+  styleName,
+  imageBase64,
+  mood,
+  strength,
+  variation,
+  genderMode
+} = req.body;
 console.log("Mood:", mood)
 console.log("Strength:", strength)
 console.log("Variation:", variation)
+console.log("Gender Mode:", genderMode)
 
         console.log("Style:", styleName)
 
@@ -100,60 +108,84 @@ const strengthText =
             ? "Make the transformation bold, dramatic, highly stylized, and visually powerful while still keeping the person recognizable."
             : "Use a balanced transformation with strong style but clear face identity preservation."
 
+let genderRule = "";
+
+if (genderMode === "Female") {
+
+    genderRule =
+        "The input person is female. Keep her female. Preserve feminine facial features, hairstyle, body shape, age, and natural expression. Do not masculinize the person. Do not add masculine jawline, beard, mustache, or male appearance.";
+
+} else if (genderMode === "Male") {
+
+    genderRule =
+        "The input person is male. Keep him male. Preserve masculine facial features, beard if present, hairstyle, body shape, age, and expression.";
+
+} else {
+
+    genderRule =
+        "Preserve the person's original gender presentation exactly as shown in the input image.";
+}
+
 let prompt = ""
 
 switch (styleName) {
 
     case "AI Avatar":
         prompt =
-            `Transform this person into a premium futuristic AI avatar. ${identityRule} Glowing holographic details, dark purple neon studio background, cinematic rim lighting, ultra sharp face detail, realistic but futuristic.`
+    `${genderRule}
+
+Transform this person into a premium futuristic AI avatar. ${identityRule} Glowing holographic details, dark purple neon studio background, cinematic rim lighting, ultra sharp face detail, realistic but futuristic.`
         break
 
-    case "Superhero":
+   case "Superhero":
 
     if (variation === "Variation 1") {
-        prompt = superheroPrompts[0]
+        prompt = `${genderRule}\n\n${superheroPrompts[0]}`
     }
     else if (variation === "Variation 2") {
-        prompt = superheroPrompts[1]
+        prompt = `${genderRule}\n\n${superheroPrompts[1]}`
     }
     else if (variation === "Variation 3") {
-        prompt = superheroPrompts[2]
+        prompt = `${genderRule}\n\n${superheroPrompts[2]}`
     }
     else {
-        prompt = pickRandom(superheroPrompts)
+        prompt = `${genderRule}\n\n${pickRandom(superheroPrompts)}`
     }
 
     break
 
-    case "Fantasy":
-        prompt = pickRandom(fantasyPrompts)
-        break
+case "Fantasy":
+    prompt = `${genderRule}\n\n${pickRandom(fantasyPrompts)}`
+    break
 
-    case "Cyberpunk":
-        prompt = pickRandom(cyberpunkPrompts)
-        break
+case "Cyberpunk":
+    prompt = `${genderRule}\n\n${pickRandom(cyberpunkPrompts)}`
+    break
 
-    case "Anime":
-        prompt = pickRandom(animePrompts)
-        break
+case "Anime":
+    prompt = `${genderRule}\n\n${pickRandom(animePrompts)}`
+    break
 
-    case "Professional":
-        prompt = pickRandom(professionalPrompts)
-        break
+case "Professional":
+    prompt = `${genderRule}\n\n${pickRandom(professionalPrompts)}`
+    break
 
-    case "Cartoon":
-        prompt = pickRandom(cartoonPrompts)
-        break
+case "Cartoon":
+    prompt = `${genderRule}\n\n${pickRandom(cartoonPrompts)}`
+    break
 
     case "Headshot":
         prompt =
-            `Transform this person into a clean professional business headshot. ${identityRule} Realistic skin texture, premium studio lighting, modern suit, clean soft background, sharp corporate photography, LinkedIn profile quality.`
+    `${genderRule}
+
+Transform this person into a clean professional business headshot. ${identityRule} Realistic skin texture, premium studio lighting, modern suit, clean soft background, sharp corporate photography, LinkedIn profile quality.`
         break
 
     default:
         prompt =
-            `Transform this person into a high-quality premium AI portrait. ${identityRule}`
+    `${genderRule}
+
+Transform this person into a high-quality premium AI portrait. ${identityRule}`
 }
 
 prompt = `${prompt} ${moodText} ${strengthText}`

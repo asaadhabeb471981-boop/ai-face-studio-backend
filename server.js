@@ -30,7 +30,7 @@ console.log("Variation:", variation)
 }
 
 const identityRule =
-    "Preserve exact facial identity, face shape, beard, glasses, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else."
+    "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
 const superheroPrompts = [
     `Transform this person into an agile web-inspired urban superhero. ${identityRule} Red and blue tactical suit, dynamic city rooftop background, heroic comic-book energy, cinematic lighting.`,
@@ -42,7 +42,7 @@ const superheroPrompts = [
 ]
 
 const fantasyPrompts = [
-    `Transform this person into a dark fantasy king. ${identityRule} Royal armor, ancient crown, castle throne room, golden firelight, epic fantasy movie poster.`,
+    `Transform this person into a dark fantasy royal leader. ${identityRule} Royal armor, ancient crown, castle throne room, golden firelight, epic fantasy movie poster.`,
     `Transform this person into a fire mage warrior. ${identityRule} Burning magical hands, dark robes, glowing runes, volcanic background, dramatic fantasy lighting.`,
     `Transform this person into a Viking warrior. ${identityRule} Fur armor, battle scars, snowy mountains, ancient Norse atmosphere, powerful cinematic portrait.`,
     `Transform this person into an elf ranger. ${identityRule} Elegant leather armor, enchanted forest, glowing bow, magical green light, premium fantasy character art.`,
@@ -70,10 +70,10 @@ const animePrompts = [
 
 const professionalPrompts = [
     `Transform this person into a luxury CEO portrait. ${identityRule} Tailored premium suit, modern office background, soft studio lighting, business magazine photography.`,
-    `Transform this person into a startup founder portrait. ${identityRule} Smart casual blazer, modern tech office, confident expression, clean professional lighting.`,
-    `Transform this person into a Hollywood actor headshot. ${identityRule} Premium studio lighting, cinematic background blur, realistic skin texture, elegant portrait photography.`,
+    `Transform this person into a luxury startup founder portrait. ${identityRule} Smart casual blazer, modern tech office, confident expression, clean professional lighting.`,
+    `Transform this person into a Hollywood celebrity portrait. ${identityRule} Premium studio lighting, cinematic background blur, realistic skin texture, elegant portrait photography.`,
     `Transform this person into a fashion magazine portrait. ${identityRule} Luxury outfit, editorial lighting, high-end photography, stylish modern background.`,
-    `Transform this person into a corporate executive portrait. ${identityRule} Dark suit, elegant boardroom, confident premium look, sharp professional photography.`,
+    `Transform this person into a luxury executive portrait. ${identityRule} Dark suit, elegant boardroom, confident premium look, sharp professional photography.`,
     `Transform this person into a luxury personal brand portrait. ${identityRule} Clean background, soft cinematic lighting, elegant outfit, premium social media profile style.`
 ]
 

@@ -41,82 +41,114 @@ const identityRule =
     "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
 const superheroPrompts = [
-    `Transform this person into a dark cinematic superhero character. ${identityRule} Premium armored suit, dramatic storm clouds, heroic movie-poster lighting, glowing energy accents, realistic skin texture, powerful stance, ultra detailed blockbuster style.`,
-    `Transform this person into a futuristic tech superhero. ${identityRule} Sleek high-tech armor, glowing chest core, neon reflections, cinematic sci-fi city background, premium realistic lighting, sharp facial detail.`,
-    `Transform this person into a cosmic superhero legend. ${identityRule} Galaxy energy aura, starfield background, elegant heroic costume, glowing cosmic particles, epic cinematic lighting, premium fantasy-sci-fi realism.`,
-    `Transform this person into a tactical night vigilante. ${identityRule} Black luxury tactical armor, rainy city rooftop, dramatic shadows, intense realistic mood, premium superhero film look.`,
-    `Transform this person into a lightning-powered superhero. ${identityRule} Electric energy around the body, stormy sky, glowing blue-purple highlights, cinematic action portrait, ultra premium realistic detail.`,
-    `Transform this person into a mystical superhero guardian. ${identityRule} Magical glowing symbols, elegant armor, dark fantasy atmosphere, purple energy portals, cinematic heroic portrait.`
+    `Transform this person into a cinematic dark superhero from a premium blockbuster movie. ${identityRule} Ultra detailed tactical armor, dramatic stormy sky, glowing purple-blue energy, intense heroic lighting, realistic skin texture, sharp facial detail, atmospheric smoke, epic movie-poster composition, powerful serious expression, premium VFX quality.`,
+
+    `Transform this person into a futuristic armored superhero commander. ${identityRule} Sleek high-tech battle suit, glowing chest reactor, neon reflections, cinematic sci-fi city skyline, dramatic rim lighting, ultra realistic face detail, premium blockbuster superhero atmosphere, sharp focus, expensive movie poster quality.`,
+
+    `Transform this person into a cosmic superhero legend. ${identityRule} Elegant heroic costume, galaxy energy aura, glowing particles, starfield background, powerful cinematic pose, luxury fantasy-sci-fi lighting, realistic facial detail, epic universe-saving atmosphere, ultra premium cinematic realism.`,
+
+    `Transform this person into a tactical night vigilante. ${identityRule} Black luxury armor, rainy city rooftop, dramatic shadows, moody noir lighting, realistic intense expression, cinematic dark hero atmosphere, premium superhero film style, sharp facial detail, high-end action poster look.`,
+
+    `Transform this person into a lightning-powered superhero. ${identityRule} Electric energy surrounding the body, storm clouds, glowing blue-purple highlights, cinematic action lighting, realistic facial identity, dramatic superhero pose, ultra detailed armor textures, premium blockbuster realism.`,
+
+    `Transform this person into a mystical superhero guardian. ${identityRule} Elegant magical armor, ancient glowing symbols, purple energy portals, dark fantasy city background, cinematic heroic lighting, realistic face preservation, premium fantasy-superhero movie poster quality.`
 ]
-
 const fantasyPrompts = [
-    `Transform this person into a legendary fantasy king or queen. ${identityRule} Royal armor, glowing crown, cinematic castle throne room, golden firelight, epic fantasy movie-poster atmosphere, ultra realistic detail.`,
+    `Transform this person into a legendary fantasy king or queen from an epic cinematic universe. ${identityRule} Royal enchanted armor, glowing golden crown, majestic throne room, dramatic firelight, ultra realistic fantasy detail, premium medieval atmosphere, cinematic movie-poster lighting, elegant magical realism.`,
 
-    `Transform this person into a powerful fire mage warrior. ${identityRule} Burning magical energy, glowing runes, volcanic fantasy environment, dramatic cinematic lighting, premium fantasy realism.`,
+    `Transform this person into a powerful fire mage warrior. ${identityRule} Burning magical energy, glowing runes, volcanic fantasy world, dramatic cinematic lighting, ultra detailed fantasy robes, realistic skin texture, premium dark fantasy movie atmosphere.`,
 
-    `Transform this person into an ancient dragon guardian. ${identityRule} Elegant fantasy armor, dragon energy aura, glowing eyes, cinematic fantasy mountains, ultra detailed magical atmosphere.`,
+    `Transform this person into an ancient dragon guardian. ${identityRule} Elegant dragon-scale armor, glowing mystical aura, fantasy mountains, cinematic cloudy sky, realistic heroic face detail, epic magical atmosphere, premium blockbuster fantasy realism.`,
 
-    `Transform this person into a dark fantasy assassin. ${identityRule} Hooded luxury armor, smoke effects, moonlit medieval city, mysterious cinematic shadows, realistic fantasy movie style.`,
+    `Transform this person into a dark fantasy assassin. ${identityRule} Hooded luxury leather armor, smoke effects, moonlit medieval city, mysterious cinematic shadows, realistic intense expression, premium fantasy action movie style.`,
 
-    `Transform this person into an enchanted elf warrior. ${identityRule} Elegant fantasy clothing, magical forest, glowing green-blue particles, cinematic fantasy lighting, premium realism.`,
+    `Transform this person into an enchanted elf warrior. ${identityRule} Elegant fantasy clothing, magical forest, glowing particles, cinematic green-blue lighting, realistic fantasy beauty, premium magical realism, blockbuster fantasy adventure atmosphere.`,
 
-    `Transform this person into a legendary knight commander. ${identityRule} Detailed silver armor, battlefield atmosphere, royal banners, cinematic medieval realism, blockbuster fantasy style.`
+    `Transform this person into a legendary knight commander. ${identityRule} Detailed silver armor, battlefield atmosphere, royal banners, dramatic cinematic lighting, ultra realistic medieval textures, epic fantasy movie-poster quality.`
 ]
 
 const cyberpunkPrompts = [
-    `Transform this person into a premium cyberpunk hacker. ${identityRule} Purple-blue neon lighting, holographic screens, futuristic fashion, cinematic rainy city atmosphere, ultra realistic sci-fi detail.`,
+    `Transform this person into a premium cyberpunk hacker from a futuristic blockbuster universe. ${identityRule} Purple-blue neon lighting, holographic interfaces, luxury futuristic streetwear, cinematic rainy megacity atmosphere, ultra realistic facial detail, glowing reflections, expensive sci-fi movie quality.`,
 
-    `Transform this person into a futuristic android mercenary. ${identityRule} Cybernetic enhancements, glowing circuitry, metallic textures, cinematic neon reflections, premium sci-fi realism.`,
+    `Transform this person into a futuristic cybernetic mercenary. ${identityRule} Advanced robotic enhancements, glowing circuitry, metallic textures, cinematic neon reflections, ultra detailed armor, realistic skin detail, premium sci-fi realism, dark futuristic atmosphere.`,
 
-    `Transform this person into a luxury cyberpunk street rebel. ${identityRule} Neon jacket, futuristic city alley, holograms, dramatic lighting, cinematic cyberpunk movie-poster style.`,
+    `Transform this person into a luxury cyberpunk street rebel. ${identityRule} Neon fashion jacket, holographic city alley, dramatic cinematic lighting, futuristic graffiti environment, realistic face preservation, premium social-media viral cyberpunk style.`,
 
-    `Transform this person into a cyber ninja assassin. ${identityRule} Black futuristic armor, glowing energy katana, rooftop neon skyline, smoke atmosphere, premium cinematic action realism.`,
+    `Transform this person into a cyber ninja assassin. ${identityRule} Black futuristic armor, glowing energy katana, rooftop neon skyline, smoke atmosphere, cinematic action composition, ultra realistic face detail, premium cyberpunk blockbuster realism.`,
 
-    `Transform this person into a blade-runner style detective. ${identityRule} Long futuristic coat, rainy neon streets, moody noir lighting, elegant cyberpunk atmosphere, ultra detailed portrait.`,
+    `Transform this person into a blade-runner style detective. ${identityRule} Long futuristic trench coat, rainy neon streets, moody noir lighting, cinematic sci-fi atmosphere, realistic facial identity, premium futuristic movie-poster realism.`,
 
-    `Transform this person into a futuristic cyber soldier. ${identityRule} Tactical sci-fi armor, glowing visor, battlefield neon environment, cinematic lighting, blockbuster sci-fi realism.`
+    `Transform this person into a futuristic cyber soldier commander. ${identityRule} Tactical sci-fi armor, glowing visor, battlefield neon environment, cinematic dramatic lighting, ultra realistic skin detail, blockbuster sci-fi action movie atmosphere.`
 ]
 
 const animePrompts = [
-    `Transform this person into a premium anime hero. ${identityRule} Ultra polished anime style, cinematic lighting, expressive eyes, sharp anime detail, vibrant colors, blockbuster anime movie atmosphere.`,
+    `Transform this person into a premium cinematic anime hero. ${identityRule} Ultra polished anime movie quality, expressive detailed eyes, dramatic anime lighting, vibrant cinematic colors, modern blockbuster anime atmosphere, elegant hair detail, premium fantasy-anime realism.`,
 
-    `Transform this person into a futuristic anime warrior. ${identityRule} High-tech anime armor, glowing neon effects, cinematic sci-fi anime city, premium anime realism, dramatic action mood.`,
+    `Transform this person into a futuristic anime warrior. ${identityRule} High-tech anime armor, glowing neon effects, cinematic sci-fi anime city, dramatic action atmosphere, ultra detailed anime illustration quality, premium anime movie style.`,
 
-    `Transform this person into an elite anime samurai. ${identityRule} Elegant samurai armor, cherry blossom atmosphere, cinematic anime sunset, ultra detailed anime illustration style.`,
+    `Transform this person into an elite anime samurai. ${identityRule} Elegant samurai armor, cherry blossom atmosphere, cinematic anime sunset, premium anime film lighting, ultra polished anime realism, legendary warrior mood.`,
 
-    `Transform this person into a dark anime assassin. ${identityRule} Hooded ninja outfit, moonlit rooftop, cinematic anime shadows, glowing energy effects, premium anime action realism.`,
+    `Transform this person into a dark anime assassin. ${identityRule} Hooded anime ninja outfit, moonlit rooftop, cinematic anime shadows, glowing energy effects, dramatic action composition, premium anime blockbuster atmosphere.`,
 
-    `Transform this person into a magical anime guardian. ${identityRule} Fantasy anime robes, glowing magical particles, cinematic enchanted world, elegant anime movie-poster style.`,
+    `Transform this person into a magical anime guardian. ${identityRule} Fantasy anime robes, glowing magical particles, enchanted anime world, elegant cinematic lighting, ultra detailed anime masterpiece quality.`,
 
-    `Transform this person into an anime legend character. ${identityRule} Heroic anime pose, ultra detailed hair and eyes, cinematic background, polished modern anime masterpiece quality.`
+    `Transform this person into an anime legend character. ${identityRule} Heroic anime pose, ultra detailed hair and eyes, cinematic anime background, polished modern anime film quality, premium emotional anime atmosphere.`
 ]
 
 const professionalPrompts = [
-    `Transform this person into a luxury CEO portrait. ${identityRule} Tailored premium suit, elegant studio lighting, modern executive office background, cinematic business magazine photography, ultra realistic detail.`,
+    `Transform this person into a world-class luxury CEO portrait. ${identityRule} Tailored designer suit, elegant executive office, cinematic studio lighting, ultra realistic skin detail, premium Forbes magazine photography, confident expression, expensive luxury atmosphere, sharp focus, high-end professional realism.`,
 
-    `Transform this person into a world-class entrepreneur portrait. ${identityRule} Smart luxury fashion, modern tech office, confident cinematic lighting, premium startup founder aesthetic, realistic professional photography.`,
+    `Transform this person into a successful tech entrepreneur portrait. ${identityRule} Smart luxury fashion, modern futuristic office, cinematic business lighting, realistic facial detail, premium startup founder aesthetic, elegant color grading, social-media viral quality professional portrait.`,
 
-    `Transform this person into a Hollywood celebrity portrait. ${identityRule} Premium studio lighting, cinematic background blur, luxury styling, ultra realistic skin detail, elegant blockbuster headshot quality.`,
+    `Transform this person into a Hollywood celebrity portrait. ${identityRule} Premium studio lighting, cinematic background blur, elegant luxury styling, ultra realistic skin texture, blockbuster headshot photography, dramatic soft lighting, high-end celebrity realism.`,
 
-    `Transform this person into a high-fashion magazine cover portrait. ${identityRule} Editorial lighting, luxury outfit styling, premium beauty photography, cinematic color grading, Vogue-level realism.`,
+    `Transform this person into a high-fashion magazine cover portrait. ${identityRule} Editorial beauty lighting, luxury fashion styling, cinematic photography composition, Vogue-level realism, premium facial detail, elegant modern atmosphere, expensive luxury aesthetic.`,
 
-    `Transform this person into a luxury executive portrait. ${identityRule} Elegant dark suit, modern boardroom atmosphere, cinematic business lighting, premium LinkedIn-quality professional realism.`,
+    `Transform this person into a luxury executive portrait. ${identityRule} Elegant dark business suit, modern boardroom environment, premium cinematic lighting, realistic confident expression, LinkedIn-profile perfection, ultra polished corporate realism.`,
 
-    `Transform this person into a premium personal brand portrait. ${identityRule} Soft cinematic studio lighting, modern luxury fashion, elegant social media influencer aesthetic, ultra polished realistic portrait.`
+    `Transform this person into a premium personal brand portrait. ${identityRule} Soft cinematic studio lighting, elegant influencer aesthetic, modern luxury fashion, realistic skin texture, premium social media photography, polished professional realism.`
+]
+
+const headshotPrompts = [
+    `Transform this person into an ultra realistic premium studio headshot. ${identityRule} Clean professional lighting, sharp facial detail, natural skin texture, elegant neutral background, premium LinkedIn-quality portrait photography.`,
+
+    `Transform this person into a luxury executive headshot. ${identityRule} Tailored professional outfit, modern office background blur, cinematic studio lighting, confident natural expression, ultra realistic face detail.`,
+
+    `Transform this person into a Hollywood-style close-up headshot. ${identityRule} Soft cinematic lighting, elegant background blur, realistic skin detail, sharp eyes, premium celebrity portrait photography.`,
+
+    `Transform this person into a high-end corporate profile photo. ${identityRule} Clean business outfit, professional studio background, soft realistic lighting, natural expression, polished premium photography.`,
+
+    `Transform this person into a luxury personal branding headshot. ${identityRule} Elegant modern styling, soft cinematic studio lighting, realistic facial detail, premium social media profile portrait.`,
+
+    `Transform this person into a natural realistic passport-style studio portrait but premium. ${identityRule} Clean background, balanced lighting, accurate face identity, realistic skin texture, sharp professional photo quality.`
+]
+
+const aiAvatarPrompts = [
+    `Transform this person into an ultra premium futuristic AI avatar. ${identityRule} Hyper realistic facial detail, luxury sci-fi aesthetic, glowing holographic particles, cinematic purple-blue neon lighting, elegant futuristic fashion, premium movie-poster atmosphere, ultra detailed skin texture, sharp focus, blockbuster visual effects.`,
+
+    `Transform this person into a futuristic cybernetic luxury avatar. ${identityRule} Glowing AI circuitry, sleek futuristic outfit, cinematic sci-fi environment, realistic facial identity, elegant holographic lighting, premium futuristic realism, expensive movie-quality visuals.`,
+
+    `Transform this person into a cinematic AI-powered hero portrait. ${identityRule} Dramatic purple energy glow, futuristic armor accents, realistic skin texture, volumetric cinematic lighting, elegant sci-fi atmosphere, premium blockbuster portrait quality.`,
+
+    `Transform this person into a luxury neon futuristic portrait. ${identityRule} Purple and blue neon reflections, dark futuristic city atmosphere, premium social-media viral quality, realistic face preservation, elegant cyber-fashion styling.`,
+
+    `Transform this person into a futuristic metaverse celebrity portrait. ${identityRule} Ultra polished skin detail, luxury futuristic fashion, holographic environment, cinematic studio lighting, premium influencer-avatar realism.`,
+
+    `Transform this person into a premium AI cinematic character. ${identityRule} Elegant futuristic atmosphere, glowing particles, luxury sci-fi textures, realistic face identity, blockbuster cinematic realism, ultra premium visual quality.`
 ]
 
 const cartoonPrompts = [
-    `Transform this person into a premium animated movie character. ${identityRule} Ultra polished 3D cartoon style, cinematic animated lighting, expressive eyes, colorful Pixar-style atmosphere, high-end animation quality.`,
+    `Transform this person into a premium animated movie character. ${identityRule} Ultra polished Pixar-style 3D animation, cinematic animated lighting, expressive eyes, colorful premium atmosphere, realistic skin shading, elegant animated realism, blockbuster animated movie quality.`,
 
-    `Transform this person into a modern cartoon superhero. ${identityRule} Bold animated outlines, vibrant colors, dynamic cartoon action atmosphere, polished comic-animation realism, cinematic cartoon lighting.`,
+    `Transform this person into a modern cartoon superhero. ${identityRule} Bold animated outlines, vibrant cinematic colors, dramatic cartoon action atmosphere, polished comic-animation realism, premium animated movie lighting.`,
 
-    `Transform this person into a luxury 3D cartoon avatar. ${identityRule} Smooth skin shading, premium animated textures, cheerful cinematic background, ultra detailed modern cartoon design.`,
+    `Transform this person into a luxury 3D cartoon avatar. ${identityRule} Smooth cinematic shading, premium animated textures, cheerful colorful background, ultra detailed animated design, elegant cartoon realism, social-media viral quality.`,
 
-    `Transform this person into a retro animated character. ${identityRule} Vintage cartoon aesthetic, warm cinematic colors, polished animated style, playful premium cartoon atmosphere.`,
+    `Transform this person into a retro animated character. ${identityRule} Vintage cartoon atmosphere, warm cinematic colors, polished animated textures, playful premium animation style, elegant nostalgic cartoon realism.`,
 
-    `Transform this person into a modern social media cartoon avatar. ${identityRule} Clean premium animated look, stylish colorful background, polished influencer-avatar aesthetic, cinematic cartoon realism.`,
+    `Transform this person into a modern social media cartoon avatar. ${identityRule} Stylish colorful background, premium animated influencer aesthetic, cinematic cartoon lighting, polished facial detail, high-end animated realism.`,
 
-    `Transform this person into a cinematic caricature portrait. ${identityRule} Slightly stylized facial features while preserving identity, premium animated lighting, elegant cartoon realism, high-end illustration quality.`
+    `Transform this person into a cinematic caricature portrait. ${identityRule} Slightly stylized facial features while preserving identity, premium animated lighting, elegant cartoon realism, blockbuster animated illustration quality.`
 ]
 
 const moodText =
@@ -156,14 +188,20 @@ let prompt = ""
 switch (styleName) {
 
     case "AI Avatar":
-    prompt =
-`${genderRule}
 
-Transform this person into an ultra premium futuristic AI avatar. ${identityRule}
+    if (variation === "Variation 1") {
+        prompt = `${genderRule}\n\n${aiAvatarPrompts[0]}`
+    }
+    else if (variation === "Variation 2") {
+        prompt = `${genderRule}\n\n${aiAvatarPrompts[1]}`
+    }
+    else if (variation === "Variation 3") {
+        prompt = `${genderRule}\n\n${aiAvatarPrompts[2]}`
+    }
+    else {
+        prompt = `${genderRule}\n\n${pickRandom(aiAvatarPrompts)}`
+    }
 
-Hyper realistic facial detail, premium cinematic movie-poster quality, luxury sci-fi aesthetic, glowing holographic particles, dark purple neon studio environment, ultra detailed skin texture, cinematic rim lighting, volumetric light beams, realistic eyes, premium color grading, futuristic fashion styling, dramatic atmosphere, sharp focus, depth of field, high-end blockbuster visual effects, premium cybernetic details, elegant futuristic realism.
-
-Make the portrait visually stunning, expensive-looking, highly cinematic, and social-media viral quality while preserving the person's real identity naturally.`
     break
 
    case "Superhero":
@@ -204,11 +242,21 @@ case "Cartoon":
     break
 
     case "Headshot":
-        prompt =
-    `${genderRule}
 
-Transform this person into a clean professional business headshot. ${identityRule} Realistic skin texture, premium studio lighting, modern suit, clean soft background, sharp corporate photography, LinkedIn profile quality.`
-        break
+    if (variation === "Variation 1") {
+        prompt = `${genderRule}\n\n${headshotPrompts[0]}`
+    }
+    else if (variation === "Variation 2") {
+        prompt = `${genderRule}\n\n${headshotPrompts[1]}`
+    }
+    else if (variation === "Variation 3") {
+        prompt = `${genderRule}\n\n${headshotPrompts[2]}`
+    }
+    else {
+        prompt = `${genderRule}\n\n${pickRandom(headshotPrompts)}`
+    }
+
+    break
 
     default:
         prompt =

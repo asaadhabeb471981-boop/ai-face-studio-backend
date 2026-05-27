@@ -159,11 +159,13 @@ const moodText =
             : "Use cinematic lighting, balanced dramatic style, premium movie-poster quality."
 
 const strengthText =
-    strength === "Accurate"
-        ? "Identity preservation is the highest priority. Keep the transformation subtle and realistic. Preserve the exact same face, same facial structure, same eyes, same nose, same mouth, same skin tone, same hairstyle, same age, same gender, and same expression. Do not beautify too much. Do not change the person into a different-looking person."
-        : strength === "Extreme"
-            ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle, and skin tone while applying stronger cinematic styling."
-            : "Use a balanced transformation. Preserve the person's real identity clearly while applying premium cinematic styling. Keep the same face structure, gender, age, hairstyle, eyes, nose, mouth, and skin tone."
+    styleName === "Cartoon"
+        ? "Use a clearly animated cartoon transformation. Preserve identity, gender, age, face structure, hairstyle, and expression, but the final result must look like a premium animated character, not a real photo."
+        : strength === "Accurate"
+            ? "Identity preservation is the highest priority. Keep the transformation subtle and realistic. Preserve the exact same face, same facial structure, same eyes, same nose, same mouth, same skin tone, same hairstyle, same age, same gender, and same expression. Do not beautify too much. Do not change the person into a different-looking person."
+            : strength === "Extreme"
+                ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle, and skin tone while applying stronger cinematic styling."
+                : "Use a balanced transformation. Preserve the person's real identity clearly while applying premium cinematic styling. Keep the same face structure, gender, age, hairstyle, eyes, nose, mouth, and skin tone."
 
 let genderRule = "";
 

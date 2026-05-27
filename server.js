@@ -253,8 +253,20 @@ console.log("Prompt:", prompt)
 
         console.log("Uploaded image:", uploadedImageUrl)
 
+let selectedModel = "black-forest-labs/flux-kontext-pro"
+
+if (styleName === "Anime") {
+    selectedModel = "lucataco/animegan-v2"
+} else if (styleName === "Professional" || styleName === "Headshot") {
+    selectedModel = "black-forest-labs/flux-kontext-pro"
+} else if (styleName === "Cartoon") {
+    selectedModel = "black-forest-labs/flux-kontext-pro"
+}
+
+console.log("Selected Model:", selectedModel)
+
         const startResponse = await axios.post(
-            "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
+            `https://api.replicate.com/v1/models/${selectedModel}/predictions`,
             {
                 input: {
                     prompt: prompt,

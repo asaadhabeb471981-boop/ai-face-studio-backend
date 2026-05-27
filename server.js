@@ -256,7 +256,7 @@ console.log("Prompt:", prompt)
 let selectedModel = "black-forest-labs/flux-kontext-pro"
 
 if (styleName === "Anime") {
-    selectedModel = "lucataco/animegan-v2"
+    selectedModel = "black-forest-labs/flux-kontext-pro"
 } else if (styleName === "Professional" || styleName === "Headshot") {
     selectedModel = "black-forest-labs/flux-kontext-pro"
 } else if (styleName === "Cartoon") {

@@ -260,8 +260,10 @@ console.log("Prompt:", prompt)
                     prompt: prompt,
                     input_image: uploadedImageUrl,
                     aspect_ratio: "1:1",
-                    output_format: "jpg",
-                    safety_tolerance: 2
+output_format: "jpg",
+safety_tolerance: 2,
+guidance_scale: 3.5,
+num_inference_steps: 35
                 }
             },
             {
@@ -322,10 +324,71 @@ console.log("Prompt:", prompt)
             throw new Error("Generation timeout")
         }
 
-        return res.json({
-            success: true,
-            imageUrl: outputUrl
-        })
+        // upscale final image
+const upscaleResponse = await axios.post(
+    "https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions",
+    {
+        input: {
+            image: outputUrl,
+            scale: 2,
+            face_enhance: true
+        }
+    },
+    {
+        headers: {
+            Authorization:
+                `Token ${process.env.REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json"
+        }
+    }
+)
+
+const upscalePredictionId = upscaleResponse.data.id
+
+console.log("Upscale started:", upscalePredictionId)
+
+let upscaleUrl = outputUrl
+
+for (let i = 0; i < 30; i++) {
+
+    await new Promise(resolve =>
+        setTimeout(resolve, 2000)
+    )
+
+    const upscalePoll = await axios.get(
+        `https://api.replicate.com/v1/predictions/${upscalePredictionId}`,
+        {
+            headers: {
+                Authorization:
+                    `Token ${process.env.REPLICATE_API_TOKEN}`
+            }
+        }
+    )
+
+    const upscalePrediction = upscalePoll.data
+
+    console.log("Upscale status:", upscalePrediction.status)
+
+    if (upscalePrediction.status === "succeeded") {
+
+        upscaleUrl = Array.isArray(upscalePrediction.output)
+            ? upscalePrediction.output[0]
+            : upscalePrediction.output
+
+        break
+    }
+
+if (upscalePrediction.status === "failed") {
+    console.log("Upscale failed, returning original AI image")
+    break
+}
+
+}
+
+return res.json({
+    success: true,
+    imageUrl: upscaleUrl
+})
 
     } catch (error) {
 

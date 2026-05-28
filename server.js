@@ -40,102 +40,29 @@ app.post("/generate", async (req, res) => {
         const identityRule =
             "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
-        const superheroPrompts = [
+        const MarvelsuperheroesPrompts = [
 
-    `Transform this person into a premium Marvel-inspired cinematic superhero portrait. ${identityRule}
+    `Using the uploaded image as the identity reference, reimagine the same person as a high-impact Marvel Cinematic Universe superhero. The result must look like a real live-action Marvel movie still — visually powerful, unmistakably extraordinary, not generic, not casual, not minimal.
 
-Preserve the EXACT real face and identity:
-same age,
-same wrinkles,
-same skin texture,
-same eye shape,
-same nose,
-same jawline,
-same baldness or hairstyle,
-same beard if present,
-same expression,
-same facial proportions.
+IMPORTANT: The facial identity must NOT change. Preserve the exact facial identity, age, ethnicity, and bone structure of the original man. Keep the same eyes, nose, jawline, cheekbones, skin texture, and proportions. Facial expression must show intense, controlled rage mixed with confidence. Eyes should glow slightly with deep red energy, subtle but clearly noticeable. Light stubble only, sharp and clean. The face must remain fully visible, unobstructed, and well-lit.
 
-Do NOT beautify.
-Do NOT make younger.
-Do NOT replace the face with a fake Hollywood actor.
+Color Theme (MANDATORY): Primary colors are black and deep crimson red only. Accents include glowing red energy veins and power lines. NO bright colors. NO blue. NO green.
 
-Style the person as a realistic marvel superhero wearing a premium tactical suit inspired by high-end Marvel movies. Use subtle marvel superhero textures, marvel superhero elegant materials, realistic fabric details, cinematic shadows, heroic posture, and believable movie-quality lighting.
+Super Suit: Advanced Marvel-level nanotech combat suit. Black carbon-fiber base with layered red armored plates. The suit must look heavy, dangerous, and battle-ready. Chest core features a glowing red energy reactor with an angular, non-circular design. Arms and shoulders reinforced with mechanical plating. Visible tech seams, micro-panels, mechanical joints, and power conduits. Suit fit is tight, tactical, and aggressive. No cape. No helmet.
 
-Background should feel like a real blockbuster film scene:
-city at night,
-dramatic skyline,
-rain,
-battle atmosphere,
-or advanced headquarters.
+Superpowers: Red energy emitting from hands and forearms. Subtle energy distortion surrounding the body. Heat shimmer and glowing red particles in the air. Power aura is controlled and focused, not chaotic. No magic symbols — tech-enhanced energy only.
 
-Ultra realistic.
-Sharp cinematic detail.
-marvel movie poster quality.
-Natural skin realism.
-Grounded believable superhero aesthetic.`,
+Pose & Body Language: The hero is standing still but radiating power and threat. Slightly clenched fists glowing with red energy. Chest forward, shoulders squared. Dominant and intimidating stance.
 
+Environment: Dark futuristic city at night. Neon lights reflecting off armor surfaces. Light smoke, sparks, and atmospheric haze in the air. No civilians visible. Background blurred for cinematic focus.
 
+Lighting: High-contrast cinematic Marvel-style lighting. Strong red rim light outlining armor edges. Soft key light illuminating the face clearly. Deep shadows to enhance menace and depth. Volumetric light beams cutting through smoke. The face must be sharp, bright, and clearly readable.
 
-    `Create a realistic Marvel movie-style heroic portrait of this person. ${identityRule}
+Camera & Quality: Shot on IMAX / ARRI Alexa. Medium close-up to waist-up framing. Eye-level heroic angle. Ultra-sharp focus on face and chest reactor. 4K photorealism.
 
-Maintain full identity preservation:
-same real face,
-same age,
-same wrinkles,
-same skin pores,
-same hairline or baldness,
-same beard if present,
-same facial structure,
-same expression.
+Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Must look like a $200M Marvel movie.
 
-Dress them in a luxury marvel superhero outfit with subtle futuristic tactical superhero outfit, elegant marvel superhero materials, cinematic textures, and realistic battle-ready design.
-
-Use dramatic blockbuster lighting with realistic reflections and atmospheric depth. Add cinematic background elements like advanced technology panels, city lights, smoke, rain, or energy sparks while keeping the image believable and grounded.
-
-The result must look like a real marvel superhero for a Marvel movie poster — not fantasy art, not cartoon, not CGI overload.
-
-No neon purple.
-No fake AI face.
-No excessive glow.
-No face reconstruction.`,
-
-
-
-    `Transform this person into a grounded cinematic marvel superhero character inspired by modern Marvel films. ${identityRule}
-
-Strongly preserve:
-real face,
-real age,
-natural wrinkles,
-skin texture,
-baldness or hairstyle,
-beard if present,
-and overall facial identity.
-
-Use realistic superhero styling:
-premium tactical marvel superhero outfit,
-subtle marvel superhero panels,
-heroic cinematic composition,
-movie-grade lighting,
-sharp photography realism,
-and natural dramatic shadows.
-
-Add believable cinematic atmosphere such as:
-urban skyline,
-marvel superhero environment,
-storm lighting,
-helicopter lights,
-marvel superheros movie background,
-or dramatic action environment.
-
-The image should feel like an official marvel superhero movie promotional poster while still looking exactly like the original real person.
-
-Highly realistic.
-Elegant.
-Powerful.
-Cinematic.
-Recognizable identity.`
+Final Result: The man must look unmistakably like a red-and-black tech-powered Marvel anti-hero — dangerous, cinematic, and visually powerful.`
 
 ]
 

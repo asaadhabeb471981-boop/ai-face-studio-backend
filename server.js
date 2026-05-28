@@ -41,123 +41,105 @@ app.post("/generate", async (req, res) => {
             "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
         const superheroPrompts = [
-            `Transform this person into a cinematic dark superhero from a premium blockbuster movie. ${identityRule} Ultra detailed tactical armor, dramatic stormy sky, glowing purple-blue energy, intense heroic lighting, natural identity-preserving facial detail, atmospheric smoke, epic movie-poster composition, powerful serious expression, premium VFX quality.`,
+    `Transform this person into a realistic premium superhero-style portrait. ${identityRule} Preserve the exact same face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, expression, and natural identity. Use realistic tactical outfit styling, cinematic natural lighting, believable background, premium movie-poster quality, but keep the face real and recognizable. No purple neon, no fantasy glow, no fake actor face.`,
 
-            `Transform this person into a futuristic armored superhero commander. ${identityRule} Sleek high-tech battle suit, glowing chest reactor, neon reflections, cinematic sci-fi city skyline, dramatic rim lighting, natural identity-preserving facial detail, premium blockbuster superhero atmosphere, sharp focus, expensive movie poster quality.`,
+    `Create a realistic heroic portrait of this person. ${identityRule} Keep the same real face, age, skin texture, wrinkles, hairline or baldness, beard if present, and expression. Add a refined dark tactical jacket or subtle armor-inspired outfit, realistic cinematic lighting, dramatic but natural atmosphere, high-end action portrait look. Avoid heavy sci-fi effects or face reconstruction.`,
 
-            `Transform this person into a cosmic superhero legend. ${identityRule} Elegant heroic costume, galaxy energy aura, glowing particles, starfield background, powerful cinematic pose, luxury fantasy-sci-fi lighting, natural identity-preserving facial detail, epic universe-saving atmosphere, ultra premium cinematic realism.`,
-
-            `Transform this person into a tactical night vigilante. ${identityRule} Black luxury armor, rainy city rooftop, dramatic shadows, moody noir lighting, realistic intense expression, cinematic dark hero atmosphere, premium superhero film style, natural identity-preserving facial detail, high-end action poster look.`,
-
-            `Transform this person into a lightning-powered superhero. ${identityRule} Electric energy surrounding the body, storm clouds, glowing blue-purple highlights, cinematic action lighting, realistic facial identity, dramatic superhero pose, ultra detailed armor textures, premium blockbuster realism.`,
-
-            `Transform this person into a mystical superhero guardian. ${identityRule} Elegant magical armor, ancient glowing symbols, purple energy portals, dark fantasy city background, cinematic heroic lighting, realistic face preservation, premium fantasy-superhero movie poster quality.`
-        ]
+    `Transform this person into a grounded modern hero portrait. ${identityRule} Preserve identity strongly. Use premium realistic photography, subtle heroic styling, elegant dark outfit, natural shadows, cinematic background depth, sharp professional detail, and believable realism. Do not make the person look younger or like a different actor.`
+]
 
         const fantasyPrompts = [
-            `Transform this person into a legendary fantasy king or queen from an epic cinematic universe. ${identityRule} Royal enchanted armor, glowing golden crown, majestic throne room, dramatic firelight, ultra realistic fantasy detail, premium medieval atmosphere, cinematic movie-poster lighting, elegant magical realism.`,
+    `Transform this person into a realistic luxury fantasy-inspired portrait. ${identityRule} Preserve exact real face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Use elegant royal clothing, warm cinematic lighting, believable castle or luxury interior background, premium realistic photography. Avoid glowing magic, purple effects, or changing the face.`,
 
-            `Transform this person into a powerful fire mage warrior. ${identityRule} Burning magical energy, glowing runes, volcanic fantasy world, dramatic cinematic lighting, ultra detailed fantasy robes, natural realistic skin detail, premium dark fantasy movie atmosphere.`,
+    `Create a grounded cinematic royal portrait of this person. ${identityRule} Keep the same real identity and natural aging. Add elegant formal clothing, rich warm lighting, realistic luxury background, premium portrait detail, and believable fantasy-inspired atmosphere. Do not make the person younger or actor-like.`,
 
-            `Transform this person into an ancient dragon guardian. ${identityRule} Elegant dragon-scale armor, glowing mystical aura, fantasy mountains, cinematic cloudy sky, realistic heroic face detail, epic magical atmosphere, premium blockbuster fantasy realism.`,
-
-            `Transform this person into a dark fantasy assassin. ${identityRule} Hooded luxury leather armor, smoke effects, moonlit medieval city, mysterious cinematic shadows, realistic intense expression, premium fantasy action movie style.`,
-
-            `Transform this person into an enchanted elf warrior. ${identityRule} Elegant fantasy clothing, magical forest, glowing particles, cinematic green-blue lighting, realistic fantasy styling, premium magical realism, blockbuster fantasy adventure atmosphere.`,
-
-            `Transform this person into a legendary knight commander. ${identityRule} Detailed silver armor, battlefield atmosphere, royal banners, dramatic cinematic lighting, ultra realistic medieval textures, epic fantasy movie-poster quality.`
-        ]
+    `Transform this person into a realistic noble portrait. ${identityRule} Preserve facial identity strongly. Use classic luxury styling, elegant background, natural skin texture, warm light, realistic shadows, and high-end editorial photography. No magic glow, no fantasy skin, no face reconstruction.`
+]
 
         const cyberpunkPrompts = [
-            `Transform this person into a premium cyberpunk hacker from a futuristic blockbuster universe. ${identityRule} Purple-blue neon lighting, holographic interfaces, luxury futuristic streetwear, cinematic rainy megacity atmosphere, natural identity-preserving facial detail, glowing reflections, expensive sci-fi movie quality.`,
+    `Transform this person into a realistic futuristic city portrait. ${identityRule} Preserve exact face identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Use modern futuristic clothing, realistic night city background, subtle blue ambient light, professional cinematic photography. No strong purple neon, no glowing face, no cybernetic face changes.`,
 
-            `Transform this person into a futuristic cybernetic mercenary. ${identityRule} Advanced robotic enhancements, glowing circuitry, metallic textures, cinematic neon reflections, ultra detailed armor, natural realistic skin detail, premium sci-fi realism, dark futuristic atmosphere.`,
+    `Create a believable modern tech-style AI portrait. ${identityRule} Keep the same real person and natural facial details. Use sleek dark clothing, realistic urban background, soft city lights, premium camera depth of field, natural skin texture, and realistic color grading. Avoid fantasy cyberpunk glow or actor replacement.`,
 
-            `Transform this person into a luxury cyberpunk street rebel. ${identityRule} Neon fashion jacket, holographic city alley, dramatic cinematic lighting, futuristic graffiti environment, realistic face preservation, premium social-media viral cyberpunk style.`,
-
-            `Transform this person into a cyber ninja assassin. ${identityRule} Black futuristic armor, glowing energy katana, rooftop neon skyline, smoke atmosphere, cinematic action composition, natural identity-preserving facial detail, premium cyberpunk blockbuster realism.`,
-
-            `Transform this person into a blade-runner style detective. ${identityRule} Long futuristic trench coat, rainy neon streets, moody noir lighting, cinematic sci-fi atmosphere, realistic facial identity, premium futuristic movie-poster realism.`,
-
-            `Transform this person into a futuristic cyber soldier commander. ${identityRule} Tactical sci-fi armor, glowing visor, battlefield neon environment, cinematic dramatic lighting, natural realistic skin detail, blockbuster sci-fi action movie atmosphere.`
-        ]
+    `Transform this person into a premium futuristic professional portrait. ${identityRule} Preserve age, face shape, skin texture, hairline or baldness, beard if present, and expression. Use elegant futuristic outfit, realistic background blur, subtle cinematic lighting, and high-end realistic photography.`
+]
 
         const animePrompts = [
-            `Transform this person into a premium cinematic anime hero. ${identityRule} Identity-preserving premium anime movie quality, expressive detailed eyes, dramatic anime lighting, vibrant cinematic colors, modern blockbuster anime atmosphere, elegant hair detail, premium fantasy-anime styling.`,
+    `Transform this person into a premium cinematic anime character. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, and expression while converting them into a polished anime version. Use high-end modern anime movie rendering, expressive anime eyes, cinematic anime lighting, elegant animated textures, detailed hair rendering, and premium blockbuster anime quality. Avoid turning the person into a completely different anime character.`,
 
-            `Transform this person into a futuristic anime warrior. ${identityRule} High-tech anime armor, glowing neon effects, cinematic sci-fi anime city, dramatic action atmosphere, ultra detailed anime illustration quality, premium anime movie style.`,
+    `Create a realistic luxury anime portrait of this person. ${identityRule} Keep the same recognizable face identity, same age, same facial proportions, same hairstyle or baldness, same beard if present, and same natural expression. Use premium anime illustration quality, cinematic anime atmosphere, elegant color grading, polished anime shading, detailed animated lighting, and believable anime realism.`,
 
-            `Transform this person into an elite anime samurai. ${identityRule} Elegant samurai armor, cherry blossom atmosphere, cinematic anime sunset, premium anime film lighting, ultra polished anime styling, legendary warrior mood.`,
+    `Transform this person into a high-end anime hero portrait. ${identityRule} Preserve facial identity strongly while anime-stylizing the character. Keep the same face shape, age, wrinkles, hairstyle or baldness, beard if present, skin tone, and expression. Use modern anime movie-quality rendering, expressive detailed anime eyes, cinematic lighting, elegant anime background atmosphere, and premium animated realism.`,
 
-            `Transform this person into a dark anime assassin. ${identityRule} Hooded anime ninja outfit, moonlit rooftop, cinematic anime shadows, glowing energy effects, dramatic action composition, premium anime blockbuster atmosphere.`,
+    `Create a premium anime movie-style portrait of this person. ${identityRule} Maintain the exact same recognizable identity and natural facial structure while applying anime stylization. Use clean anime shading, cinematic anime lighting, polished illustration textures, elegant animated atmosphere, and realistic anime proportions. Avoid extreme fantasy transformations or replacing the person's identity.`,
 
-            `Transform this person into a magical anime guardian. ${identityRule} Fantasy anime robes, glowing magical particles, enchanted anime world, elegant cinematic lighting, ultra detailed anime masterpiece quality.`,
+    `Transform this person into a believable cinematic anime character. ${identityRule} Preserve age, wrinkles, baldness or hairstyle, beard if present, face shape, jawline, eyes, nose, lips, and expression while creating a premium anime adaptation. Use modern anime film rendering, soft cinematic lighting, elegant animated depth, detailed anime textures, and blockbuster anime realism.`,
 
-            `Transform this person into an anime legend character. ${identityRule} Heroic anime pose, identity-preserving anime facial detail, cinematic anime background, polished modern anime film quality, premium emotional anime atmosphere.`
-        ]
+    `Create a realistic premium anime avatar of this person. ${identityRule} Keep the same real identity and recognizable facial structure. Use polished anime artwork, cinematic anime lighting, expressive animated facial detail, elegant anime background, and premium movie-quality anime rendering. Avoid making the person look like a generic anime character.`
+]
 
         const professionalPrompts = [
-            `Transform this person into a world-class luxury CEO portrait. ${identityRule} Tailored designer suit, elegant executive office, cinematic studio lighting, natural realistic skin detail, premium business magazine photography, confident expression, expensive luxury atmosphere, sharp focus, high-end professional realism.`,
+    `Transform this person into a realistic premium executive portrait. ${identityRule} Preserve the exact same real identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, expression, and natural imperfections. Use elegant business clothing, realistic studio lighting, premium office background blur, natural skin tones, and high-end LinkedIn-quality photography. Avoid heavy beautification, face smoothing, or actor-like reconstruction.`,
 
-            `Transform this person into a successful tech entrepreneur portrait. ${identityRule} Smart luxury fashion, modern futuristic office, cinematic business lighting, realistic facial detail, premium startup founder aesthetic, elegant color grading, social-media viral quality professional portrait.`,
+    `Create a luxury CEO-style portrait of this person. ${identityRule} Keep the same real face, same age, same wrinkles, same baldness or hairstyle, same beard if present, and same natural expression. Use refined formal clothing, realistic executive office atmosphere, warm professional lighting, premium camera depth of field, and believable business photography realism. No purple lighting, no fantasy effects, no artificial skin.`,
 
-            `Transform this person into a premium cinematic studio portrait. ${identityRule} Premium studio lighting, cinematic background blur, elegant luxury styling, natural realistic skin texture, blockbuster headshot photography, dramatic soft lighting, high-end portrait realism.`,
+    `Transform this person into a premium modern entrepreneur portrait. ${identityRule} Preserve facial identity strongly, including skin texture, age, wrinkles, facial structure, hairline or baldness, beard if present, and natural expression. Use elegant smart-casual business styling, realistic lighting, clean luxury background, and social-media premium photography quality. Keep the portrait believable and natural.`,
 
-            `Transform this person into a high-fashion magazine cover portrait. ${identityRule} Editorial lighting, luxury fashion styling, cinematic photography composition, premium editorial portrait realism, premium facial detail, elegant modern atmosphere, expensive luxury aesthetic.`,
+    `Create a realistic professional headshot of this person. ${identityRule} Maintain the same real identity and natural aging. Use premium studio photography, soft natural lighting, realistic shadows, elegant outfit styling, clean background blur, sharp eyes, and realistic skin detail. Avoid unrealistic beauty enhancement or face reconstruction.`,
 
-            `Transform this person into a luxury executive portrait. ${identityRule} Elegant dark business suit, modern boardroom environment, premium cinematic lighting, realistic confident expression, premium executive portrait quality, ultra polished corporate realism.`,
+    `Transform this person into a realistic luxury personal-brand portrait. ${identityRule} Preserve the exact same face identity, age, skin texture, baldness or hairstyle, beard if present, and expression. Use stylish formal clothing, premium natural color grading, realistic portrait lighting, and believable high-end editorial photography. No cyberpunk, no superhero styling, no glowing effects.`,
 
-            `Transform this person into a premium personal brand portrait. ${identityRule} Soft cinematic studio lighting, elegant professional aesthetic, modern luxury fashion, natural realistic skin texture, premium social media photography, polished professional realism.`
-        ]
+    `Create a believable premium business portrait of this person. ${identityRule} Keep the same real face, same natural wrinkles, same skin detail, same facial structure, and same expression. Upgrade only the outfit, lighting, and background into a realistic high-end professional portrait. Use elegant photography, natural cinematic lighting, and premium executive atmosphere.`
+]
 
         const headshotPrompts = [
-            `Transform this person into an ultra realistic premium studio headshot. ${identityRule} Clean professional lighting, sharp facial detail, natural skin texture, elegant neutral background, premium LinkedIn-quality portrait photography.`,
+    `Transform this person into a realistic premium studio headshot. ${identityRule} Preserve the exact same real identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, and natural expression. Use clean professional studio lighting, realistic skin detail, elegant neutral background blur, premium camera quality, and believable LinkedIn-style photography. Avoid heavy beautification or unrealistic face reconstruction.`,
 
-            `Transform this person into a luxury executive headshot. ${identityRule} Tailored professional outfit, modern office background blur, cinematic studio lighting, confident natural expression, natural identity-preserving facial detail.`,
+    `Create a luxury executive headshot of this person. ${identityRule} Keep the same real face, same natural aging, same wrinkles, same skin texture, same baldness or hairstyle, same beard if present, and same expression. Use elegant formal clothing, realistic office or studio background blur, soft cinematic lighting, premium professional photography, and natural color grading.`,
 
-            `Transform this person into a premium close-up studio headshot. ${identityRule} Soft cinematic lighting, elegant background blur, realistic skin detail, sharp eyes, premium portrait photography.`,
+    `Transform this person into a realistic high-end business profile portrait. ${identityRule} Preserve facial identity strongly, including natural skin texture, facial proportions, age, wrinkles, hairline or baldness, beard if present, and expression. Use refined professional styling, clean studio lighting, sharp portrait detail, and believable premium corporate photography.`,
 
-            `Transform this person into a high-end corporate profile photo. ${identityRule} Clean business outfit, professional studio background, soft realistic lighting, natural expression, polished premium photography.`,
+    `Create a realistic premium close-up portrait of this person. ${identityRule} Keep the same face identity and natural imperfections. Use elegant portrait lighting, realistic shadows, clean background blur, premium lens depth of field, sharp eyes, and realistic skin detail. Avoid excessive skin smoothing, glamor effects, or artificial beauty enhancement.`,
 
-            `Transform this person into a luxury personal branding headshot. ${identityRule} Elegant modern styling, soft cinematic studio lighting, realistic facial detail, premium social media profile portrait.`,
+    `Transform this person into a polished luxury personal-brand headshot. ${identityRule} Preserve the same real person, including age, wrinkles, skin texture, facial structure, baldness or hairstyle, beard if present, and expression. Use premium studio lighting, elegant wardrobe styling, realistic background blur, and high-end editorial photography realism.`,
 
-            `Transform this person into a natural realistic passport-style studio portrait but premium. ${identityRule} Clean background, balanced lighting, accurate face identity, realistic skin texture, sharp professional photo quality.`
-        ]
+    `Create a believable premium social-media headshot portrait. ${identityRule} Maintain exact facial identity and realistic natural aging. Use realistic cinematic photography, elegant soft lighting, natural skin tones, clean luxury background, and professional portrait quality. No cyberpunk, no fantasy effects, no purple neon lighting, and no actor-like face replacement.`
+]
 
         const aiAvatarPrompts = [
-            `Transform this person into an ultra premium futuristic AI avatar. ${identityRule} Natural identity-preserving facial detail, luxury sci-fi aesthetic, glowing holographic particles, cinematic purple-blue neon lighting, elegant futuristic fashion, premium movie-poster atmosphere, natural realistic skin detail, sharp focus, blockbuster visual effects.`,
+    `Transform this person into a realistic premium AI avatar portrait. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, skin texture, expression, and natural imperfections. Upgrade the outfit into elegant modern luxury clothing. Use realistic cinematic photography, natural skin texture, premium golden-hour lighting, soft background blur, luxury lifestyle atmosphere, high-end portrait quality. Do not use purple lighting, neon lighting, cyberpunk effects, glowing particles, fantasy colors, or superhero styling.`,
 
-            `Transform this person into a futuristic cybernetic luxury avatar. ${identityRule} Glowing AI circuitry, sleek futuristic outfit, cinematic sci-fi environment, realistic facial identity, elegant holographic lighting, premium futuristic realism, expensive movie-quality visuals.`,
+    `Create a high-end realistic AI portrait of this person. ${identityRule} Keep the same face, same age, same wrinkles, same baldness or hairstyle, same facial proportions, same expression, and same skin realism. Give the person a refined luxury portrait look with elegant clothing, natural warm lighting, realistic background, premium camera depth of field, and believable professional photography. No purple, no neon, no sci-fi armor, no cyberpunk, no fantasy effects.`,
 
-            `Transform this person into a cinematic AI-powered hero portrait. ${identityRule} Dramatic purple energy glow, futuristic armor accents, natural realistic skin texture, volumetric cinematic lighting, elegant sci-fi atmosphere, premium blockbuster portrait quality.`,
+    `Transform this person into a realistic luxury social-media AI avatar. ${identityRule} Preserve real identity strongly, including age, wrinkles, face shape, baldness or hairstyle, facial hair, skin tone, and expression. Use premium realistic portrait lighting, stylish modern outfit, elegant background, natural color grading, sharp professional detail, and believable cinematic realism. Avoid artificial purple colors, neon glow, holograms, cyberpunk effects, superhero armor, or dramatic face reconstruction.`,
 
-            `Transform this person into a luxury neon futuristic portrait. ${identityRule} Purple and blue neon reflections, dark futuristic city atmosphere, premium social-media viral quality, realistic face preservation, elegant cyber-fashion styling.`,
+    `Create a realistic premium lifestyle avatar portrait. ${identityRule} Keep the person recognizable as the exact same real person. Preserve facial structure, age, wrinkles, skin texture, baldness or hairline, beard if present, clothing identity where possible, and natural expression. Upgrade only the background, lighting, and outfit in a realistic luxury way. Use warm natural light, realistic shadows, premium photography, and clean social-media portrait quality.`,
 
-            `Transform this person into a futuristic metaverse portrait. ${identityRule} Natural realistic skin detail, luxury futuristic fashion, holographic environment, cinematic studio lighting, premium identity-preserving avatar realism.`,
+    `Transform this person into a luxury realistic AI head-and-shoulders portrait. ${identityRule} Preserve the same real face, same age, same natural skin texture, same baldness or hairstyle, same eyes, nose, lips, cheeks, jawline, and expression. Use elegant clothing, realistic studio lighting, soft neutral background, premium camera quality, and natural color grading. Do not create a different actor-like person. Do not use purple, neon, cyberpunk, fantasy, or superhero elements.`,
 
-            `Transform this person into a premium AI cinematic character. ${identityRule} Elegant futuristic atmosphere, glowing particles, luxury sci-fi textures, realistic face identity, blockbuster cinematic realism, ultra premium visual quality.`
-        ]
+    `Create a believable premium AI portrait upgrade of this person. ${identityRule} Maintain exact identity and natural aging. Keep wrinkles, skin details, baldness or hairstyle, beard if present, face shape, and expression. Use realistic luxury portrait photography, elegant outfit styling, warm cinematic lighting, high-end background, and natural professional color grading. The output should look like a real premium photo, not a sci-fi character.`
+]
 
         const cartoonPrompts = [
-            `Transform this person into a premium animated movie character. ${identityRule} Ultra polished Pixar-style 3D animation, cinematic animated lighting, expressive eyes, colorful premium atmosphere, stylized animated shading, premium animated character styling, blockbuster animated movie quality.`,
+    `Transform this person into a premium 3D animated movie character. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, facial structure, expression, and recognizable face proportions while converting them into a polished animated character. Use clean Pixar-style 3D rendering, cinematic animated lighting, expressive animated eyes, smooth stylized textures, premium movie-quality cartoon shading, and realistic character depth. Avoid turning the person into a completely different cartoon character.`,
 
-            `Transform this person into a modern cartoon superhero. ${identityRule} Bold animated outlines, vibrant cinematic colors, dramatic cartoon action atmosphere, polished comic-animation styling, premium animated movie lighting.`,
+    `Create a luxury modern cartoon avatar of this person. ${identityRule} Keep the same recognizable face identity, age, skin tone, hairstyle or baldness, beard if present, expression, and facial proportions. Use high-end animated rendering, elegant colorful lighting, premium social-media cartoon styling, smooth animated textures, and cinematic 3D cartoon realism. The result should look like a believable animated version of the same person.`,
 
-            `Transform this person into a luxury 3D cartoon avatar. ${identityRule} Smooth cinematic shading, premium animated textures, cheerful colorful background, ultra detailed animated design, premium animated character styling, social-media viral quality.`,
+    `Transform this person into a realistic animated film character. ${identityRule} Preserve identity strongly while stylizing into premium animation. Keep the same facial proportions, natural expression, age, wrinkles, hairline or baldness, beard if present, and recognizable features. Use cinematic cartoon lighting, polished 3D animated shading, expressive eyes, elegant background atmosphere, and blockbuster animated movie quality.`,
 
-            `Transform this person into a retro animated character. ${identityRule} Vintage cartoon atmosphere, warm cinematic colors, polished animated textures, playful premium animation style, elegant nostalgic cartoon styling.`,
+    `Create a polished premium cartoon portrait of this person. ${identityRule} Preserve the same real person and recognizable identity. Use soft stylized animated skin, elegant cartoon lighting, smooth rendering, expressive animated facial detail, realistic depth, and modern social-media premium cartoon quality. Avoid excessive caricature distortion or unrealistic face changes.`,
 
-            `Transform this person into a modern social media cartoon avatar. ${identityRule} Stylish colorful background, premium animated influencer aesthetic, cinematic cartoon lighting, polished facial detail, high-end animated styling.`,
+    `Transform this person into a high-end animated studio portrait. ${identityRule} Keep the same recognizable face, same age, same hairstyle or baldness, same beard if present, and same expression while applying premium cartoon stylization. Use clean animated rendering, luxury color grading, cinematic cartoon atmosphere, and polished 3D character realism.`,
 
-            `Transform this person into a cinematic caricature portrait. ${identityRule} Slightly stylized facial features while preserving identity, premium animated lighting, premium animated character styling, blockbuster animated illustration quality.`
-        ]
+    `Create a believable premium animated avatar of this person. ${identityRule} Preserve the exact same identity and natural facial structure while converting into a stylized animated character. Use elegant animated textures, cinematic lighting, expressive cartoon detail, premium 3D rendering, and modern blockbuster animation quality. Avoid making the character look like a completely different person.`
+]
 
         const moodText =
-            mood === "Serious"
-                ? "Use a serious intense expression, darker lighting, dramatic mood."
-                : mood === "Luxury"
-                    ? "Use luxury premium styling, elegant lighting, expensive fashion look."
-                    : "Use cinematic lighting, balanced dramatic style, premium movie-poster quality."
+    mood === "Serious"
+        ? "Use a serious confident expression, realistic natural shadows, mature premium portrait mood."
+        : mood === "Luxury"
+            ? "Use luxury realistic styling, elegant clothing, warm premium lighting, high-end portrait atmosphere."
+            : "Use realistic cinematic lighting, natural color grading, premium portrait quality."
 
         const strengthText =
             styleName === "Cartoon"
@@ -283,20 +265,20 @@ let styleIntensityRule = ""
 if (strength === "Accurate") {
 
     styleIntensityRule =
-        "PHOTO-REALISTIC ACCURATE FACE MODE: Preserve the uploaded person's real face almost unchanged. Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, baldness or hairline, beard if present, clothing, expression, and natural imperfections. Do not make the person younger. Do not beautify. Do not smooth skin. Do not slim the face. Do not sharpen the jawline. Do not restore hair. Do not add dramatic purple, magenta, neon, cyberpunk, fantasy, or colored lighting. Use natural realistic lighting and only very subtle cinematic enhancement. The final image must look like the same original person, not a different AI actor."
+        "ACCURATE MODE: Preserve the uploaded person's real identity extremely closely. Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, baldness or hairstyle, beard if present, clothing, expression, and natural imperfections. Do not make the person younger. Do not beautify heavily. Do not smooth skin excessively. Do not slim the face. Do not sharpen the jawline. Do not restore hair. Use realistic natural lighting, realistic skin tones, and subtle premium enhancement only. The final image must still clearly look like the same real person."
 
 } else if (strength === "Extreme") {
 
     styleIntensityRule =
-        "Apply a strong dramatic cinematic transformation while keeping the person recognizable."
+        "EXTREME MODE: Apply a strong premium cinematic AI transformation while keeping the person recognizable. Allow stronger styling, dramatic atmosphere, outfit upgrades, cinematic lighting, and visual enhancement, but preserve the same real identity, age, facial structure, baldness or hairstyle, beard if present, skin tone, and expression."
 
 } else {
 
     styleIntensityRule =
-        "Apply balanced premium cinematic styling while preserving identity."
+        "BALANCED MODE: Apply realistic premium AI portrait styling while keeping the person clearly recognizable. Preserve the same face identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, and expression. Allow stylish cinematic enhancement, elegant outfit upgrades, premium portrait lighting, and realistic atmosphere while avoiding fake actor replacement, excessive beauty enhancement, unrealistic skin smoothing, purple neon glow, or heavy face reconstruction."
 }
 
-        prompt = `
+prompt = `
 ${prompt}
 
 ${moodText}
@@ -316,15 +298,15 @@ Keep the exact same real person.
 Strongly preserve facial identity.
 Preserve age, wrinkles, skin texture, baldness or hairstyle, beard if present, face shape, jawline, nose, eyes, lips, and expression.
 
-Allow AI Avatar styling, outfit styling, cinematic atmosphere, and environment changes,
+Allow realistic outfit styling, premium portrait enhancement, cinematic atmosphere, and environment upgrades,
 BUT keep the face highly recognizable.
 
-Do not replace the person with a different attractive AI actor.
+Do not replace the person with a different attractive actor-like face.
 Do not heavily reconstruct the face.
 Do not dramatically change facial proportions.
 Avoid excessive beauty enhancement.
-Use more natural realistic skin texture.
-Reduce excessive purple neon lighting on the face.
+Avoid unrealistic skin smoothing.
+Use natural realistic skin texture and realistic lighting.
 `
 }
 
@@ -383,19 +365,19 @@ Reduce excessive purple neon lighting on the face.
     safety_tolerance: 2,
 
     guidance_scale:
-    strength === "Accurate" ? 2.2 :
-    strength === "Balanced" ? 3.0 :
-    4.0,
+    strength === "Accurate" ? 2.0 :
+    strength === "Balanced" ? 2.8 :
+    3.6,
 
 num_inference_steps:
-    strength === "Accurate" ? 28 :
-    strength === "Balanced" ? 34 :
-    40,
+    strength === "Accurate" ? 26 :
+    strength === "Balanced" ? 32 :
+    38,
 
 prompt_strength:
-    strength === "Accurate" ? 0.35 :
-    strength === "Balanced" ? 0.58 :
-    0.82
+    strength === "Accurate" ? 0.32 :
+    strength === "Balanced" ? 0.52 :
+    0.72
 }
             },
             {

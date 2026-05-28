@@ -10,693 +10,568 @@ const app = express()
 app.use(cors())
 app.use(express.json({ limit: "50mb" }))
 
+const PORT = process.env.PORT || 3000
+const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN
+
+if (!REPLICATE_TOKEN) {
+    console.error("Missing REPLICATE_API_TOKEN in .env")
+}
+
 app.get("/", (req, res) => {
     res.send("AI Face Studio Backend Running")
 })
 
-app.post("/generate", async (req, res) => {
+function pickRandom(items) {
+    return items[Math.floor(Math.random() * items.length)]
+}
 
-    try {
+function cleanBase64(imageBase64) {
+    if (!imageBase64) throw new Error("Missing imageBase64")
+    return imageBase64.replace(/^data:image\/\w+;base64,/, "")
+}
 
-        const {
-            styleName,
-            imageBase64,
-            mood,
-            strength,
-            variation,
-            genderMode
-        } = req.body
+async function uploadBase64Image(imageBase64, filename = "photo.jpg") {
+    const imageBuffer = Buffer.from(cleanBase64(imageBase64), "base64")
 
-        console.log("Mood:", mood)
-        console.log("Strength:", strength)
-        console.log("Variation:", variation)
-        console.log("Gender Mode:", genderMode)
-        console.log("Style:", styleName)
+    const form = new FormData()
 
-        const pickRandom = (items) => {
-            return items[Math.floor(Math.random() * items.length)]
+    form.append("content", imageBuffer, {
+        filename,
+        contentType: "image/jpeg"
+    })
+
+    const response = await axios.post(
+        "https://api.replicate.com/v1/files",
+        form,
+        {
+            headers: {
+                Authorization: `Token ${REPLICATE_TOKEN}`,
+                ...form.getHeaders()
+            }
+        }
+    )
+
+    return response.data.urls.get
+}
+
+async function startPrediction(model, input) {
+    const response = await axios.post(
+        `https://api.replicate.com/v1/models/${model}/predictions`,
+        { input },
+        {
+            headers: {
+                Authorization: `Token ${REPLICATE_TOKEN}`,
+                "Content-Type": "application/json"
+            }
+        }
+    )
+
+    return response.data.id
+}
+
+async function waitForPrediction(predictionId, label = "Prediction") {
+    for (let i = 0; i < 45; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        const response = await axios.get(
+            `https://api.replicate.com/v1/predictions/${predictionId}`,
+            {
+                headers: {
+                    Authorization: `Token ${REPLICATE_TOKEN}`
+                }
+            }
+        )
+
+        const prediction = response.data
+
+        console.log(`${label} status:`, prediction.status)
+
+        if (prediction.status === "succeeded") {
+            return Array.isArray(prediction.output)
+                ? prediction.output[0]
+                : prediction.output
         }
 
-        const identityRule =
-            "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
-
-        const MarvelsuperheroesPrompts = [
-
-`Using the uploaded image as the identity reference, transform the same person into a powerful Marvel Cinematic Universe superhero. The result must look like a real $200M Marvel movie still with iconic superhero presence, cinematic energy, and visually spectacular design.
-
-The superhero must look like the exact same real person from the uploaded image wearing a Marvel superhero costume, NOT a different actor or celebrity replacement.
-
-Preserve forehead size, wrinkles, eye bags, skin texture, baldness or hairline, nose shape, cheek volume, jawline shape, lip shape, and facial asymmetry exactly.
-
-IMPORTANT: ${identityRule} Preserve the exact same real face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, jawline, eyes, nose, lips, and expression realism. The person must remain clearly recognizable.
-
-Appearance: Premium Marvel superhero suit with elegant cinematic design. Futuristic heroic materials, glowing energy details, luxury superhero textures, high-end Marvel costume realism, advanced heroic styling, cinematic superhero silhouette, visually iconic and powerful. NOT military tactical gear. NOT street clothing. NOT minimalist.
-
-Powers: Strong cinematic energy powers surrounding the body. Controlled glowing energy effects, cinematic particles, realistic Marvel-style VFX, subtle energy aura, environmental interaction, blockbuster-level superhuman presence.
-
-Environment: Epic Marvel cinematic environment. Futuristic city skyline, atmospheric smoke, cinematic destruction, energy reflections, blockbuster scale, premium movie atmosphere.
-
-Lighting: High-end Marvel movie lighting. Dramatic cinematic key light, glowing energy reflections, volumetric lighting, realistic shadows, powerful heroic mood, premium blockbuster color grading.
-
-Camera & Quality: IMAX / ARRI Alexa cinematic photography. Ultra realistic 4K Marvel movie realism. Epic superhero composition. Premium blockbuster visual quality.
-
-Style Rules: Must look like a true Marvel superhero movie scene. NOT tactical anti-hero. NOT military combat suit. NOT street vigilante. Must feel iconic, powerful, cinematic, and superhuman while preserving the same real person.`
-
-]
-
-        const fantasyPrompts = [
-    `Transform this person into a realistic luxury fantasy-inspired portrait. ${identityRule} Preserve exact real face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Use elegant royal clothing, warm cinematic lighting, believable castle or luxury interior background, premium realistic photography. Avoid glowing magic, purple effects, or changing the face.`,
-
-    `Create a grounded cinematic royal portrait of this person. ${identityRule} Keep the same real identity and natural aging. Add elegant formal clothing, rich warm lighting, realistic luxury background, premium portrait detail, and believable fantasy-inspired atmosphere. Do not make the person younger or actor-like.`,
-
-    `Transform this person into a realistic noble portrait. ${identityRule} Preserve facial identity strongly. Use classic luxury styling, elegant background, natural skin texture, warm light, realistic shadows, and high-end editorial photography. No magic glow, no fantasy skin, no face reconstruction.`
-]
-
-        const cyberpunkPrompts = [
-    `Transform this person into a realistic futuristic city portrait. ${identityRule} Preserve exact face identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Use modern futuristic clothing, realistic night city background, subtle blue ambient light, professional cinematic photography. No strong purple neon, no glowing face, no cybernetic face changes.`,
-
-    `Create a believable modern tech-style AI portrait. ${identityRule} Keep the same real person and natural facial details. Use sleek dark clothing, realistic urban background, soft city lights, premium camera depth of field, natural skin texture, and realistic color grading. Avoid fantasy cyberpunk glow or actor replacement.`,
-
-    `Transform this person into a premium futuristic professional portrait. ${identityRule} Preserve age, face shape, skin texture, hairline or baldness, beard if present, and expression. Use elegant futuristic outfit, realistic background blur, subtle cinematic lighting, and high-end realistic photography.`
-]
-
-        const animePrompts = [
-    `Transform this person into a premium cinematic anime character. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, and expression while converting them into a polished anime version. Use high-end modern anime movie rendering, expressive anime eyes, cinematic anime lighting, elegant animated textures, detailed hair rendering, and premium blockbuster anime quality. Avoid turning the person into a completely different anime character.`,
-
-    `Create a realistic luxury anime portrait of this person. ${identityRule} Keep the same recognizable face identity, same age, same facial proportions, same hairstyle or baldness, same beard if present, and same natural expression. Use premium anime illustration quality, cinematic anime atmosphere, elegant color grading, polished anime shading, detailed animated lighting, and believable anime realism.`,
-
-    `Transform this person into a high-end anime hero portrait. ${identityRule} Preserve facial identity strongly while anime-stylizing the character. Keep the same face shape, age, wrinkles, hairstyle or baldness, beard if present, skin tone, and expression. Use modern anime movie-quality rendering, expressive detailed anime eyes, cinematic lighting, elegant anime background atmosphere, and premium animated realism.`,
-
-    `Create a premium anime movie-style portrait of this person. ${identityRule} Maintain the exact same recognizable identity and natural facial structure while applying anime stylization. Use clean anime shading, cinematic anime lighting, polished illustration textures, elegant animated atmosphere, and realistic anime proportions. Avoid extreme fantasy transformations or replacing the person's identity.`,
-
-    `Transform this person into a believable cinematic anime character. ${identityRule} Preserve age, wrinkles, baldness or hairstyle, beard if present, face shape, jawline, eyes, nose, lips, and expression while creating a premium anime adaptation. Use modern anime film rendering, soft cinematic lighting, elegant animated depth, detailed anime textures, and blockbuster anime realism.`,
-
-    `Create a realistic premium anime avatar of this person. ${identityRule} Keep the same real identity and recognizable facial structure. Use polished anime artwork, cinematic anime lighting, expressive animated facial detail, elegant anime background, and premium movie-quality anime rendering. Avoid making the person look like a generic anime character.`
-]
-
-        const professionalPrompts = [
-    `Transform this person into a realistic premium executive portrait. ${identityRule} Preserve the exact same real identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, expression, and natural imperfections. Use elegant business clothing, realistic studio lighting, premium office background blur, natural skin tones, and high-end LinkedIn-quality photography. Avoid heavy beautification, face smoothing, or actor-like reconstruction.`,
-
-    `Create a luxury CEO-style portrait of this person. ${identityRule} Keep the same real face, same age, same wrinkles, same baldness or hairstyle, same beard if present, and same natural expression. Use refined formal clothing, realistic executive office atmosphere, warm professional lighting, premium camera depth of field, and believable business photography realism. No purple lighting, no fantasy effects, no artificial skin.`,
-
-    `Transform this person into a premium modern entrepreneur portrait. ${identityRule} Preserve facial identity strongly, including skin texture, age, wrinkles, facial structure, hairline or baldness, beard if present, and natural expression. Use elegant smart-casual business styling, realistic lighting, clean luxury background, and social-media premium photography quality. Keep the portrait believable and natural.`,
-
-    `Create a realistic professional headshot of this person. ${identityRule} Maintain the same real identity and natural aging. Use premium studio photography, soft natural lighting, realistic shadows, elegant outfit styling, clean background blur, sharp eyes, and realistic skin detail. Avoid unrealistic beauty enhancement or face reconstruction.`,
-
-    `Transform this person into a realistic luxury personal-brand portrait. ${identityRule} Preserve the exact same face identity, age, skin texture, baldness or hairstyle, beard if present, and expression. Use stylish formal clothing, premium natural color grading, realistic portrait lighting, and believable high-end editorial photography. No cyberpunk, no superhero styling, no glowing effects.`,
-
-    `Create a believable premium business portrait of this person. ${identityRule} Keep the same real face, same natural wrinkles, same skin detail, same facial structure, and same expression. Upgrade only the outfit, lighting, and background into a realistic high-end professional portrait. Use elegant photography, natural cinematic lighting, and premium executive atmosphere.`
-]
-
-        const headshotPrompts = [
-    `Transform this person into a realistic premium studio headshot. ${identityRule} Preserve the exact same real identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, and natural expression. Use clean professional studio lighting, realistic skin detail, elegant neutral background blur, premium camera quality, and believable LinkedIn-style photography. Avoid heavy beautification or unrealistic face reconstruction.`,
-
-    `Create a luxury executive headshot of this person. ${identityRule} Keep the same real face, same natural aging, same wrinkles, same skin texture, same baldness or hairstyle, same beard if present, and same expression. Use elegant formal clothing, realistic office or studio background blur, soft cinematic lighting, premium professional photography, and natural color grading.`,
-
-    `Transform this person into a realistic high-end business profile portrait. ${identityRule} Preserve facial identity strongly, including natural skin texture, facial proportions, age, wrinkles, hairline or baldness, beard if present, and expression. Use refined professional styling, clean studio lighting, sharp portrait detail, and believable premium corporate photography.`,
-
-    `Create a realistic premium close-up portrait of this person. ${identityRule} Keep the same face identity and natural imperfections. Use elegant portrait lighting, realistic shadows, clean background blur, premium lens depth of field, sharp eyes, and realistic skin detail. Avoid excessive skin smoothing, glamor effects, or artificial beauty enhancement.`,
-
-    `Transform this person into a polished luxury personal-brand headshot. ${identityRule} Preserve the same real person, including age, wrinkles, skin texture, facial structure, baldness or hairstyle, beard if present, and expression. Use premium studio lighting, elegant wardrobe styling, realistic background blur, and high-end editorial photography realism.`,
-
-    `Create a believable premium social-media headshot portrait. ${identityRule} Maintain exact facial identity and realistic natural aging. Use realistic cinematic photography, elegant soft lighting, natural skin tones, clean luxury background, and professional portrait quality. No cyberpunk, no fantasy effects, no purple neon lighting, and no actor-like face replacement.`
-]
-
-        const aiAvatarPrompts = [
-    `Transform this person into a realistic premium AI avatar portrait. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, skin texture, expression, and natural imperfections. Upgrade the outfit into elegant modern luxury clothing. Use realistic cinematic photography, natural skin texture, premium golden-hour lighting, soft background blur, luxury lifestyle atmosphere, high-end portrait quality. Do not use purple lighting, neon lighting, cyberpunk effects, glowing particles, fantasy colors, or superhero styling.`,
-
-    `Create a high-end realistic AI portrait of this person. ${identityRule} Keep the same face, same age, same wrinkles, same baldness or hairstyle, same facial proportions, same expression, and same skin realism. Give the person a refined luxury portrait look with elegant clothing, natural warm lighting, realistic background, premium camera depth of field, and believable professional photography. No purple, no neon, no sci-fi marvel superheroes, no cyberpunk, no fantasy effects.`,
-
-    `Transform this person into a realistic luxury social-media AI avatar. ${identityRule} Preserve real identity strongly, including age, wrinkles, face shape, baldness or hairstyle, facial hair, skin tone, and expression. Use premium realistic portrait lighting, stylish modern outfit, elegant background, natural color grading, sharp professional detail, and believable cinematic realism. Avoid artificial purple colors, neon glow, holograms, cyberpunk effects, marvelsuperrheroes, or dramatic face reconstruction.`,
-
-    `Create a realistic premium lifestyle avatar portrait. ${identityRule} Keep the person recognizable as the exact same real person. Preserve facial structure, age, wrinkles, skin texture, baldness or hairline, beard if present, clothing identity where possible, and natural expression. Upgrade only the background, lighting, and outfit in a realistic luxury way. Use warm natural light, realistic shadows, premium photography, and clean social-media portrait quality.`,
-
-    `Transform this person into a luxury realistic AI head-and-shoulders portrait. ${identityRule} Preserve the same real face, same age, same natural skin texture, same baldness or hairstyle, same eyes, nose, lips, cheeks, jawline, and expression. Use elegant clothing, realistic studio lighting, soft neutral background, premium camera quality, and natural color grading. Do not create a different actor-like person. Do not use purple, neon, cyberpunk, fantasy, or superhero elements.`,
-
-    `Create a believable premium AI portrait upgrade of this person. ${identityRule} Maintain exact identity and natural aging. Keep wrinkles, skin details, baldness or hairstyle, beard if present, face shape, and expression. Use realistic luxury portrait photography, elegant outfit styling, warm cinematic lighting, high-end background, and natural professional color grading. The output should look like a real premium photo, not a sci-fi character.`
-]
-
-        const cartoonPrompts = [
-    `Transform this person into a premium 3D animated movie character. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, facial structure, expression, and recognizable face proportions while converting them into a polished animated character. Use clean Pixar-style 3D rendering, cinematic animated lighting, expressive animated eyes, smooth stylized textures, premium movie-quality cartoon shading, and realistic character depth. Avoid turning the person into a completely different cartoon character.`,
-
-    `Create a luxury modern cartoon avatar of this person. ${identityRule} Keep the same recognizable face identity, age, skin tone, hairstyle or baldness, beard if present, expression, and facial proportions. Use high-end animated rendering, elegant colorful lighting, premium social-media cartoon styling, smooth animated textures, and cinematic 3D cartoon realism. The result should look like a believable animated version of the same person.`,
-
-    `Transform this person into a realistic animated film character. ${identityRule} Preserve identity strongly while stylizing into premium animation. Keep the same facial proportions, natural expression, age, wrinkles, hairline or baldness, beard if present, and recognizable features. Use cinematic cartoon lighting, polished 3D animated shading, expressive eyes, elegant background atmosphere, and blockbuster animated movie quality.`,
-
-    `Create a polished premium cartoon portrait of this person. ${identityRule} Preserve the same real person and recognizable identity. Use soft stylized animated skin, elegant cartoon lighting, smooth rendering, expressive animated facial detail, realistic depth, and modern social-media premium cartoon quality. Avoid excessive caricature distortion or unrealistic face changes.`,
-
-    `Transform this person into a high-end animated studio portrait. ${identityRule} Keep the same recognizable face, same age, same hairstyle or baldness, same beard if present, and same expression while applying premium cartoon stylization. Use clean animated rendering, luxury color grading, cinematic cartoon atmosphere, and polished 3D character realism.`,
-
-    `Create a believable premium animated avatar of this person. ${identityRule} Preserve the exact same identity and natural facial structure while converting into a stylized animated character. Use elegant animated textures, cinematic lighting, expressive cartoon detail, premium 3D rendering, and modern blockbuster animation quality. Avoid making the character look like a completely different person.`
-]
-
-        const moodText =
-    mood === "Serious"
-        ? "Use a serious confident expression, realistic natural shadows, mature premium portrait mood."
-        : mood === "Luxury"
-            ? "Use luxury realistic styling, elegant clothing, warm premium lighting, high-end portrait atmosphere."
-            : "Use realistic cinematic lighting, natural color grading, premium portrait quality."
-
-        const strengthText =
-            styleName === "Cartoon"
-
-                ? "CARTOON MODE: The final image must be clearly non-photorealistic and animated. Use a premium 3D cartoon or animated movie character style with stylized skin, expressive animated eyes, clean cartoon shading, simplified facial planes, illustration textures, and a high-end animated film appearance. Do not output a realistic human photo. Do not keep realistic photographic skin texture. Preserve the person's real identity, gender, age, baldness or hairstyle, beard if present, clothes, face structure, and expression while converting them into a clearly animated character."
-
-                : styleName === "Anime"
-
-                    ? "ANIME MODE: Create a clearly anime-styled character with cinematic anime rendering, illustrated textures, anime facial styling, stylized lighting, and premium anime artwork quality. Preserve the same real identity, age, baldness or hairstyle, beard if present, clothes, face proportions, expression, and gender. Do not turn the person into a completely different anime character. Keep the same recognizable person while anime-stylizing them."
-
-                    : strength === "Accurate"
-
-    ? "PHOTO-REALISTIC ACCURATE FACE MODE: Preserve the uploaded person's real identity almost unchanged. This is not a makeover. This is not a fantasy portrait. Keep the same real face, same age, same wrinkles, same forehead lines, same skin texture, same eye bags, same nose, same lips, same cheeks, same jawline, same baldness or hairline, same beard if present, same clothing, same expression, and same natural imperfections. Do not make the person younger. Do not beautify. Do not smooth skin. Do not sharpen jawline. Do not slim face. Do not restore hair. Do not add dramatic purple neon lighting. Do not heavily recolor the face. Use natural realistic lighting and only very subtle cinematic enhancement. The final image must look like the same original person, not a different AI actor."
-
-                        : strength === "Extreme"
-
-                            ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle or baldness, beard if present, clothes, and skin tone while applying stronger cinematic styling."
-
-                            : "BALANCED MODE: Create a premium cinematic AI transformation while keeping the person clearly recognizable. Preserve the same real identity, face shape, age, wrinkles, hairstyle or baldness, beard if present, eyes, nose, lips, jawline, skin tone, clothing, and expression. Allow noticeable AI styling, cinematic atmosphere, improved lighting, stylish outfit enhancement, and premium visual polish, but avoid replacing the person with a different actor-like face. Avoid excessive face reconstruction, extreme beautification, unrealistic symmetry, or over-processed skin. Keep the result stylish, realistic, and social-media premium."
-
-        let genderRule = ""
-
-        if (genderMode === "Female") {
-
-            genderRule =
-                "The input person is female. Keep her female. Preserve feminine facial features, hairstyle, body shape, age, and natural expression. Do not masculinize the person. Do not add masculine jawline, beard, mustache, or male appearance."
-
-        } else if (genderMode === "Male") {
-
-            genderRule =
-                "The input person is male. Keep him male. Preserve masculine facial features, beard if present, hairstyle, body shape, age, and expression."
-
-        } else {
-
-            genderRule =
-                "Preserve the person's original gender presentation exactly as shown in the input image."
+        if (prediction.status === "failed" || prediction.status === "canceled") {
+            console.log(prediction)
+            throw new Error(`${label} failed`)
         }
-
-        let prompt = ""
-
-        switch (styleName) {
-
-            case "AI Avatar":
-
-                if (variation === "Variation 1") {
-                    prompt = `${genderRule}\n\n${aiAvatarPrompts[0]}`
-                }
-                else if (variation === "Variation 2") {
-                    prompt = `${genderRule}\n\n${aiAvatarPrompts[1]}`
-                }
-                else if (variation === "Variation 3") {
-                    prompt = `${genderRule}\n\n${aiAvatarPrompts[2]}`
-                }
-                else {
-                    prompt = `${genderRule}\n\n${pickRandom(aiAvatarPrompts)}`
-                }
-
-                break
-
-            case "Superhero":
-
-    if (variation === "Variation 1") {
-
-        prompt = `
-${genderRule}
-
-${MarvelsuperheroesPrompts[0]}
-`
-
-    }
-    else if (variation === "Variation 2") {
-
-        prompt = `
-${genderRule}
-
-${MarvelsuperheroesPrompts[1]}
-`
-
-    }
-    else if (variation === "Variation 3") {
-
-        prompt = `
-${genderRule}
-
-${MarvelsuperheroesPrompts[2]}
-`
-
-    }
-    else {
-
-        prompt = `
-${genderRule}
-
-${pickRandom(MarvelsuperheroesPrompts)}
-`
     }
 
-    break
+    throw new Error(`${label} timeout`)
+}
 
-            case "Fantasy":
-                prompt = `${genderRule}\n\n${pickRandom(fantasyPrompts)}`
-                break
+function getGenderRule(genderMode) {
+    if (genderMode === "Female") {
+        return "The input person is female. Keep her female. Preserve feminine facial features, hairstyle, body shape, age, and natural expression. Do not masculinize the person. Do not add masculine jawline, beard, mustache, or male appearance."
+    }
 
-            case "Cyberpunk":
-                prompt = `${genderRule}\n\n${pickRandom(cyberpunkPrompts)}`
-                break
+    if (genderMode === "Male") {
+        return "The input person is male. Keep him male. Preserve masculine facial features, beard if present, hairstyle, body shape, age, and expression."
+    }
 
-            case "Anime":
-                prompt = `${genderRule}\n\n${pickRandom(animePrompts)}`
-                break
+    return "Preserve the person's original gender presentation exactly as shown in the input image."
+}
 
-            case "Professional":
-                prompt = `${genderRule}\n\n${pickRandom(professionalPrompts)}`
-                break
+const identityRule = `
+Preserve the exact facial identity from the uploaded image.
+Do not replace the person with another actor, celebrity, younger version, or generic AI face.
+Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
+The final image must still look clearly like the same real person.
+`
 
-            case "Cartoon":
-                prompt = `${genderRule}\n\n${pickRandom(cartoonPrompts)}`
-                break
+const superheroPrompts = [
+`
+Transform the same person into a powerful Marvel-style cinematic superhero.
 
-            case "Headshot":
+The result must look like a real blockbuster superhero movie still.
+The person must wear a premium superhero suit, not tactical military clothing, not casual clothing, not a street vigilante outfit.
 
-                if (variation === "Variation 1") {
-                    prompt = `${genderRule}\n\n${headshotPrompts[0]}`
-                }
-                else if (variation === "Variation 2") {
-                    prompt = `${genderRule}\n\n${headshotPrompts[1]}`
-                }
-                else if (variation === "Variation 3") {
-                    prompt = `${genderRule}\n\n${headshotPrompts[2]}`
-                }
-                else {
-                    prompt = `${genderRule}\n\n${pickRandom(headshotPrompts)}`
-                }
+Suit design:
+Advanced cinematic superhero armor, elegant heroic silhouette, layered futuristic plating, glowing energy core, detailed suit seams, premium materials, powerful Marvel-inspired costume realism.
 
-                break
+Powers:
+Cinematic energy aura, controlled glowing particles, realistic VFX, powerful superhero presence, dramatic environmental reflections.
 
-            default:
-                prompt =
-                    `${genderRule}
+Environment:
+Epic futuristic city skyline, atmospheric smoke, dramatic sky, blockbuster movie scale, cinematic destruction in the distance.
 
-Transform this person into a high-quality premium AI portrait. ${identityRule}`
-        }
+Lighting:
+Premium cinematic lighting, strong key light, realistic shadows, heroic glow, IMAX-style movie color grading.
 
-let styleIntensityRule = ""
+Face rule:
+The face must remain extremely close to the uploaded person. Change the suit, power, and environment more than the face.
+`,
 
-if (strength === "Accurate") {
+`
+Reimagine the same person as an iconic Marvel-style superhero standing in a cinematic battle scene.
 
-if (styleName === "Superhero") {
+The outfit must look like a real superhero costume from a premium comic-book movie:
+sleek armored chest plate, heroic shoulder structure, glowing red or blue energy details, luxury textured materials, sharp cinematic silhouette, high-end superhero design.
 
-    prompt += `
+Do not make the outfit look like a soldier, police, SWAT, biker, or tactical vest.
+It must feel superhuman, powerful, and iconic.
 
-SUPERHERO IDENTITY LOCK:
+Preserve the real face strongly.
+Keep the same age, wrinkles, forehead, nose, eyes, lips, jawline, beard or baldness if present.
+The final result must look like the same person wearing a superhero suit.
+`,
 
-The face must remain extremely close to the uploaded person.
-Do not generate a younger actor-like replacement.
-Do not change forehead shape.
+`
+Create a premium live-action superhero movie poster of the same person.
+
+The person should look like a central Marvel-style hero:
+heroic armored suit, glowing energy reactor, dramatic cape or advanced suit panels if suitable, cinematic energy effects, premium blockbuster composition.
+
+Make the scene visually spectacular:
+futuristic city, smoke, sparks, energy waves, dramatic sky, strong movie lighting.
+
+Identity lock:
+Do not make the person younger.
+Do not beautify the face heavily.
+Do not change facial proportions.
+Do not replace the face with a fake actor face.
+Keep the original person's real facial identity highly recognizable.
+`
+]
+
+const aiAvatarPrompts = [
+`
+Transform this person into a realistic premium AI avatar portrait.
+Use elegant modern luxury clothing, realistic cinematic photography, natural skin texture, warm premium lighting, soft background blur, and high-end portrait quality.
+No purple neon, no cyberpunk, no fantasy glow, no superhero suit.
+`,
+
+`
+Create a high-end realistic AI portrait of this person.
+Use refined luxury styling, elegant clothing, natural warm lighting, realistic background, premium camera depth of field, and believable professional photography.
+Keep the face real and recognizable.
+`,
+
+`
+Transform this person into a luxury realistic social-media avatar.
+Use premium realistic portrait lighting, stylish modern outfit, elegant background, natural color grading, sharp professional detail, and believable cinematic realism.
+`
+]
+
+const headshotPrompts = [
+`
+Create a realistic premium studio headshot.
+Use clean professional studio lighting, elegant neutral background, realistic skin detail, formal clothing, and LinkedIn-quality photography.
+`,
+
+`
+Create a luxury executive headshot.
+Use elegant formal clothing, soft cinematic lighting, realistic office or studio background blur, and premium professional photography.
+`,
+
+`
+Create a high-end business profile portrait.
+Use refined professional styling, clean studio lighting, sharp portrait detail, and believable corporate photography.
+`
+]
+
+const professionalPrompts = [
+`
+Transform this person into a premium executive portrait.
+Use elegant business clothing, realistic studio lighting, premium office background blur, natural skin tones, and high-end LinkedIn-quality photography.
+`,
+
+`
+Create a luxury CEO-style portrait.
+Use refined formal clothing, realistic executive office atmosphere, warm professional lighting, premium camera depth of field, and believable business photography.
+`,
+
+`
+Transform this person into a premium modern entrepreneur portrait.
+Use elegant smart-casual business styling, realistic lighting, clean luxury background, and social-media premium photography quality.
+`
+]
+
+const fantasyPrompts = [
+`
+Transform this person into a realistic luxury fantasy-inspired royal portrait.
+Use elegant royal clothing, warm cinematic lighting, believable castle or luxury interior background, and premium realistic photography.
+`,
+
+`
+Create a grounded cinematic noble portrait.
+Use classic luxury styling, elegant background, natural skin texture, warm light, realistic shadows, and high-end editorial photography.
+`
+]
+
+const cyberpunkPrompts = [
+`
+Transform this person into a realistic futuristic city portrait.
+Use modern futuristic clothing, realistic night city background, subtle neon reflections, professional cinematic photography, and realistic skin.
+`,
+
+`
+Create a believable modern tech-style AI portrait.
+Use sleek dark clothing, realistic urban background, soft city lights, premium camera depth of field, and natural skin texture.
+`
+]
+
+const animePrompts = [
+`
+Transform this person into a premium cinematic anime character.
+Preserve the same recognizable identity while converting the person into polished anime style.
+Use modern anime movie rendering, cinematic anime lighting, expressive eyes, clean shading, and premium artwork quality.
+`,
+
+`
+Create a high-end anime hero portrait of this person.
+Keep the same age, face shape, hairstyle or baldness, beard if present, and expression while applying premium anime stylization.
+`
+]
+
+const cartoonPrompts = [
+`
+Transform this person into a premium 3D animated movie character.
+Preserve the same identity while converting them into polished animated style.
+Use cinematic cartoon lighting, expressive animated eyes, smooth stylized textures, and high-end 3D cartoon rendering.
+`,
+
+`
+Create a luxury modern cartoon avatar of this person.
+Use premium animated rendering, elegant lighting, smooth stylized textures, and cinematic 3D cartoon realism.
+`
+]
+
+function getPromptSet(styleName) {
+    switch (styleName) {
+        case "Superhero":
+            return superheroPrompts
+        case "AI Avatar":
+            return aiAvatarPrompts
+        case "Headshot":
+            return headshotPrompts
+        case "Professional":
+            return professionalPrompts
+        case "Fantasy":
+            return fantasyPrompts
+        case "Cyberpunk":
+            return cyberpunkPrompts
+        case "Anime":
+            return animePrompts
+        case "Cartoon":
+            return cartoonPrompts
+        default:
+            return aiAvatarPrompts
+    }
+}
+
+function getPromptByVariation(styleName, variation) {
+    const prompts = getPromptSet(styleName)
+
+    if (variation === "Variation 1") return prompts[0] || pickRandom(prompts)
+    if (variation === "Variation 2") return prompts[1] || prompts[0]
+    if (variation === "Variation 3") return prompts[2] || prompts[0]
+
+    return pickRandom(prompts)
+}
+
+function getMoodText(mood) {
+    if (mood === "Serious") {
+        return "Use a serious confident expression, realistic natural shadows, and mature premium portrait mood."
+    }
+
+    if (mood === "Luxury") {
+        return "Use luxury realistic styling, elegant clothing, warm premium lighting, and high-end portrait atmosphere."
+    }
+
+    return "Use realistic cinematic lighting, natural color grading, and premium portrait quality."
+}
+
+function getStrengthText(strength, styleName) {
+    if (styleName === "Cartoon") {
+        return `
+CARTOON MODE:
+The final image must be clearly non-photorealistic and animated.
+Use premium 3D cartoon style with stylized skin, expressive animated eyes, clean cartoon shading, and high-end animated film appearance.
+Preserve the person's identity, gender, age, hairstyle or baldness, beard if present, face structure, and expression.
+`
+    }
+
+    if (styleName === "Anime") {
+        return `
+ANIME MODE:
+Create a clearly anime-styled character with cinematic anime rendering, illustrated textures, anime facial styling, and premium anime artwork quality.
+Preserve the same identity, age, hairstyle or baldness, beard if present, expression, and gender.
+`
+    }
+
+    if (strength === "Accurate") {
+        return `
+ACCURATE MODE:
+Preserve the uploaded person's real identity extremely closely.
+Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, hairstyle or baldness, beard if present, expression, and natural imperfections.
+Do not make the person younger.
+Do not beautify heavily.
+Do not smooth skin excessively.
+Do not slim the face.
 Do not sharpen the jawline.
-Do not reduce wrinkles.
-Do not improve hairline.
-Do not create a different beard style.
-Keep the exact same facial proportions and natural aging.
-The superhero suit and cinematic environment should change more than the face.
+Do not restore hair.
+The final image must still clearly look like the same real person.
+`
+    }
+
+    if (strength === "Extreme") {
+        return `
+EXTREME MODE:
+Apply a strong cinematic AI transformation while keeping the person recognizable.
+Allow stronger styling, dramatic atmosphere, outfit upgrades, cinematic lighting, and visual effects.
+Still preserve the same real identity, age, facial structure, hairstyle or baldness, beard if present, skin tone, and expression.
+`
+    }
+
+    return `
+BALANCED MODE:
+Apply premium AI portrait styling while keeping the person clearly recognizable.
+Preserve the same face identity, age, wrinkles, skin texture, hairstyle or baldness, beard if present, facial proportions, and expression.
+Allow stylish cinematic enhancement, outfit upgrades, premium lighting, and realistic atmosphere.
+Avoid fake actor replacement, excessive beauty enhancement, unrealistic skin smoothing, or heavy face reconstruction.
 `
 }
 
-    styleIntensityRule =
-        "ACCURATE MODE: Preserve the uploaded person's real identity extremely closely. Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, baldness or hairstyle, beard if present, clothing, expression, and natural imperfections. Do not make the person younger. Do not beautify heavily. Do not smooth skin excessively. Do not slim the face. Do not sharpen the jawline. Do not restore hair. Use realistic natural lighting, realistic skin tones, and subtle premium enhancement only. The final image must still clearly look like the same real person."
+function buildGeneratePrompt({ styleName, mood, strength, variation, genderMode }) {
+    const genderRule = getGenderRule(genderMode)
+    const selectedPrompt = getPromptByVariation(styleName, variation)
+    const moodText = getMoodText(mood)
+    const strengthText = getStrengthText(strength, styleName)
 
-} else if (strength === "Extreme") {
+    let finalPrompt = `
+${genderRule}
 
-    styleIntensityRule =
-        "EXTREME MODE: Apply a strong premium cinematic AI transformation while keeping the person recognizable. Allow stronger styling, dramatic atmosphere, outfit upgrades, cinematic lighting, and visual enhancement, but preserve the same real identity, age, facial structure, baldness or hairstyle, beard if present, skin tone, and expression."
+${identityRule}
 
-} else {
-
-    styleIntensityRule =
-        "BALANCED MODE: Apply realistic premium AI portrait styling while keeping the person clearly recognizable. Preserve the same face identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, and expression. Allow stylish cinematic enhancement, elegant outfit upgrades, premium portrait lighting, and realistic atmosphere while avoiding fake actor replacement, excessive beauty enhancement, unrealistic skin smoothing, purple neon glow, or heavy face reconstruction."
-}
-
-prompt = `
-${prompt}
+${selectedPrompt}
 
 ${moodText}
 
 ${strengthText}
-
-${styleIntensityRule}
 `
 
-if (strength === "Accurate") {
-
-    prompt += `
-
-IMPORTANT ACCURATE FACE RULES:
-
-Keep the exact same real person.
-Strongly preserve facial identity.
-Preserve age, wrinkles, skin texture, baldness or hairstyle, beard if present, face shape, jawline, nose, eyes, lips, and expression.
-
-Allow realistic outfit styling, premium portrait enhancement, cinematic atmosphere, and environment upgrades,
-BUT keep the face highly recognizable.
-
-Do not replace the person with a different attractive actor-like face.
-Do not heavily reconstruct the face.
-Do not dramatically change facial proportions.
-Avoid excessive beauty enhancement.
-Avoid unrealistic skin smoothing.
-Use natural realistic skin texture and realistic lighting.
+    if (styleName === "Superhero") {
+        finalPrompt += `
+SUPERHERO RULES:
+The result must clearly look like a superhero movie scene.
+The outfit must be a superhero suit, not tactical gear.
+Do not create normal clothes.
+Do not create a military vest.
+Do not create a generic leather jacket.
+Make the suit iconic, cinematic, powerful, and superhuman.
 `
+    }
+
+    return finalPrompt
 }
 
-        console.log("Prompt:", prompt)
+function getGenerationSettings(strength) {
+    return {
+        guidance_scale:
+            strength === "Accurate" ? 2.0 :
+            strength === "Balanced" ? 2.8 :
+            3.6,
 
-        const cleanedBase64 = imageBase64.replace(
-            /^data:image\/\w+;base64,/,
-            ""
-        )
+        num_inference_steps:
+            strength === "Accurate" ? 26 :
+            strength === "Balanced" ? 32 :
+            38,
 
-        const imageBuffer = Buffer.from(cleanedBase64, "base64")
+        prompt_strength:
+            strength === "Accurate" ? 0.28 :
+            strength === "Balanced" ? 0.42 :
+            0.60
+    }
+}
 
-        const form = new FormData()
+app.post("/generate", async (req, res) => {
+    try {
+        const {
+            styleName,
+            imageBase64,
+            mood = "Cinematic",
+            strength = "Balanced",
+            variation = "Random",
+            genderMode = "Auto"
+        } = req.body
 
-        form.append("content", imageBuffer, {
-            filename: "photo.jpg",
-            contentType: "image/jpeg"
+        console.log("Generate request:", {
+            styleName,
+            mood,
+            strength,
+            variation,
+            genderMode
         })
 
-        const uploadResponse = await axios.post(
-            "https://api.replicate.com/v1/files",
-            form,
-            {
-                headers: {
-                    Authorization:
-                        `Token ${process.env.REPLICATE_API_TOKEN}`,
-                    ...form.getHeaders()
-                }
-            }
-        )
+        if (!styleName) throw new Error("Missing styleName")
+        if (!imageBase64) throw new Error("Missing imageBase64")
 
-        const uploadedImageUrl = uploadResponse.data.urls.get
+        const uploadedImageUrl = await uploadBase64Image(imageBase64, "photo.jpg")
 
         console.log("Uploaded image:", uploadedImageUrl)
 
-        let selectedModel = "black-forest-labs/flux-kontext-pro"
+        const prompt = buildGeneratePrompt({
+            styleName,
+            mood,
+            strength,
+            variation,
+            genderMode
+        })
 
-        if (styleName === "Anime") {
-            selectedModel = "black-forest-labs/flux-kontext-pro"
-        } else if (styleName === "Professional" || styleName === "Headshot") {
-            selectedModel = "black-forest-labs/flux-kontext-pro"
-        } else if (styleName === "Cartoon") {
-            selectedModel = "black-forest-labs/flux-kontext-pro"
-        }
+        console.log("Prompt:", prompt)
 
-        console.log("Selected Model:", selectedModel)
+        const settings = getGenerationSettings(strength)
 
-        const startResponse = await axios.post(
-            `https://api.replicate.com/v1/models/${selectedModel}/predictions`,
-            {
-                input: {
-    prompt: prompt,
-    input_image: uploadedImageUrl,
-    aspect_ratio: "1:1",
-    output_format: "jpg",
-    safety_tolerance: 2,
+        const selectedModel = "black-forest-labs/flux-kontext-pro"
 
-    guidance_scale:
-    strength === "Accurate" ? 2.0 :
-    strength === "Balanced" ? 2.8 :
-    3.6,
-
-num_inference_steps:
-    strength === "Accurate" ? 26 :
-    strength === "Balanced" ? 32 :
-    38,
-
-prompt_strength:
-    strength === "Accurate" ? 0.28 :
-    strength === "Balanced" ? 0.42 :
-    0.60
-}
-            },
-            {
-                headers: {
-                    Authorization:
-                        `Token ${process.env.REPLICATE_API_TOKEN}`,
-                    "Content-Type": "application/json"
-                }
-            }
-        )
-
-        const predictionId = startResponse.data.id
+        const predictionId = await startPrediction(selectedModel, {
+            prompt,
+            input_image: uploadedImageUrl,
+            aspect_ratio: "1:1",
+            output_format: "jpg",
+            safety_tolerance: 2,
+            ...settings
+        })
 
         console.log("Prediction started:", predictionId)
 
-        let outputUrl = null
+        const generatedUrl = await waitForPrediction(predictionId, "AI generation")
 
-        for (let i = 0; i < 30; i++) {
+        console.log("Generated image:", generatedUrl)
 
-            await new Promise(resolve =>
-                setTimeout(resolve, 2000)
-            )
+        let finalUrl = generatedUrl
 
-            const pollResponse = await axios.get(
-                `https://api.replicate.com/v1/predictions/${predictionId}`,
+        try {
+            const upscalePredictionId = await startPrediction(
+                "nightmareai/real-esrgan",
                 {
-                    headers: {
-                        Authorization:
-                            `Token ${process.env.REPLICATE_API_TOKEN}`
-                    }
+                    image: generatedUrl,
+                    scale: 2,
+                    face_enhance: strength === "Extreme"
                 }
             )
 
-            const prediction = pollResponse.data
+            console.log("Upscale started:", upscalePredictionId)
 
-            console.log("Status:", prediction.status)
-
-            if (prediction.status === "succeeded") {
-
-                if (Array.isArray(prediction.output)) {
-                    outputUrl = prediction.output[0]
-                } else {
-                    outputUrl = prediction.output
-                }
-
-                break
-            }
-
-            if (prediction.status === "failed") {
-
-                console.log(prediction)
-
-                throw new Error("AI generation failed")
-            }
-        }
-
-        if (!outputUrl) {
-            throw new Error("Generation timeout")
-        }
-
-        const upscaleResponse = await axios.post(
-            "https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions",
-            {
-                input: {
-    image: outputUrl,
-    scale: 2,
-    face_enhance: strength === "Extreme" ? true : false
-}
-            },
-            {
-                headers: {
-                    Authorization:
-                        `Token ${process.env.REPLICATE_API_TOKEN}`,
-                    "Content-Type": "application/json"
-                }
-            }
-        )
-
-        const upscalePredictionId = upscaleResponse.data.id
-
-        console.log("Upscale started:", upscalePredictionId)
-
-        let upscaleUrl = outputUrl
-
-        for (let i = 0; i < 30; i++) {
-
-            await new Promise(resolve =>
-                setTimeout(resolve, 2000)
-            )
-
-            const upscalePoll = await axios.get(
-                `https://api.replicate.com/v1/predictions/${upscalePredictionId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Token ${process.env.REPLICATE_API_TOKEN}`
-                    }
-                }
-            )
-
-            const upscalePrediction = upscalePoll.data
-
-            console.log("Upscale status:", upscalePrediction.status)
-
-            if (upscalePrediction.status === "succeeded") {
-
-                upscaleUrl = Array.isArray(upscalePrediction.output)
-                    ? upscalePrediction.output[0]
-                    : upscalePrediction.output
-
-                break
-            }
-
-            if (upscalePrediction.status === "failed") {
-                console.log("Upscale failed, returning original AI image")
-                break
-            }
+            finalUrl = await waitForPrediction(upscalePredictionId, "Upscale")
+        } catch (upscaleError) {
+            console.log("Upscale failed, returning original image:", upscaleError.message)
+            finalUrl = generatedUrl
         }
 
         return res.json({
             success: true,
-            imageUrl: upscaleUrl
+            imageUrl: finalUrl,
+            error: null
         })
 
     } catch (error) {
-
-        console.log(error.response?.data || error.message)
+        console.log("Generate error:", error.response?.data || error.message)
 
         return res.status(500).json({
             success: false,
             imageUrl: null,
-            error: "Generation failed"
+            error: error.message || "Generation failed"
         })
     }
 })
 
+function getBackgroundPrompt(backgroundStyle) {
+    switch (backgroundStyle) {
+        case "Beach":
+            return "Replace the background with a beautiful tropical beach sunset. Keep the person exactly the same, preserve face, clothes, body, and pose. Natural lighting, realistic premium photo."
+
+        case "Cyberpunk":
+            return "Replace the background with a futuristic cyberpunk neon city at night. Keep the person exactly the same, preserve face, clothes, body, and pose. Cinematic realistic look."
+
+        case "Office":
+            return "Replace the background with a luxury modern office. Keep the person exactly the same, preserve face, clothes, body, and pose. Professional lighting, clean business portrait style."
+
+        case "Fantasy":
+            return "Replace the background with an epic fantasy castle landscape. Keep the person exactly the same, preserve face, clothes, body, and pose. Cinematic fantasy atmosphere."
+
+        default:
+            return "Replace the background with a beautiful premium studio background. Keep the person exactly the same, preserve face, clothes, body, and pose."
+    }
+}
+
 app.post("/background", async (req, res) => {
-
     try {
+        const { imageBase64, backgroundStyle = "Studio" } = req.body
 
-        const { imageBase64, backgroundStyle } = req.body
+        if (!imageBase64) throw new Error("Missing imageBase64")
 
         console.log("Background style:", backgroundStyle)
 
-        let prompt = ""
-
-        switch (backgroundStyle) {
-
-            case "Beach":
-                prompt =
-                    "Replace the background with a beautiful tropical beach sunset. Keep the person exactly the same, preserve face, clothes, body, and pose. Natural lighting, realistic premium photo."
-                break
-
-            case "Cyberpunk":
-                prompt =
-                    "Replace the background with a futuristic cyberpunk neon city at night. Keep the person exactly the same, preserve face, clothes, body, and pose. Purple and blue neon lights, cinematic realistic look."
-                break
-
-            case "Office":
-                prompt =
-                    "Replace the background with a luxury modern office. Keep the person exactly the same, preserve face, clothes, body, and pose. Professional lighting, clean business portrait style."
-                break
-
-            case "Fantasy":
-                prompt =
-                    "Replace the background with an epic fantasy castle landscape. Keep the person exactly the same, preserve face, clothes, body, and pose. Magical lighting, cinematic fantasy atmosphere."
-                break
-
-            default:
-                prompt =
-                    "Replace the background with a beautiful premium studio background. Keep the person exactly the same."
-        }
-
-        const cleanedBase64 = imageBase64.replace(
-            /^data:image\/\w+;base64,/,
-            ""
+        const uploadedImageUrl = await uploadBase64Image(
+            imageBase64,
+            "background-photo.jpg"
         )
 
-        const imageBuffer = Buffer.from(cleanedBase64, "base64")
+        const prompt = getBackgroundPrompt(backgroundStyle)
 
-        const form = new FormData()
-
-        form.append("content", imageBuffer, {
-            filename: "background-photo.jpg",
-            contentType: "image/jpeg"
-        })
-
-        const uploadResponse = await axios.post(
-            "https://api.replicate.com/v1/files",
-            form,
+        const predictionId = await startPrediction(
+            "black-forest-labs/flux-kontext-pro",
             {
-                headers: {
-                    Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
-                    ...form.getHeaders()
-                }
+                prompt,
+                input_image: uploadedImageUrl,
+                aspect_ratio: "match_input_image",
+                output_format: "jpg",
+                safety_tolerance: 2,
+                guidance_scale: 2.2,
+                num_inference_steps: 28,
+                prompt_strength: 0.35
             }
         )
-
-        const uploadedImageUrl = uploadResponse.data.urls.get
-
-        console.log("Uploaded background image:", uploadedImageUrl)
-
-        const startResponse = await axios.post(
-            "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
-            {
-                input: {
-                    prompt: prompt,
-                    input_image: uploadedImageUrl,
-                    aspect_ratio: "match_input_image",
-                    output_format: "jpg",
-                    safety_tolerance: 2
-                }
-            },
-            {
-                headers: {
-                    Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`,
-                    "Content-Type": "application/json"
-                }
-            }
-        )
-
-        const predictionId = startResponse.data.id
 
         console.log("Background prediction started:", predictionId)
 
-        let outputUrl = null
-
-        for (let i = 0; i < 30; i++) {
-
-            await new Promise(resolve => setTimeout(resolve, 2000))
-
-            const pollResponse = await axios.get(
-                `https://api.replicate.com/v1/predictions/${predictionId}`,
-                {
-                    headers: {
-                        Authorization: `Token ${process.env.REPLICATE_API_TOKEN}`
-                    }
-                }
-            )
-
-            const prediction = pollResponse.data
-
-            console.log("Background status:", prediction.status)
-
-            if (prediction.status === "succeeded") {
-
-                outputUrl = Array.isArray(prediction.output)
-                    ? prediction.output[0]
-                    : prediction.output
-
-                break
-            }
-
-            if (prediction.status === "failed") {
-                console.log(prediction)
-                throw new Error("Background generation failed")
-            }
-        }
-
-        if (!outputUrl) {
-            throw new Error("Background generation timeout")
-        }
+        const outputUrl = await waitForPrediction(
+            predictionId,
+            "Background generation"
+        )
 
         return res.json({
             success: true,
@@ -705,18 +580,15 @@ app.post("/background", async (req, res) => {
         })
 
     } catch (error) {
-
-        console.log(error.response?.data || error.message)
+        console.log("Background error:", error.response?.data || error.message)
 
         return res.status(500).json({
             success: false,
             imageUrl: null,
-            error: "Background generation failed"
+            error: error.message || "Background generation failed"
         })
     }
 })
-
-const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)

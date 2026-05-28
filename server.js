@@ -44,6 +44,10 @@ app.post("/generate", async (req, res) => {
 
 `Using the uploaded image as the identity reference, transform the same person into a powerful Marvel Cinematic Universe superhero. The result must look like a real $200M Marvel movie still with iconic superhero presence, cinematic energy, and visually spectacular design.
 
+The superhero must look like the exact same real person from the uploaded image wearing a Marvel superhero costume, NOT a different actor or celebrity replacement.
+
+Preserve forehead size, wrinkles, eye bags, skin texture, baldness or hairline, nose shape, cheek volume, jawline shape, lip shape, and facial asymmetry exactly.
+
 IMPORTANT: ${identityRule} Preserve the exact same real face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, jawline, eyes, nose, lips, and expression realism. The person must remain clearly recognizable.
 
 Appearance: Premium Marvel superhero suit with elegant cinematic design. Futuristic heroic materials, glowing energy details, luxury superhero textures, high-end Marvel costume realism, advanced heroic styling, cinematic superhero silhouette, visually iconic and powerful. NOT military tactical gear. NOT street clothing. NOT minimalist.
@@ -299,6 +303,24 @@ let styleIntensityRule = ""
 
 if (strength === "Accurate") {
 
+if (styleName === "Superhero") {
+
+    prompt += `
+
+SUPERHERO IDENTITY LOCK:
+
+The face must remain extremely close to the uploaded person.
+Do not generate a younger actor-like replacement.
+Do not change forehead shape.
+Do not sharpen the jawline.
+Do not reduce wrinkles.
+Do not improve hairline.
+Do not create a different beard style.
+Keep the exact same facial proportions and natural aging.
+The superhero suit and cinematic environment should change more than the face.
+`
+}
+
     styleIntensityRule =
         "ACCURATE MODE: Preserve the uploaded person's real identity extremely closely. Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, baldness or hairstyle, beard if present, clothing, expression, and natural imperfections. Do not make the person younger. Do not beautify heavily. Do not smooth skin excessively. Do not slim the face. Do not sharpen the jawline. Do not restore hair. Use realistic natural lighting, realistic skin tones, and subtle premium enhancement only. The final image must still clearly look like the same real person."
 
@@ -410,9 +432,9 @@ num_inference_steps:
     38,
 
 prompt_strength:
-    strength === "Accurate" ? 0.32 :
-    strength === "Balanced" ? 0.52 :
-    0.72
+    strength === "Accurate" ? 0.28 :
+    strength === "Balanced" ? 0.42 :
+    0.60
 }
             },
             {

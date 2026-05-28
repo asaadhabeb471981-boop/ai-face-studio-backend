@@ -176,7 +176,7 @@ app.post("/generate", async (req, res) => {
 
                             ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle or baldness, beard if present, clothes, and skin tone while applying stronger cinematic styling."
 
-                            : "Use a balanced transformation. Preserve the person's real identity clearly while applying premium cinematic styling. Keep the same face structure, gender, age, hairstyle or baldness, beard if present, clothes, eyes, nose, mouth, and skin tone."
+                            : "BALANCED MODE: Create a premium cinematic AI transformation while keeping the person clearly recognizable. Preserve the same real identity, face shape, age, wrinkles, hairstyle or baldness, beard if present, eyes, nose, lips, jawline, skin tone, clothing, and expression. Allow noticeable AI styling, cinematic atmosphere, improved lighting, stylish outfit enhancement, and premium visual polish, but avoid replacing the person with a different actor-like face. Avoid excessive face reconstruction, extreme beautification, unrealistic symmetry, or over-processed skin. Keep the result stylish, realistic, and social-media premium."
 
         let genderRule = ""
 
@@ -382,9 +382,20 @@ Reduce excessive purple neon lighting on the face.
     output_format: "jpg",
     safety_tolerance: 2,
 
-    guidance_scale: strength === "Accurate" ? 2.2 : 3.5,
-num_inference_steps: strength === "Accurate" ? 28 : 35,
-prompt_strength: strength === "Accurate" ? 0.35 : 0.75
+    guidance_scale:
+    strength === "Accurate" ? 2.2 :
+    strength === "Balanced" ? 3.0 :
+    4.0,
+
+num_inference_steps:
+    strength === "Accurate" ? 28 :
+    strength === "Balanced" ? 34 :
+    40,
+
+prompt_strength:
+    strength === "Accurate" ? 0.35 :
+    strength === "Balanced" ? 0.58 :
+    0.82
 }
             },
             {

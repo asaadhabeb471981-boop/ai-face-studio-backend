@@ -462,7 +462,7 @@ prompt_strength:
                 input: {
     image: outputUrl,
     scale: 2,
-    face_enhance: strength === "Accurate" ? false : true
+    face_enhance: strength === "Extreme" ? true : false
 }
             },
             {

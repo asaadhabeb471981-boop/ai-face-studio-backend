@@ -42,27 +42,27 @@ app.post("/generate", async (req, res) => {
 
         const superheroPrompts = [
 
-`Using the uploaded image as the identity reference, reimagine the same person as a high-impact Marvel Cinematic Universe superhero. The result must look like a real live-action Marvel movie still — visually powerful, unmistakably extraordinary, not generic, not casual, not minimal.
+`Using the uploaded image as the identity reference, reimagine the same person as a powerful live-action Marvel Cinematic Universe anti-hero. The result must look like a real blockbuster movie still — cinematic, intimidating, realistic, and visually premium.
 
-IMPORTANT: The facial identity must NOT change. ${identityRule} Preserve the exact facial identity, age, ethnicity, wrinkles, baldness or hairstyle, beard if present, bone structure, and facial proportions of the original person. Keep the same eyes, nose, jawline, cheekbones, skin texture, and expression realism. Facial expression must show intense, controlled rage mixed with confidence. Eyes should glow subtly with deep crimson red energy while remaining realistic and cinematic. The face must remain fully visible, unobstructed, sharp, and well-lit.
+IMPORTANT: The facial identity must NOT change. ${identityRule} Preserve the exact same face, age, wrinkles, baldness or hairstyle, beard if present, skin texture, jawline, eyes, nose, lips, facial proportions, and natural expression. Keep the same real person fully recognizable.
 
-Color Theme: black and deep crimson red only. Advanced Marvel Superheroes outfit textures, layered marvel superheroes plating, glowing red energy reactor, mechanical joints, tech seams, power conduits, and cinematic Marvel-level realism. Tight tactical combat suit, dangerous and battle-ready. No cape. No helmet.
+Appearance: Elegant dark tactical superhero outfit inspired by modern Marvel anti-heroes. Premium black fitted jacket with subtle crimson red accents, realistic tactical textures, luxury combat styling, layered fabric details, and cinematic realism. No bulky armor. No robotic plating. No chest reactor. No helmet. No cape.
 
-Superpowers: Controlled red energy emitting from hands and forearms. Subtle energy distortion, heat shimmer, glowing red particles, cinematic energy aura, realistic VFX quality. No magic symbols.
+Powers: Subtle deep red energy glow around the hands and forearms. Realistic cinematic energy particles, light smoke, and soft atmospheric power aura. Controlled power, not fantasy magic.
 
-Pose & Body Language: Dominant intimidating stance. Slightly clenched glowing fists. Chest forward, squared shoulders, controlled power.
+Pose & Body Language: Strong intimidating stance. Calm confidence. Slightly clenched fists. Heroic posture with squared shoulders.
 
-Environment: Dark futuristic city at night with realistic cinematic atmosphere. Wet streets, smoke, sparks, blurred neon reflections, atmospheric haze, blockbuster Marvel movie environment.
+Environment: Dark futuristic city street at night. Wet pavement reflections, realistic cinematic atmosphere, smoke, sparks, blurred city lights, premium blockbuster mood.
 
-Lighting: High-contrast Marvel-style cinematic lighting. Strong red rim light on marvel superheroes edges. Soft realistic key light illuminating the face clearly. Deep shadows for dramatic depth. Volumetric lighting through smoke. Face must stay realistic and recognizable.
+Lighting: High-end Marvel cinematic lighting. Realistic red rim light, soft face lighting, dramatic shadows, realistic skin tones, cinematic depth, volumetric light through smoke. The face must remain clear, sharp, and realistic.
 
-Camera & Quality: IMAX / ARRI Alexa cinematic photography. Medium close-up framing. Eye-level heroic angle. Ultra detailed 4K photorealism. Sharp focus on face and chest reactor.
+Camera & Quality: IMAX / ARRI Alexa movie photography. Medium close-up framing. Ultra realistic 4K cinematic detail. Premium Hollywood movie realism.
 
-Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Must look like a $200M Marvel blockbuster movie still while preserving the same real person.`,
+Style Rules: NOT cartoon. NOT anime. NOT robotic armor. NOT sci-fi mech suit. Keep the result realistic, grounded, premium, cinematic, and believable while preserving the exact same real person.`,
 
-`Transform the uploaded person into a realistic red-and-black Marvel anti-hero commander. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, facial structure, and expression realism. Advanced Marvel Superheroes outfit with deep crimson glowing power lines, angular energy reactor, heavy marvel superheroes plating, cinematic Marvel realism, intimidating heroic presence, subtle glowing red eyes, controlled red energy powers, futuristic city battlefield at night, realistic smoke, sparks, and blockbuster cinematic atmosphere. Ultra realistic IMAX-quality Marvel movie still.`,
+`Transform the uploaded person into a realistic Marvel-style vigilante hero. ${identityRule} Preserve exact real identity and natural aging. Use elegant dark tactical clothing with subtle crimson details, realistic cinematic atmosphere, believable superhero styling, dramatic realistic lighting, premium movie-quality photography, soft energy glow around hands, intimidating heroic presence, realistic city-night environment, and grounded Marvel realism.`,
 
-`Create a premium cinematic Marvel superhero portrait of the uploaded person. ${identityRule} Preserve exact real identity and natural aging while transforming the person into a dangerous red-energy-powered anti-hero. marvel superheroes outfit, glowing crimson reactor core, realistic red energy veins, cinematic atmospheric smoke, futuristic city environment, dramatic Marvel lighting, realistic skin detail, subtle energy aura, ultra realistic blockbuster movie quality, sharp face detail, intimidating heroic stance.`
+`Create a premium cinematic anti-hero portrait of the uploaded person. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Stylish black tactical jacket, realistic dark cinematic atmosphere, subtle red energy effects, premium blockbuster lighting, realistic smoke and atmosphere, believable Marvel movie realism, strong intimidating cinematic mood without heavy armor or robotic suit elements.`
 
 ]
 

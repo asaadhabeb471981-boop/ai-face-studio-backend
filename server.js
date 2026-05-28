@@ -42,27 +42,21 @@ app.post("/generate", async (req, res) => {
 
         const MarvelsuperheroesPrompts = [
 
-`Using the uploaded image as the identity reference, reimagine the same person as a powerful live-action Marvel Cinematic Universe anti-hero. The result must look like a real blockbuster movie still — cinematic, intimidating, realistic, and visually premium.
+`Using the uploaded image as the identity reference, transform the same person into a powerful Marvel Cinematic Universe superhero. The result must look like a real $200M Marvel movie still with iconic superhero presence, cinematic energy, and visually spectacular design.
 
-IMPORTANT: The facial identity must NOT change. ${identityRule} Preserve the exact same face, age, wrinkles, baldness or hairstyle, beard if present, skin texture, jawline, eyes, nose, lips, facial proportions, and natural expression. Keep the same real person fully recognizable.
+IMPORTANT: ${identityRule} Preserve the exact same real face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial proportions, jawline, eyes, nose, lips, and expression realism. The person must remain clearly recognizable.
 
-Appearance: Elegant dark tactical superhero outfit inspired by modern Marvel anti-heroes. Premium black fitted jacket with subtle crimson red accents, realistic tactical textures, luxury combat styling, layered fabric details, and cinematic realism. No bulky armor. No robotic plating. No chest reactor. No helmet. No cape.
+Appearance: Premium Marvel superhero suit with elegant cinematic design. Futuristic heroic materials, glowing energy details, luxury superhero textures, high-end Marvel costume realism, advanced heroic styling, cinematic superhero silhouette, visually iconic and powerful. NOT military tactical gear. NOT street clothing. NOT minimalist.
 
-Powers: Subtle deep red energy glow around the hands and forearms. Realistic cinematic energy particles, light smoke, and soft atmospheric power aura. Controlled power, not fantasy magic.
+Powers: Strong cinematic energy powers surrounding the body. Controlled glowing energy effects, cinematic particles, realistic Marvel-style VFX, subtle energy aura, environmental interaction, blockbuster-level superhuman presence.
 
-Pose & Body Language: Strong intimidating stance. Calm confidence. Slightly clenched fists. Heroic posture with squared shoulders.
+Environment: Epic Marvel cinematic environment. Futuristic city skyline, atmospheric smoke, cinematic destruction, energy reflections, blockbuster scale, premium movie atmosphere.
 
-Environment: Dark futuristic city street at night. Wet pavement reflections, realistic cinematic atmosphere, smoke, sparks, blurred city lights, premium blockbuster mood.
+Lighting: High-end Marvel movie lighting. Dramatic cinematic key light, glowing energy reflections, volumetric lighting, realistic shadows, powerful heroic mood, premium blockbuster color grading.
 
-Lighting: High-end Marvel cinematic lighting. Realistic red rim light, soft face lighting, dramatic shadows, realistic skin tones, cinematic depth, volumetric light through smoke. The face must remain clear, sharp, and realistic.
+Camera & Quality: IMAX / ARRI Alexa cinematic photography. Ultra realistic 4K Marvel movie realism. Epic superhero composition. Premium blockbuster visual quality.
 
-Camera & Quality: IMAX / ARRI Alexa movie photography. Medium close-up framing. Ultra realistic 4K cinematic detail. Premium Hollywood movie realism.
-
-Style Rules: NOT cartoon. NOT anime. NOT robotic armor. NOT sci-fi mech suit. Keep the result realistic, grounded, premium, cinematic, and believable while preserving the exact same real person.`,
-
-`Transform the uploaded person into a realistic Marvel-style vigilante hero. ${identityRule} Preserve exact real identity and natural aging. Use elegant dark tactical clothing with subtle crimson details, realistic cinematic atmosphere, believable superhero styling, dramatic realistic lighting, premium movie-quality photography, soft energy glow around hands, intimidating heroic presence, realistic city-night environment, and grounded Marvel realism.`,
-
-`Create a premium cinematic anti-hero portrait of the uploaded person. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, and expression. Stylish black tactical jacket, realistic dark cinematic atmosphere, subtle red energy effects, premium blockbuster lighting, realistic smoke and atmosphere, believable Marvel movie realism, strong intimidating cinematic mood without heavy armor or robotic suit elements.`
+Style Rules: Must look like a true Marvel superhero movie scene. NOT tactical anti-hero. NOT military combat suit. NOT street vigilante. Must feel iconic, powerful, cinematic, and superhuman while preserving the same real person.`
 
 ]
 

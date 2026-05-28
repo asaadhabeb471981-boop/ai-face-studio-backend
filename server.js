@@ -170,7 +170,7 @@ app.post("/generate", async (req, res) => {
 
                     : strength === "Accurate"
 
-                        ? "ACCURATE MODE: Identity preservation is the absolute highest priority. Keep the transformation subtle and realistic. Preserve the exact same person, same age, same wrinkles, same forehead, same face shape, same facial proportions, same eyes, same nose, same mouth, same skin tone, same hairstyle or baldness, same beard or facial hair if present, same gender, same clothes, and same natural expression. Preserve natural aging realistically. Preserve baldness exactly if the person is bald. Do not generate new hair or restore hairline. Do not make the person younger. Do not beautify heavily. Do not slim the face. Do not sharpen jawline. Do not smooth skin excessively. Do not remove wrinkles. Do not replace the person with a more attractive actor-like version. Only apply the selected style, atmosphere, outfit, lighting, and environment while keeping the real identity clearly intact."
+    ? "ULTRA ACCURATE FACE MODE: Identity preservation is the absolute highest priority. The final result must look like the exact same real person from the uploaded photo. Preserve the exact same age, wrinkles, skin texture, pores, forehead lines, eye bags, face shape, jawline, cheeks, nose shape, lips, ears, eyebrows, eye shape, facial proportions, skin tone, beard or facial hair if present, hairstyle or baldness, hairline, clothes, ethnicity, expression, and overall facial realism. Preserve all natural imperfections realistically. Preserve baldness exactly if the person is bald. Never restore hair or improve hairline. Never make the person younger, prettier, slimmer, cleaner, smoother, or more symmetrical. Never replace the face with a Hollywood-style attractive version. Avoid beauty enhancement, glamour effects, unrealistic skin smoothing, jaw sharpening, face slimming, or cosmetic improvements. Keep the transformation subtle, grounded, and highly realistic. Apply the selected style mainly through atmosphere, lighting, outfit styling, cinematic grading, and environment while keeping the face identity almost unchanged."
 
                         : strength === "Extreme"
 
@@ -346,14 +346,16 @@ if (strength === "Accurate") {
             `https://api.replicate.com/v1/models/${selectedModel}/predictions`,
             {
                 input: {
-                    prompt: prompt,
-                    input_image: uploadedImageUrl,
-                    aspect_ratio: "1:1",
-                    output_format: "jpg",
-                    safety_tolerance: 2,
-                    guidance_scale: 3.5,
-                    num_inference_steps: 35
-                }
+    prompt: prompt,
+    input_image: uploadedImageUrl,
+    aspect_ratio: "1:1",
+    output_format: "jpg",
+    safety_tolerance: 2,
+
+    guidance_scale: strength === "Accurate" ? 2.2 : 3.5,
+    num_inference_steps: strength === "Accurate" ? 28 : 35,
+    prompt_strength: strength === "Accurate" ? 0.35 : 0.75
+}
             },
             {
                 headers: {

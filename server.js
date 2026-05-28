@@ -296,7 +296,32 @@ if (strength === "Accurate") {
         "Apply balanced premium cinematic styling while preserving identity."
 }
 
-        prompt = `
+        if (strength === "Accurate") {
+
+    prompt = `
+PHOTO-REALISTIC ACCURATE FACE PRESERVATION MODE.
+
+Use the uploaded image as the main source.
+Preserve the exact same person.
+Keep the same face, age, wrinkles, forehead lines, eye bags, skin texture, nose, lips, cheeks, jawline, baldness or hairline, beard if present, clothing, expression, pose, and natural imperfections.
+
+Do not make the person younger.
+Do not beautify.
+Do not smooth skin.
+Do not restore hair.
+Do not change the face shape.
+Do not create a superhero, actor, fantasy character, or cinematic replacement.
+Do not add purple, neon, cyberpunk, fantasy, or dramatic lighting.
+
+Only improve photo quality slightly.
+Use natural realistic lighting.
+Keep the image grounded and realistic.
+The result must look like the same original photo, lightly enhanced.
+`
+
+} else {
+
+    prompt = `
 ${prompt}
 
 ${moodText}
@@ -304,19 +329,6 @@ ${moodText}
 ${strengthText}
 
 ${styleIntensityRule}
-`
-
-if (strength === "Accurate") {
-
-    prompt += `
-
-IMPORTANT:
-Use realistic natural lighting.
-Avoid neon purple lighting.
-Avoid fantasy skin tones.
-Avoid cinematic over-stylization.
-Avoid dramatic face reconstruction.
-Keep the image grounded and realistic.
 `
 }
 
@@ -374,9 +386,9 @@ Keep the image grounded and realistic.
     output_format: "jpg",
     safety_tolerance: 2,
 
-    guidance_scale: strength === "Accurate" ? 1.8 : 3.5,
-    num_inference_steps: strength === "Accurate" ? 24 : 35,
-    prompt_strength: strength === "Accurate" ? 0.22 : 0.75
+    guidance_scale: strength === "Accurate" ? 1.2 : 3.5,
+    num_inference_steps: strength === "Accurate" ? 18 : 35,
+    prompt_strength: strength === "Accurate" ? 0.08 : 0.75
 }
             },
             {

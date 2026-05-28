@@ -41,11 +41,101 @@ app.post("/generate", async (req, res) => {
             "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
         const superheroPrompts = [
-    `Transform this person into a realistic premium superhero-style portrait. ${identityRule} Preserve the exact same face, age, wrinkles, skin texture, baldness or hairstyle, beard if present, expression, and natural identity. Use realistic tactical outfit styling, cinematic natural lighting, believable background, premium movie-poster quality, but keep the face real and recognizable. No purple neon, no fantasy glow, no fake actor face.`,
 
-    `Create a realistic heroic portrait of this person. ${identityRule} Keep the same real face, age, skin texture, wrinkles, hairline or baldness, beard if present, and expression. Add a refined dark tactical jacket or subtle armor-inspired outfit, realistic cinematic lighting, dramatic but natural atmosphere, high-end action portrait look. Avoid heavy sci-fi effects or face reconstruction.`,
+    `Transform this person into a premium Marvel-inspired cinematic superhero portrait. ${identityRule}
 
-    `Transform this person into a grounded modern hero portrait. ${identityRule} Preserve identity strongly. Use premium realistic photography, subtle heroic styling, elegant dark outfit, natural shadows, cinematic background depth, sharp professional detail, and believable realism. Do not make the person look younger or like a different actor.`
+Preserve the EXACT real face and identity:
+same age,
+same wrinkles,
+same skin texture,
+same eye shape,
+same nose,
+same jawline,
+same baldness or hairstyle,
+same beard if present,
+same expression,
+same facial proportions.
+
+Do NOT beautify.
+Do NOT make younger.
+Do NOT replace the face with a fake Hollywood actor.
+
+Style the person as a realistic modern superhero wearing a premium tactical suit inspired by high-end Marvel movies. Use subtle armored textures, dark elegant materials, realistic fabric details, cinematic shadows, heroic posture, and believable movie-quality lighting.
+
+Background should feel like a real blockbuster film scene:
+city at night,
+dramatic skyline,
+rain,
+battle atmosphere,
+or advanced headquarters.
+
+Ultra realistic.
+Sharp cinematic detail.
+Movie poster quality.
+Natural skin realism.
+Grounded believable superhero aesthetic.`,
+
+
+
+    `Create a realistic Marvel-style heroic portrait of this person. ${identityRule}
+
+Maintain full identity preservation:
+same real face,
+same age,
+same wrinkles,
+same skin pores,
+same hairline or baldness,
+same beard if present,
+same facial structure,
+same expression.
+
+Dress them in a luxury superhero outfit with subtle futuristic tactical armor, elegant dark materials, cinematic textures, and realistic battle-ready design.
+
+Use dramatic blockbuster lighting with realistic reflections and atmospheric depth. Add cinematic background elements like advanced technology panels, city lights, smoke, rain, or energy sparks while keeping the image believable and grounded.
+
+The result must look like a real actor photographed for a Marvel movie poster — not fantasy art, not cartoon, not CGI overload.
+
+No neon purple.
+No fake AI face.
+No excessive glow.
+No face reconstruction.`,
+
+
+
+    `Transform this person into a grounded cinematic superhero character inspired by modern Marvel films. ${identityRule}
+
+Strongly preserve:
+real face,
+real age,
+natural wrinkles,
+skin texture,
+baldness or hairstyle,
+beard if present,
+and overall facial identity.
+
+Use realistic superhero styling:
+premium tactical jacket,
+subtle armor panels,
+heroic cinematic composition,
+movie-grade lighting,
+sharp photography realism,
+and natural dramatic shadows.
+
+Add believable cinematic atmosphere such as:
+urban skyline,
+storm lighting,
+helicopter lights,
+headquarters background,
+or dramatic action environment.
+
+The image should feel like an official Marvel movie promotional poster while still looking exactly like the original real person.
+
+Highly realistic.
+Elegant.
+Powerful.
+Cinematic.
+Recognizable identity.`
+
 ]
 
         const fantasyPrompts = [

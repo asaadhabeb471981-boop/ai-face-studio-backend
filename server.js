@@ -40,7 +40,7 @@ app.post("/generate", async (req, res) => {
         const identityRule =
             "Preserve exact facial identity, gender, age, face shape, hairstyle, beard if present, glasses if present, eyes, nose, mouth, skin tone, and expression. Do not change the person into someone else. If the input person is female, keep them female. If the input person is male, keep them male. Preserve the original person's identity naturally and realistically."
 
-        const superheroPrompts = [
+        const MarvelsuperheroesPrompts = [
 
 `Using the uploaded image as the identity reference, reimagine the same person as a powerful live-action Marvel Cinematic Universe anti-hero. The result must look like a real blockbuster movie still — cinematic, intimidating, realistic, and visually premium.
 

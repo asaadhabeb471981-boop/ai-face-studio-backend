@@ -278,7 +278,25 @@ app.post("/generate", async (req, res) => {
 Transform this person into a high-quality premium AI portrait. ${identityRule}`
         }
 
-        prompt = `${prompt} ${moodText} ${strengthText}`
+let styleIntensityRule = ""
+
+if (strength === "Accurate") {
+
+    styleIntensityRule =
+        "Keep styling subtle and realistic. Minimize facial reconstruction. Do not heavily modify hairstyle, hairline, beard, wrinkles, skin texture, or facial proportions. Preserve the original person's real appearance as much as possible while lightly applying the selected style."
+
+} else if (strength === "Extreme") {
+
+    styleIntensityRule =
+        "Apply a strong dramatic cinematic transformation while keeping the person recognizable."
+
+} else {
+
+    styleIntensityRule =
+        "Apply balanced premium cinematic styling while preserving identity."
+}
+
+        prompt = `${prompt} ${moodText} ${strengthText} ${styleIntensityRule}`
 
         console.log("Prompt:", prompt)
 

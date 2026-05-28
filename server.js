@@ -60,7 +60,7 @@ Do NOT beautify.
 Do NOT make younger.
 Do NOT replace the face with a fake Hollywood actor.
 
-Style the person as a realistic modern superhero wearing a premium tactical suit inspired by high-end Marvel movies. Use subtle armored textures, dark elegant materials, realistic fabric details, cinematic shadows, heroic posture, and believable movie-quality lighting.
+Style the person as a realistic marvel superhero wearing a premium tactical suit inspired by high-end Marvel movies. Use subtle marvel superhero textures, marvel superhero elegant materials, realistic fabric details, cinematic shadows, heroic posture, and believable movie-quality lighting.
 
 Background should feel like a real blockbuster film scene:
 city at night,
@@ -71,13 +71,13 @@ or advanced headquarters.
 
 Ultra realistic.
 Sharp cinematic detail.
-Movie poster quality.
+marvel movie poster quality.
 Natural skin realism.
 Grounded believable superhero aesthetic.`,
 
 
 
-    `Create a realistic Marvel-style heroic portrait of this person. ${identityRule}
+    `Create a realistic Marvel movie-style heroic portrait of this person. ${identityRule}
 
 Maintain full identity preservation:
 same real face,
@@ -89,11 +89,11 @@ same beard if present,
 same facial structure,
 same expression.
 
-Dress them in a luxury superhero outfit with subtle futuristic tactical armor, elegant dark materials, cinematic textures, and realistic battle-ready design.
+Dress them in a luxury marvel superhero outfit with subtle futuristic tactical superhero outfit, elegant marvel superhero materials, cinematic textures, and realistic battle-ready design.
 
 Use dramatic blockbuster lighting with realistic reflections and atmospheric depth. Add cinematic background elements like advanced technology panels, city lights, smoke, rain, or energy sparks while keeping the image believable and grounded.
 
-The result must look like a real actor photographed for a Marvel movie poster — not fantasy art, not cartoon, not CGI overload.
+The result must look like a real marvel superhero for a Marvel movie poster — not fantasy art, not cartoon, not CGI overload.
 
 No neon purple.
 No fake AI face.
@@ -102,7 +102,7 @@ No face reconstruction.`,
 
 
 
-    `Transform this person into a grounded cinematic superhero character inspired by modern Marvel films. ${identityRule}
+    `Transform this person into a grounded cinematic marvel superhero character inspired by modern Marvel films. ${identityRule}
 
 Strongly preserve:
 real face,
@@ -114,8 +114,8 @@ beard if present,
 and overall facial identity.
 
 Use realistic superhero styling:
-premium tactical jacket,
-subtle armor panels,
+premium tactical marvel superhero outfit,
+subtle marvel superhero panels,
 heroic cinematic composition,
 movie-grade lighting,
 sharp photography realism,
@@ -123,12 +123,13 @@ and natural dramatic shadows.
 
 Add believable cinematic atmosphere such as:
 urban skyline,
+marvel superhero environment,
 storm lighting,
 helicopter lights,
-headquarters background,
+marvel superheros movie background,
 or dramatic action environment.
 
-The image should feel like an official Marvel movie promotional poster while still looking exactly like the original real person.
+The image should feel like an official marvel superhero movie promotional poster while still looking exactly like the original real person.
 
 Highly realistic.
 Elegant.

@@ -46,7 +46,7 @@ app.post("/generate", async (req, res) => {
 
 IMPORTANT: The facial identity must NOT change. ${identityRule} Preserve the exact facial identity, age, ethnicity, wrinkles, baldness or hairstyle, beard if present, bone structure, and facial proportions of the original person. Keep the same eyes, nose, jawline, cheekbones, skin texture, and expression realism. Facial expression must show intense, controlled rage mixed with confidence. Eyes should glow subtly with deep crimson red energy while remaining realistic and cinematic. The face must remain fully visible, unobstructed, sharp, and well-lit.
 
-Color Theme: black and deep crimson red only. Advanced nanotech combat armor with black carbon-fiber textures, layered red armored plating, glowing red energy reactor, mechanical joints, tech seams, power conduits, and cinematic Marvel-level realism. Tight tactical combat suit, dangerous and battle-ready. No cape. No helmet.
+Color Theme: black and deep crimson red only. Advanced Marvel Superheroes outfit textures, layered marvel superheroes plating, glowing red energy reactor, mechanical joints, tech seams, power conduits, and cinematic Marvel-level realism. Tight tactical combat suit, dangerous and battle-ready. No cape. No helmet.
 
 Superpowers: Controlled red energy emitting from hands and forearms. Subtle energy distortion, heat shimmer, glowing red particles, cinematic energy aura, realistic VFX quality. No magic symbols.
 
@@ -54,15 +54,15 @@ Pose & Body Language: Dominant intimidating stance. Slightly clenched glowing fi
 
 Environment: Dark futuristic city at night with realistic cinematic atmosphere. Wet streets, smoke, sparks, blurred neon reflections, atmospheric haze, blockbuster Marvel movie environment.
 
-Lighting: High-contrast Marvel-style cinematic lighting. Strong red rim light on armor edges. Soft realistic key light illuminating the face clearly. Deep shadows for dramatic depth. Volumetric lighting through smoke. Face must stay realistic and recognizable.
+Lighting: High-contrast Marvel-style cinematic lighting. Strong red rim light on marvel superheroes edges. Soft realistic key light illuminating the face clearly. Deep shadows for dramatic depth. Volumetric lighting through smoke. Face must stay realistic and recognizable.
 
 Camera & Quality: IMAX / ARRI Alexa cinematic photography. Medium close-up framing. Eye-level heroic angle. Ultra detailed 4K photorealism. Sharp focus on face and chest reactor.
 
 Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Must look like a $200M Marvel blockbuster movie still while preserving the same real person.`,
 
-`Transform the uploaded person into a realistic red-and-black Marvel anti-hero commander. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, facial structure, and expression realism. Advanced black tactical nanotech armor with deep crimson glowing power lines, angular energy reactor, heavy armored plating, cinematic Marvel realism, intimidating heroic presence, subtle glowing red eyes, controlled red energy powers, futuristic city battlefield at night, realistic smoke, sparks, and blockbuster cinematic atmosphere. Ultra realistic IMAX-quality Marvel movie still.`,
+`Transform the uploaded person into a realistic red-and-black Marvel anti-hero commander. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, facial structure, and expression realism. Advanced Marvel Superheroes outfit with deep crimson glowing power lines, angular energy reactor, heavy marvel superheroes plating, cinematic Marvel realism, intimidating heroic presence, subtle glowing red eyes, controlled red energy powers, futuristic city battlefield at night, realistic smoke, sparks, and blockbuster cinematic atmosphere. Ultra realistic IMAX-quality Marvel movie still.`,
 
-`Create a premium cinematic Marvel superhero portrait of the uploaded person. ${identityRule} Preserve exact real identity and natural aging while transforming the person into a dangerous red-energy-powered anti-hero. Black carbon-fiber combat armor, glowing crimson reactor core, realistic red energy veins, cinematic atmospheric smoke, futuristic city environment, dramatic Marvel lighting, realistic skin detail, subtle energy aura, ultra realistic blockbuster movie quality, sharp face detail, intimidating heroic stance.`
+`Create a premium cinematic Marvel superhero portrait of the uploaded person. ${identityRule} Preserve exact real identity and natural aging while transforming the person into a dangerous red-energy-powered anti-hero. marvel superheroes outfit, glowing crimson reactor core, realistic red energy veins, cinematic atmospheric smoke, futuristic city environment, dramatic Marvel lighting, realistic skin detail, subtle energy aura, ultra realistic blockbuster movie quality, sharp face detail, intimidating heroic stance.`
 
 ]
 
@@ -127,9 +127,9 @@ Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Mu
         const aiAvatarPrompts = [
     `Transform this person into a realistic premium AI avatar portrait. ${identityRule} Preserve the exact same real identity, age, wrinkles, baldness or hairstyle, beard if present, face shape, eyes, nose, lips, skin texture, expression, and natural imperfections. Upgrade the outfit into elegant modern luxury clothing. Use realistic cinematic photography, natural skin texture, premium golden-hour lighting, soft background blur, luxury lifestyle atmosphere, high-end portrait quality. Do not use purple lighting, neon lighting, cyberpunk effects, glowing particles, fantasy colors, or superhero styling.`,
 
-    `Create a high-end realistic AI portrait of this person. ${identityRule} Keep the same face, same age, same wrinkles, same baldness or hairstyle, same facial proportions, same expression, and same skin realism. Give the person a refined luxury portrait look with elegant clothing, natural warm lighting, realistic background, premium camera depth of field, and believable professional photography. No purple, no neon, no sci-fi armor, no cyberpunk, no fantasy effects.`,
+    `Create a high-end realistic AI portrait of this person. ${identityRule} Keep the same face, same age, same wrinkles, same baldness or hairstyle, same facial proportions, same expression, and same skin realism. Give the person a refined luxury portrait look with elegant clothing, natural warm lighting, realistic background, premium camera depth of field, and believable professional photography. No purple, no neon, no sci-fi marvel superheroes, no cyberpunk, no fantasy effects.`,
 
-    `Transform this person into a realistic luxury social-media AI avatar. ${identityRule} Preserve real identity strongly, including age, wrinkles, face shape, baldness or hairstyle, facial hair, skin tone, and expression. Use premium realistic portrait lighting, stylish modern outfit, elegant background, natural color grading, sharp professional detail, and believable cinematic realism. Avoid artificial purple colors, neon glow, holograms, cyberpunk effects, superhero armor, or dramatic face reconstruction.`,
+    `Transform this person into a realistic luxury social-media AI avatar. ${identityRule} Preserve real identity strongly, including age, wrinkles, face shape, baldness or hairstyle, facial hair, skin tone, and expression. Use premium realistic portrait lighting, stylish modern outfit, elegant background, natural color grading, sharp professional detail, and believable cinematic realism. Avoid artificial purple colors, neon glow, holograms, cyberpunk effects, marvelsuperrheroes, or dramatic face reconstruction.`,
 
     `Create a realistic premium lifestyle avatar portrait. ${identityRule} Keep the person recognizable as the exact same real person. Preserve facial structure, age, wrinkles, skin texture, baldness or hairline, beard if present, clothing identity where possible, and natural expression. Upgrade only the background, lighting, and outfit in a realistic luxury way. Use warm natural light, realistic shadows, premium photography, and clean social-media portrait quality.`,
 
@@ -219,20 +219,43 @@ Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Mu
 
             case "Superhero":
 
-                if (variation === "Variation 1") {
-                    prompt = `${genderRule}\n\n${superheroPrompts[0]}`
-                }
-                else if (variation === "Variation 2") {
-                    prompt = `${genderRule}\n\n${superheroPrompts[1]}`
-                }
-                else if (variation === "Variation 3") {
-                    prompt = `${genderRule}\n\n${superheroPrompts[2]}`
-                }
-                else {
-                    prompt = `${genderRule}\n\n${pickRandom(superheroPrompts)}`
-                }
+    if (variation === "Variation 1") {
 
-                break
+        prompt = `
+${genderRule}
+
+${MarvelsuperheroesPrompts[0]}
+`
+
+    }
+    else if (variation === "Variation 2") {
+
+        prompt = `
+${genderRule}
+
+${MarvelsuperheroesPrompts[1]}
+`
+
+    }
+    else if (variation === "Variation 3") {
+
+        prompt = `
+${genderRule}
+
+${MarvelsuperheroesPrompts[2]}
+`
+
+    }
+    else {
+
+        prompt = `
+${genderRule}
+
+${pickRandom(MarvelsuperheroesPrompts)}
+`
+    }
+
+    break
 
             case "Fantasy":
                 prompt = `${genderRule}\n\n${pickRandom(fantasyPrompts)}`

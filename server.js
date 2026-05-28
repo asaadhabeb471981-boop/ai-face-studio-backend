@@ -170,7 +170,7 @@ app.post("/generate", async (req, res) => {
 
                     : strength === "Accurate"
 
-    ? "ULTRA ACCURATE FACE MODE: Identity preservation is the absolute highest priority. The final result must look like the exact same real person from the uploaded photo. Preserve the exact same age, wrinkles, skin texture, pores, forehead lines, eye bags, face shape, jawline, cheeks, nose shape, lips, ears, eyebrows, eye shape, facial proportions, skin tone, beard or facial hair if present, hairstyle or baldness, hairline, clothes, ethnicity, expression, and overall facial realism. Preserve all natural imperfections realistically. Preserve baldness exactly if the person is bald. Never restore hair or improve hairline. Never make the person younger, prettier, slimmer, cleaner, smoother, or more symmetrical. Never replace the face with a Hollywood-style attractive version. Avoid beauty enhancement, glamour effects, unrealistic skin smoothing, jaw sharpening, face slimming, or cosmetic improvements. Keep the transformation subtle, grounded, and highly realistic. Apply the selected style mainly through atmosphere, lighting, outfit styling, cinematic grading, and environment while keeping the face identity almost unchanged."
+    ? "PHOTO-REALISTIC ACCURATE FACE MODE: Preserve the uploaded person's real identity almost unchanged. This is not a makeover. This is not a fantasy portrait. Keep the same real face, same age, same wrinkles, same forehead lines, same skin texture, same eye bags, same nose, same lips, same cheeks, same jawline, same baldness or hairline, same beard if present, same clothing, same expression, and same natural imperfections. Do not make the person younger. Do not beautify. Do not smooth skin. Do not sharpen jawline. Do not slim face. Do not restore hair. Do not add dramatic purple neon lighting. Do not heavily recolor the face. Use natural realistic lighting and only very subtle cinematic enhancement. The final image must look like the same original person, not a different AI actor."
 
                         : strength === "Extreme"
 
@@ -283,7 +283,7 @@ let styleIntensityRule = ""
 if (strength === "Accurate") {
 
     styleIntensityRule =
-        "Keep styling subtle and realistic. Minimize facial reconstruction. Do not heavily modify hairstyle, hairline, beard, wrinkles, skin texture, or facial proportions. Preserve the original person's real appearance as much as possible while lightly applying the selected style."
+        "PHOTO-REALISTIC ACCURATE FACE MODE: Preserve the uploaded person's real face almost unchanged. Keep the same age, wrinkles, forehead lines, eye bags, skin texture, pores, face shape, jawline, cheeks, nose, lips, eyes, eyebrows, ears, baldness or hairline, beard if present, clothing, expression, and natural imperfections. Do not make the person younger. Do not beautify. Do not smooth skin. Do not slim the face. Do not sharpen the jawline. Do not restore hair. Do not add dramatic purple, magenta, neon, cyberpunk, fantasy, or colored lighting. Use natural realistic lighting and only very subtle cinematic enhancement. The final image must look like the same original person, not a different AI actor."
 
 } else if (strength === "Extreme") {
 
@@ -296,7 +296,29 @@ if (strength === "Accurate") {
         "Apply balanced premium cinematic styling while preserving identity."
 }
 
-        prompt = `${prompt} ${moodText} ${strengthText} ${styleIntensityRule}`
+        prompt = `
+${prompt}
+
+${moodText}
+
+${strengthText}
+
+${styleIntensityRule}
+`
+
+if (strength === "Accurate") {
+
+    prompt += `
+
+IMPORTANT:
+Use realistic natural lighting.
+Avoid neon purple lighting.
+Avoid fantasy skin tones.
+Avoid cinematic over-stylization.
+Avoid dramatic face reconstruction.
+Keep the image grounded and realistic.
+`
+}
 
         console.log("Prompt:", prompt)
 
@@ -352,9 +374,9 @@ if (strength === "Accurate") {
     output_format: "jpg",
     safety_tolerance: 2,
 
-    guidance_scale: strength === "Accurate" ? 2.2 : 3.5,
-    num_inference_steps: strength === "Accurate" ? 28 : 35,
-    prompt_strength: strength === "Accurate" ? 0.35 : 0.75
+    guidance_scale: strength === "Accurate" ? 1.8 : 3.5,
+    num_inference_steps: strength === "Accurate" ? 24 : 35,
+    prompt_strength: strength === "Accurate" ? 0.22 : 0.75
 }
             },
             {
@@ -419,10 +441,10 @@ if (strength === "Accurate") {
             "https://api.replicate.com/v1/models/nightmareai/real-esrgan/predictions",
             {
                 input: {
-                    image: outputUrl,
-                    scale: 2,
-                    face_enhance: true
-                }
+    image: outputUrl,
+    scale: 2,
+    face_enhance: strength === "Accurate" ? false : true
+}
             },
             {
                 headers: {

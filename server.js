@@ -42,27 +42,27 @@ app.post("/generate", async (req, res) => {
 
         const MarvelsuperheroesPrompts = [
 
-    `Using the uploaded image as the identity reference, reimagine the same person as a high-impact Marvel Cinematic Universe superhero. The result must look like a real live-action Marvel movie still — visually powerful, unmistakably extraordinary, not generic, not casual, not minimal.
+`Using the uploaded image as the identity reference, reimagine the same person as a high-impact Marvel Cinematic Universe superhero. The result must look like a real live-action Marvel movie still — visually powerful, unmistakably extraordinary, not generic, not casual, not minimal.
 
-IMPORTANT: The facial identity must NOT change. Preserve the exact facial identity, age, ethnicity, and bone structure of the original man. Keep the same eyes, nose, jawline, cheekbones, skin texture, and proportions. Facial expression must show intense, controlled rage mixed with confidence. Eyes should glow slightly with deep red energy, subtle but clearly noticeable. Light stubble only, sharp and clean. The face must remain fully visible, unobstructed, and well-lit.
+IMPORTANT: The facial identity must NOT change. ${identityRule} Preserve the exact facial identity, age, ethnicity, wrinkles, baldness or hairstyle, beard if present, bone structure, and facial proportions of the original person. Keep the same eyes, nose, jawline, cheekbones, skin texture, and expression realism. Facial expression must show intense, controlled rage mixed with confidence. Eyes should glow subtly with deep crimson red energy while remaining realistic and cinematic. The face must remain fully visible, unobstructed, sharp, and well-lit.
 
-Color Theme (MANDATORY): Primary colors are black and deep crimson red only. Accents include glowing red energy veins and power lines. NO bright colors. NO blue. NO green.
+Color Theme: black and deep crimson red only. Advanced nanotech combat armor with black carbon-fiber textures, layered red armored plating, glowing red energy reactor, mechanical joints, tech seams, power conduits, and cinematic Marvel-level realism. Tight tactical combat suit, dangerous and battle-ready. No cape. No helmet.
 
-Super Suit: Advanced Marvel-level nanotech combat suit. Black carbon-fiber base with layered red armored plates. The suit must look heavy, dangerous, and battle-ready. Chest core features a glowing red energy reactor with an angular, non-circular design. Arms and shoulders reinforced with mechanical plating. Visible tech seams, micro-panels, mechanical joints, and power conduits. Suit fit is tight, tactical, and aggressive. No cape. No helmet.
+Superpowers: Controlled red energy emitting from hands and forearms. Subtle energy distortion, heat shimmer, glowing red particles, cinematic energy aura, realistic VFX quality. No magic symbols.
 
-Superpowers: Red energy emitting from hands and forearms. Subtle energy distortion surrounding the body. Heat shimmer and glowing red particles in the air. Power aura is controlled and focused, not chaotic. No magic symbols — tech-enhanced energy only.
+Pose & Body Language: Dominant intimidating stance. Slightly clenched glowing fists. Chest forward, squared shoulders, controlled power.
 
-Pose & Body Language: The hero is standing still but radiating power and threat. Slightly clenched fists glowing with red energy. Chest forward, shoulders squared. Dominant and intimidating stance.
+Environment: Dark futuristic city at night with realistic cinematic atmosphere. Wet streets, smoke, sparks, blurred neon reflections, atmospheric haze, blockbuster Marvel movie environment.
 
-Environment: Dark futuristic city at night. Neon lights reflecting off armor surfaces. Light smoke, sparks, and atmospheric haze in the air. No civilians visible. Background blurred for cinematic focus.
+Lighting: High-contrast Marvel-style cinematic lighting. Strong red rim light on armor edges. Soft realistic key light illuminating the face clearly. Deep shadows for dramatic depth. Volumetric lighting through smoke. Face must stay realistic and recognizable.
 
-Lighting: High-contrast cinematic Marvel-style lighting. Strong red rim light outlining armor edges. Soft key light illuminating the face clearly. Deep shadows to enhance menace and depth. Volumetric light beams cutting through smoke. The face must be sharp, bright, and clearly readable.
+Camera & Quality: IMAX / ARRI Alexa cinematic photography. Medium close-up framing. Eye-level heroic angle. Ultra detailed 4K photorealism. Sharp focus on face and chest reactor.
 
-Camera & Quality: Shot on IMAX / ARRI Alexa. Medium close-up to waist-up framing. Eye-level heroic angle. Ultra-sharp focus on face and chest reactor. 4K photorealism.
+Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Must look like a $200M Marvel blockbuster movie still while preserving the same real person.`,
 
-Style Rules: NOT casual. NOT generic. NOT minimalist. NOT cartoon. NOT anime. Must look like a $200M Marvel movie.
+`Transform the uploaded person into a realistic red-and-black Marvel anti-hero commander. ${identityRule} Preserve exact facial identity, wrinkles, skin texture, baldness or hairstyle, beard if present, facial structure, and expression realism. Advanced black tactical nanotech armor with deep crimson glowing power lines, angular energy reactor, heavy armored plating, cinematic Marvel realism, intimidating heroic presence, subtle glowing red eyes, controlled red energy powers, futuristic city battlefield at night, realistic smoke, sparks, and blockbuster cinematic atmosphere. Ultra realistic IMAX-quality Marvel movie still.`,
 
-Final Result: The man must look unmistakably like a red-and-black tech-powered Marvel anti-hero — dangerous, cinematic, and visually powerful.`
+`Create a premium cinematic Marvel superhero portrait of the uploaded person. ${identityRule} Preserve exact real identity and natural aging while transforming the person into a dangerous red-energy-powered anti-hero. Black carbon-fiber combat armor, glowing crimson reactor core, realistic red energy veins, cinematic atmospheric smoke, futuristic city environment, dramatic Marvel lighting, realistic skin detail, subtle energy aura, ultra realistic blockbuster movie quality, sharp face detail, intimidating heroic stance.`
 
 ]
 

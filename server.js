@@ -160,17 +160,18 @@ const moodText =
 
 const strengthText =
     styleName === "Cartoon"
-        ? "Use a clearly animated cartoon transformation. Preserve identity, gender, age, face structure, hairstyle or baldness, beard if present, and expression, but the final result must look like a premium animated character, not a real photo."
+
+        ? "CARTOON MODE: The final image must be clearly non-photorealistic and animated. Use a premium 3D cartoon / animated movie character style with smooth stylized skin, simplified facial planes, expressive animated eyes, clean cartoon shading, polished illustration textures, and a high-end animated film look. Do not output a realistic human photo. Do not keep photographic skin texture. Preserve identity, gender, age, baldness or hairstyle, beard if present, face structure, clothes, and expression while converting the person into a clearly animated cartoon character."
 
         : strength === "Accurate"
 
-            ? "ACCURATE MODE: Identity preservation is the absolute highest priority. Keep the transformation subtle and realistic. Preserve the exact same person, same age, same wrinkles, same forehead, same face shape, same facial proportions, same eyes, same nose, same mouth, same skin tone, same hairstyle or baldness, same beard or facial hair if present, same gender, and same natural expression. Do not make the person younger. Do not beautify heavily. Do not slim the face. Do not change jawline. Do not add new hair. Do not remove wrinkles. Do not replace the person with a more attractive actor-like version. Only apply the selected style, lighting, background, outfit, and atmosphere while keeping the real identity clearly intact."
+            ? "ACCURATE MODE: Identity preservation is the absolute highest priority. Keep the transformation subtle and realistic. Preserve the exact same person, same age, same wrinkles, same forehead, same face shape, same facial proportions, same eyes, same nose, same mouth, same skin tone, same hairstyle or baldness, same beard or facial hair if present, same gender, same clothes, and same natural expression. Preserve natural aging realistically. Preserve baldness exactly if the person is bald. Do not generate new hair or restore hairline. Do not make the person younger. Do not beautify heavily. Do not slim the face. Do not change jawline. Do not remove wrinkles. Do not replace the person with a more attractive actor-like version. Only apply the selected style, lighting, background, outfit, and atmosphere while keeping the real identity clearly intact."
 
             : strength === "Extreme"
 
-                ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle or baldness, beard if present, and skin tone while applying stronger cinematic styling."
+                ? "Create a bold and dramatic transformation, but the person must still be clearly recognizable. Preserve the same face identity, facial structure, eyes, nose, mouth, gender, age, hairstyle or baldness, beard if present, clothes, and skin tone while applying stronger cinematic styling."
 
-                : "Use a balanced transformation. Preserve the person's real identity clearly while applying premium cinematic styling. Keep the same face structure, gender, age, hairstyle or baldness, beard if present, eyes, nose, mouth, and skin tone."
+                : "Use a balanced transformation. Preserve the person's real identity clearly while applying premium cinematic styling. Keep the same face structure, gender, age, hairstyle or baldness, beard if present, clothes, eyes, nose, mouth, and skin tone."
 
 let genderRule = "";
 

@@ -4,30 +4,176 @@ const express = require("express")
 const cors = require("cors")
 const axios = require("axios")
 const FormData = require("form-data")
+const crypto = require("crypto")
+const compression = require("compression")
+const helmet = require("helmet")
+const rateLimit = require("express-rate-limit")
 
 const app = express()
 
-app.use(cors())
-app.use(express.json({ limit: "50mb" }))
-
 const PORT = process.env.PORT || 3000
 const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN
+const APP_VERSION = "2.0.0"
+const MAX_IMAGE_BYTES = Number(process.env.MAX_IMAGE_BYTES || 12 * 1024 * 1024)
+const JSON_LIMIT = process.env.JSON_LIMIT || "60mb"
+const REPLICATE_TIMEOUT_MS = Number(process.env.REPLICATE_TIMEOUT_MS || 60000)
+const PREDICTION_POLL_INTERVAL_MS = Number(process.env.PREDICTION_POLL_INTERVAL_MS || 2000)
+const PREDICTION_MAX_ATTEMPTS = Number(process.env.PREDICTION_MAX_ATTEMPTS || 60)
+const GENERATION_MODEL = process.env.REPLICATE_GENERATION_MODEL || "black-forest-labs/flux-kontext-pro"
+const UPSCALE_MODEL = process.env.REPLICATE_UPSCALE_MODEL || "nightmareai/real-esrgan"
+const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "*")
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean)
+
+const studioOptions = {
+    styles: [
+        "AI Avatar",
+        "Headshot",
+        "Professional",
+        "Superhero",
+        "Fantasy",
+        "Cyberpunk",
+        "Anime",
+        "Cartoon"
+    ],
+    moods: ["Cinematic", "Serious", "Luxury", "Editorial", "Dramatic", "Natural"],
+    strengths: ["Accurate", "Balanced", "Extreme"],
+    variations: ["Random", "Variation 1", "Variation 2", "Variation 3"],
+    genderModes: ["Auto", "Female", "Male"],
+    aspectRatios: ["1:1", "3:4", "4:3", "9:16", "16:9", "match_input_image"],
+    backgroundStyles: ["Studio", "Beach", "Cyberpunk", "Office", "Fantasy"]
+}
+
+const replicateClient = axios.create({
+    baseURL: "https://api.replicate.com/v1",
+    timeout: REPLICATE_TIMEOUT_MS,
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+    headers: {
+        Authorization: `Token ${REPLICATE_TOKEN}`
+    }
+})
+
+app.disable("x-powered-by")
+app.set("trust proxy", 1)
+
+app.use((req, res, next) => {
+    req.requestId = req.headers["x-request-id"] || crypto.randomUUID()
+    res.setHeader("X-Request-Id", req.requestId)
+    next()
+})
+
+app.use(helmet())
+app.use(compression())
+app.use(cors({
+    origin(origin, callback) {
+        if (ALLOWED_ORIGINS.includes("*") || !origin || ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true)
+            return
+        }
+
+        callback(new Error("Origin not allowed"))
+    }
+}))
+app.use(express.json({ limit: JSON_LIMIT }))
+
+const generationLimiter = rateLimit({
+    windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+    limit: Number(process.env.RATE_LIMIT_MAX || 20),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        imageUrl: null,
+        error: "Too many AI requests. Please wait a moment and try again."
+    }
+})
 
 if (!REPLICATE_TOKEN) {
     console.error("Missing REPLICATE_API_TOKEN in .env")
 }
 
 app.get("/", (req, res) => {
-    res.send("AI Face Studio Backend Running")
+    res.json({
+        success: true,
+        name: "AI Face Studio Backend",
+        version: APP_VERSION,
+        status: "running",
+        endpoints: ["/health", "/studio/options", "/generate", "/background"],
+        requestId: req.requestId
+    })
+})
+
+app.get("/health", (req, res) => {
+    res.json({
+        success: true,
+        status: REPLICATE_TOKEN ? "ready" : "missing_replicate_token",
+        version: APP_VERSION,
+        uptimeSeconds: Math.round(process.uptime()),
+        provider: "replicate",
+        generationModel: GENERATION_MODEL,
+        requestId: req.requestId
+    })
+})
+
+app.get("/studio/options", (req, res) => {
+    res.json({
+        success: true,
+        options: studioOptions,
+        requestId: req.requestId
+    })
 })
 
 function pickRandom(items) {
     return items[Math.floor(Math.random() * items.length)]
 }
 
+function createHttpError(message, statusCode = 400, code = "BAD_REQUEST") {
+    const error = new Error(message)
+    error.statusCode = statusCode
+    error.code = code
+    return error
+}
+
+function sanitizeText(value, fallback = "", maxLength = 800) {
+    if (typeof value !== "string") return fallback
+
+    return value
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, maxLength) || fallback
+}
+
+function pickAllowed(value, allowedValues, fallback) {
+    const normalizedValue = sanitizeText(value, fallback, 80).toLowerCase()
+    return allowedValues.find(item => item.toLowerCase() === normalizedValue) || fallback
+}
+
 function cleanBase64(imageBase64) {
-    if (!imageBase64) throw new Error("Missing imageBase64")
-    return imageBase64.replace(/^data:image\/\w+;base64,/, "")
+    if (!imageBase64 || typeof imageBase64 !== "string") {
+        throw createHttpError("Missing or invalid imageBase64", 400, "INVALID_IMAGE")
+    }
+
+    const match = imageBase64.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/i)
+    const rawBase64 = match ? match[2] : imageBase64
+    const normalized = rawBase64.replace(/\s/g, "")
+
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(normalized)) {
+        throw createHttpError("imageBase64 is not valid base64 image data", 400, "INVALID_IMAGE")
+    }
+
+    const estimatedBytes = Math.floor((normalized.length * 3) / 4)
+
+    if (estimatedBytes > MAX_IMAGE_BYTES) {
+        throw createHttpError(
+            `Image is too large. Maximum size is ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB.`,
+            413,
+            "IMAGE_TOO_LARGE"
+        )
+    }
+
+    return normalized
 }
 
 async function uploadBase64Image(imageBase64, filename = "photo.jpg") {
@@ -40,12 +186,11 @@ async function uploadBase64Image(imageBase64, filename = "photo.jpg") {
         contentType: "image/jpeg"
     })
 
-    const response = await axios.post(
-        "https://api.replicate.com/v1/files",
+    const response = await replicateClient.post(
+        "/files",
         form,
         {
             headers: {
-                Authorization: `Token ${REPLICATE_TOKEN}`,
                 ...form.getHeaders()
             }
         }
@@ -55,12 +200,15 @@ async function uploadBase64Image(imageBase64, filename = "photo.jpg") {
 }
 
 async function startPrediction(model, input) {
-    const response = await axios.post(
-        `https://api.replicate.com/v1/models/${model}/predictions`,
+    if (!REPLICATE_TOKEN) {
+        throw createHttpError("AI provider token is not configured", 503, "MISSING_PROVIDER_TOKEN")
+    }
+
+    const response = await replicateClient.post(
+        `/models/${model}/predictions`,
         { input },
         {
             headers: {
-                Authorization: `Token ${REPLICATE_TOKEN}`,
                 "Content-Type": "application/json"
             }
         }
@@ -70,17 +218,10 @@ async function startPrediction(model, input) {
 }
 
 async function waitForPrediction(predictionId, label = "Prediction") {
-    for (let i = 0; i < 45; i++) {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+    for (let i = 0; i < PREDICTION_MAX_ATTEMPTS; i++) {
+        await new Promise(resolve => setTimeout(resolve, PREDICTION_POLL_INTERVAL_MS))
 
-        const response = await axios.get(
-            `https://api.replicate.com/v1/predictions/${predictionId}`,
-            {
-                headers: {
-                    Authorization: `Token ${REPLICATE_TOKEN}`
-                }
-            }
-        )
+        const response = await replicateClient.get(`/predictions/${predictionId}`)
 
         const prediction = response.data
 
@@ -94,11 +235,42 @@ async function waitForPrediction(predictionId, label = "Prediction") {
 
         if (prediction.status === "failed" || prediction.status === "canceled") {
             console.log(prediction)
-            throw new Error(`${label} failed`)
+            throw createHttpError(`${label} failed`, 502, "PROVIDER_FAILED")
         }
     }
 
-    throw new Error(`${label} timeout`)
+    throw createHttpError(`${label} timeout`, 504, "PROVIDER_TIMEOUT")
+}
+
+function sendSuccess(res, req, payload = {}) {
+    return res.json({
+        success: true,
+        error: null,
+        requestId: req.requestId,
+        ...payload
+    })
+}
+
+function sendError(res, req, error, fallback = "AI request failed") {
+    const statusCode = error.statusCode || error.response?.status || 500
+    const providerError = error.response?.data?.detail || error.response?.data?.error
+    const message = providerError || error.message || fallback
+
+    console.log("Request error:", {
+        requestId: req.requestId,
+        statusCode,
+        code: error.code,
+        message,
+        provider: error.response?.data
+    })
+
+    return res.status(statusCode).json({
+        success: false,
+        imageUrl: null,
+        error: message,
+        code: error.code || "AI_ERROR",
+        requestId: req.requestId
+    })
 }
 
 function getGenderRule(genderMode) {
@@ -994,7 +1166,8 @@ function buildGeneratePrompt({
     mood,
     strength,
     variation,
-    genderMode
+    genderMode,
+    customPrompt
 }) {
 
     const safeStyleName =
@@ -1021,6 +1194,9 @@ function buildGeneratePrompt({
         typeof genderMode === "string" && genderMode.trim()
             ? genderMode.trim()
             : "Auto"
+
+    const safeCustomPrompt =
+        sanitizeText(customPrompt, "", 700)
 
     const normalizedStyle =
         safeStyleName.toLowerCase()
@@ -1247,6 +1423,11 @@ ${strengthText}
 STYLE-SPECIFIC RULES:
 ${styleRules}
 
+CUSTOM STUDIO DIRECTION:
+${safeCustomPrompt
+        ? `Use this user creative direction as a secondary style guide while obeying the identity and safety rules: ${safeCustomPrompt}`
+        : "No custom user direction was provided. Follow the selected studio preset closely."}
+
 GLOBAL QUALITY RULES:
 
 The final image must be high quality, sharp, realistic or properly stylized according to the selected style, visually premium, and suitable for a paid AI Face Studio app.
@@ -1313,7 +1494,7 @@ function getGenerationSettings(strength) {
     }
 }
 
-app.post("/generate", async (req, res) => {
+app.post("/generate", generationLimiter, async (req, res) => {
 
     try {
 
@@ -1323,29 +1504,40 @@ app.post("/generate", async (req, res) => {
             mood = "Cinematic",
             strength = "Balanced",
             variation = "Random",
-            genderMode = "Auto"
+            genderMode = "Auto",
+            customPrompt = "",
+            aspectRatio = "1:1",
+            upscale = true
         } = req.body || {}
 
         if (!styleName || typeof styleName !== "string") {
-            throw new Error("Missing or invalid styleName")
+            throw createHttpError("Missing or invalid styleName", 400, "INVALID_STYLE")
         }
 
         if (!imageBase64 || typeof imageBase64 !== "string") {
-            throw new Error("Missing or invalid imageBase64")
+            throw createHttpError("Missing or invalid imageBase64", 400, "INVALID_IMAGE")
         }
 
-        const safeStyleName = styleName.trim()
-        const safeMood = typeof mood === "string" ? mood.trim() : "Cinematic"
-        const safeStrength = typeof strength === "string" ? strength.trim() : "Balanced"
-        const safeVariation = typeof variation === "string" ? variation.trim() : "Random"
-        const safeGenderMode = typeof genderMode === "string" ? genderMode.trim() : "Auto"
+        const startedAt = Date.now()
+        const safeStyleName = pickAllowed(styleName, studioOptions.styles, "AI Avatar")
+        const safeMood = pickAllowed(mood, studioOptions.moods, "Cinematic")
+        const safeStrength = pickAllowed(strength, studioOptions.strengths, "Balanced")
+        const safeVariation = pickAllowed(variation, studioOptions.variations, "Random")
+        const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Auto")
+        const safeCustomPrompt = sanitizeText(customPrompt, "", 700)
+        const safeAspectRatio = pickAllowed(aspectRatio, studioOptions.aspectRatios, "1:1")
+        const shouldUpscale = upscale !== false
 
         console.log("Generate request:", {
+            requestId: req.requestId,
             styleName: safeStyleName,
             mood: safeMood,
             strength: safeStrength,
             variation: safeVariation,
-            genderMode: safeGenderMode
+            genderMode: safeGenderMode,
+            hasCustomPrompt: Boolean(safeCustomPrompt),
+            aspectRatio: safeAspectRatio,
+            upscale: shouldUpscale
         })
 
         const uploadedImageUrl =
@@ -1362,7 +1554,8 @@ app.post("/generate", async (req, res) => {
                 mood: safeMood,
                 strength: safeStrength,
                 variation: safeVariation,
-                genderMode: safeGenderMode
+                genderMode: safeGenderMode,
+                customPrompt: safeCustomPrompt
             })
 
         console.log("Prompt:", prompt)
@@ -1370,16 +1563,13 @@ app.post("/generate", async (req, res) => {
         const settings =
             getGenerationSettings(safeStrength)
 
-        const selectedModel =
-            "black-forest-labs/flux-kontext-pro"
-
         const predictionId =
             await startPrediction(
-                selectedModel,
+                GENERATION_MODEL,
                 {
                     prompt,
                     input_image: uploadedImageUrl,
-                    aspect_ratio: "1:1",
+                    aspect_ratio: safeAspectRatio,
                     output_format: "jpg",
                     safety_tolerance: 2,
                     ...settings
@@ -1397,58 +1587,63 @@ app.post("/generate", async (req, res) => {
         console.log("Generated image:", generatedUrl)
 
         let finalUrl = generatedUrl
+        let upscaleApplied = false
 
-        try {
+        if (shouldUpscale) {
+            try {
 
-            const shouldFaceEnhance =
-                safeStrength.toLowerCase() === "extreme"
+                const shouldFaceEnhance =
+                    safeStrength.toLowerCase() === "extreme"
 
-            const upscalePredictionId =
-                await startPrediction(
-                    "nightmareai/real-esrgan",
-                    {
-                        image: generatedUrl,
-                        scale: 2,
-                        face_enhance: shouldFaceEnhance
-                    }
+                const upscalePredictionId =
+                    await startPrediction(
+                        UPSCALE_MODEL,
+                        {
+                            image: generatedUrl,
+                            scale: 2,
+                            face_enhance: shouldFaceEnhance
+                        }
+                    )
+
+                console.log("Upscale started:", upscalePredictionId)
+
+                finalUrl =
+                    await waitForPrediction(
+                        upscalePredictionId,
+                        "Upscale"
+                    )
+
+                upscaleApplied = true
+
+            } catch (upscaleError) {
+
+                console.log(
+                    "Upscale failed, returning original image:",
+                    upscaleError.message
                 )
 
-            console.log("Upscale started:", upscalePredictionId)
-
-            finalUrl =
-                await waitForPrediction(
-                    upscalePredictionId,
-                    "Upscale"
-                )
-
-        } catch (upscaleError) {
-
-            console.log(
-                "Upscale failed, returning original image:",
-                upscaleError.message
-            )
-
-            finalUrl = generatedUrl
+                finalUrl = generatedUrl
+            }
         }
 
-        return res.json({
-            success: true,
+        return sendSuccess(res, req, {
             imageUrl: finalUrl,
-            error: null
+            studio: {
+                styleName: safeStyleName,
+                mood: safeMood,
+                strength: safeStrength,
+                variation: safeVariation,
+                genderMode: safeGenderMode,
+                aspectRatio: safeAspectRatio,
+                customPromptApplied: Boolean(safeCustomPrompt),
+                upscaleApplied,
+                model: GENERATION_MODEL,
+                durationMs: Date.now() - startedAt
+            }
         })
 
     } catch (error) {
-
-        console.log(
-            "Generate error:",
-            error.response?.data || error.message
-        )
-
-        return res.status(500).json({
-            success: false,
-            imageUrl: null,
-            error: error.message || "Generation failed"
-        })
+        return sendError(res, req, error, "Generation failed")
     }
 })
 
@@ -1559,7 +1754,7 @@ Do not add text, logos, or watermark.
     ).trim()
 }
 
-app.post("/background", async (req, res) => {
+app.post("/background", generationLimiter, async (req, res) => {
 
     try {
 
@@ -1569,15 +1764,15 @@ app.post("/background", async (req, res) => {
         } = req.body || {}
 
         if (!imageBase64 || typeof imageBase64 !== "string") {
-            throw new Error("Missing or invalid imageBase64")
+            throw createHttpError("Missing or invalid imageBase64", 400, "INVALID_IMAGE")
         }
 
+        const startedAt = Date.now()
         const safeBackgroundStyle =
-            typeof backgroundStyle === "string" && backgroundStyle.trim()
-                ? backgroundStyle.trim()
-                : "Studio"
+            pickAllowed(backgroundStyle, studioOptions.backgroundStyles, "Studio")
 
         console.log("Background request:", {
+            requestId: req.requestId,
             backgroundStyle: safeBackgroundStyle
         })
 
@@ -1596,7 +1791,7 @@ app.post("/background", async (req, res) => {
 
         const predictionId =
             await startPrediction(
-                "black-forest-labs/flux-kontext-pro",
+                GENERATION_MODEL,
                 {
                     prompt,
                     input_image: uploadedImageUrl,
@@ -1620,27 +1815,39 @@ app.post("/background", async (req, res) => {
 
         console.log("Background generated:", outputUrl)
 
-        return res.json({
-            success: true,
+        return sendSuccess(res, req, {
             imageUrl: outputUrl,
-            error: null
+            studio: {
+                backgroundStyle: safeBackgroundStyle,
+                model: GENERATION_MODEL,
+                durationMs: Date.now() - startedAt
+            }
         })
 
     } catch (error) {
-
-        console.log(
-            "Background error:",
-            error.response?.data || error.message
-        )
-
-        return res.status(500).json({
-            success: false,
-            imageUrl: null,
-            error: error.message || "Background generation failed"
-        })
+        return sendError(res, req, error, "Background generation failed")
     }
 })
 
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        imageUrl: null,
+        error: "Endpoint not found",
+        code: "NOT_FOUND",
+        requestId: req.requestId
+    })
+})
+
+app.use((error, req, res, next) => {
+    if (res.headersSent) {
+        next(error)
+        return
+    }
+
+    sendError(res, req, error, "Server error")
+})
+
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    console.log(`AI Face Studio backend v${APP_VERSION} running on port ${PORT}`)
 })

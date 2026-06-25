@@ -165,6 +165,159 @@ function pickAllowed(value, allowedValues, fallback) {
     return allowedValues.find(item => item.toLowerCase() === normalizedValue) || fallback
 }
 
+const studioDirectionExpansions = [
+    {
+        patterns: [/\b(spider[\s-]?man|spiderman|spider hero|web hero|wall crawler)\b/],
+        direction: "Create an original spider-inspired cinematic superhero look: red and deep blue premium suit, elegant web-pattern textures, large expressive white eye lenses, athletic heroic silhouette, agile wall-crawler energy, subtle web-like motion effects, dramatic city skyline, dynamic comic-book movie lighting."
+    },
+    {
+        patterns: [/\b(bat[\s-]?man|batman|dark knight|bat hero|gotham)\b/],
+        direction: "Create an original dark knight-inspired superhero look: black armored suit, elegant cape silhouette, nocturnal city atmosphere, dramatic shadows, premium tactical-but-heroic design, powerful rooftop composition."
+    },
+    {
+        patterns: [/\b(iron[\s-]?man|ironman|tech hero|armored hero|arc reactor)\b/],
+        direction: "Create an original armored tech-hero look: premium red and gold futuristic armor, glowing chest energy core, polished metal panels, cinematic flight-ready posture, advanced high-tech atmosphere."
+    },
+    {
+        patterns: [/\b(super[\s-]?man|superman|kryptonian|flying hero|cape hero)\b/],
+        direction: "Create an original noble flying superhero look: bold blue suit, red cape-inspired heroic silhouette, powerful upright posture, glowing sunlight, epic sky and city atmosphere, hopeful cinematic color grading."
+    },
+    {
+        patterns: [/\b(wonder[\s-]?woman|amazon warrior|warrior princess)\b/],
+        direction: "Create an original mythic warrior superhero look: elegant armor, premium gold accents, heroic regal posture, cinematic battlefield or palace atmosphere, powerful graceful confidence."
+    },
+    {
+        patterns: [/\b(flash|speedster|lightning runner|fast hero)\b/],
+        direction: "Create an original speedster superhero look: sleek red suit, glowing lightning energy trails, dynamic motion blur, athletic running pose, cinematic city action scene."
+    },
+    {
+        patterns: [/\b(thor|thunder god|lightning warrior|storm hero)\b/],
+        direction: "Create an original storm-powered warrior hero look: premium armored costume, dramatic cape, lightning energy, mythic cinematic sky, powerful heroic stance, epic fantasy-superhero atmosphere."
+    },
+    {
+        patterns: [/\b(hulk|green giant|gamma hero|strong green hero)\b/],
+        direction: "Create an original super-strength hero look: powerful muscular heroic silhouette, green energy mood, torn premium battle outfit, dramatic impact lighting, cinematic destruction in the background."
+    },
+    {
+        patterns: [/\b(captain america|patriotic hero|shield hero|super soldier)\b/],
+        direction: "Create an original patriotic super-soldier hero look: premium blue tactical superhero suit, heroic shield-inspired composition, strong leadership posture, cinematic battlefield lighting, polished blockbuster realism."
+    },
+    {
+        patterns: [/\b(black panther|panther hero|vibranium|sleek black hero)\b/],
+        direction: "Create an original sleek black armored hero look: elegant dark suit, subtle silver energy lines, premium futuristic royal design, powerful agile stance, cinematic advanced-city atmosphere."
+    },
+    {
+        patterns: [/\b(deadpool|red mercenary|masked mercenary)\b/],
+        direction: "Create an original red-and-black antihero look: premium stylized combat suit, expressive mask design, cinematic action pose, bold comic-book movie lighting, playful high-energy atmosphere."
+    },
+    {
+        patterns: [/\b(wolverine|claw hero|yellow suit hero)\b/],
+        direction: "Create an original rugged clawed hero look: yellow and dark premium superhero suit, intense expression, cinematic battle atmosphere, sharp metallic claw-like energy accents without copying exact costume details."
+    },
+    {
+        patterns: [/\b(joker|chaos villain|clown villain)\b/],
+        direction: "Create an original cinematic chaos-villain portrait: dramatic tailored outfit, unsettling theatrical color grading, moody urban background, expressive face, high-end movie-poster lighting."
+    },
+    {
+        patterns: [/\b(harley|harlequin|punk villain)\b/],
+        direction: "Create an original punk antihero portrait: bold fashionable outfit, high-energy editorial styling, colorful cinematic lighting, urban comic-book atmosphere, polished movie-poster finish."
+    },
+    {
+        patterns: [/\b(jedi|star wars|space knight|lightsaber)\b/],
+        direction: "Create an original space-knight portrait: elegant robe-like futuristic outfit, glowing energy blade-inspired light, cinematic starship or desert-planet atmosphere, epic sci-fi lighting."
+    },
+    {
+        patterns: [/\b(sith|dark space knight|dark jedi)\b/],
+        direction: "Create an original dark space-knight portrait: black futuristic robes, red energy glow, smoky cinematic atmosphere, dramatic shadows, powerful sci-fi villain composition."
+    },
+    {
+        patterns: [/\b(ninja|shinobi|assassin)\b/],
+        direction: "Create an original cinematic ninja portrait: sleek dark outfit, subtle armor textures, dramatic low-key lighting, misty night rooftop, agile stealth atmosphere, face still visible and recognizable."
+    },
+    {
+        patterns: [/\b(samurai|ronin)\b/],
+        direction: "Create an original cinematic samurai portrait: premium layered armor or robe, elegant sword-inspired composition, warm dramatic lighting, historical-meets-luxury atmosphere, strong dignified posture."
+    },
+    {
+        patterns: [/\b(cyber samurai|tech samurai|neon samurai)\b/],
+        direction: "Create an original cyber-samurai portrait: futuristic armor, neon city reflections, elegant blade-inspired silhouette, premium sci-fi textures, cinematic night atmosphere."
+    },
+    {
+        patterns: [/\b(wizard|sorcerer|magic user|mage)\b/],
+        direction: "Create an original cinematic sorcerer portrait: elegant mystical wardrobe, subtle glowing energy, ancient library or portal atmosphere, premium fantasy movie lighting, realistic skin and face detail."
+    },
+    {
+        patterns: [/\b(vampire|gothic prince|gothic queen)\b/],
+        direction: "Create an original gothic royal portrait: elegant dark formal clothing, moody castle or candlelit background, refined supernatural atmosphere, cinematic shadows, realistic premium finish."
+    },
+    {
+        patterns: [/\b(king|queen|royal|prince|princess)\b/],
+        direction: "Create a luxury royal portrait: elegant crown-inspired styling, premium embroidered fabrics, palace atmosphere, warm cinematic light, noble confident posture, realistic high-end fantasy photography."
+    },
+    {
+        patterns: [/\b(astronaut|space explorer|nasa|cosmonaut)\b/],
+        direction: "Create an original premium space explorer portrait: futuristic suit, reflective helmet kept open or face visible, cinematic spacecraft or planetary background, cool sci-fi lighting, realistic detail."
+    },
+    {
+        patterns: [/\b(ceo|executive|business|linkedin|corporate)\b/],
+        direction: "Create a premium executive portrait: refined formal clothing, modern office or studio background, confident posture, warm professional lighting, realistic skin texture, sharp business profile finish."
+    },
+    {
+        patterns: [/\b(model|fashion|editorial|magazine)\b/],
+        direction: "Create a luxury fashion editorial portrait: refined wardrobe, premium camera depth of field, tasteful dramatic lighting, clean high-end composition, polished magazine-cover atmosphere."
+    },
+    {
+        patterns: [/\b(anime|manga)\b/],
+        direction: "Create premium anime movie styling: expressive illustrated eyes, clean detailed shading, cinematic animated lighting, polished character design, recognizable identity translated into anime form."
+    },
+    {
+        patterns: [/\b(cartoon|pixar|disney|animated)\b/],
+        direction: "Create a premium 3D animated character style: expressive face, polished stylized textures, cinematic animated lighting, friendly high-end animated movie finish, recognizable identity preserved."
+    }
+]
+
+function expandStudioDirection(styleName, customPrompt) {
+    const safePrompt = sanitizeText(customPrompt, "", 700)
+
+    if (!safePrompt) {
+        return ""
+    }
+
+    const normalizedPrompt = safePrompt.toLowerCase()
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const expandedDirections = []
+
+    studioDirectionExpansions.forEach(expansion => {
+        if (expansion.patterns.some(pattern => pattern.test(normalizedPrompt))) {
+            expandedDirections.push(expansion.direction)
+        }
+    })
+
+    if (normalizedStyle === "superhero" && /\b(web|spider|red and blue|wall crawler)\b/.test(normalizedPrompt)) {
+        expandedDirections.push(
+            "Prioritize a spider-powered superhero concept with visible web-pattern suit detailing, expressive white eye lenses, energetic city action mood, and a heroic red-blue color palette."
+        )
+    }
+
+    if (normalizedStyle === "superhero" && expandedDirections.length === 0) {
+        expandedDirections.push(
+            "Interpret the user direction as an original premium superhero design. Convert short names, colors, powers, materials, or mood words into visible costume details, lighting, pose, background, and cinematic action styling."
+        )
+    }
+
+    if (expandedDirections.length > 0) {
+        expandedDirections.push(
+            "Important: use these as original inspired visual traits only. Do not copy protected logos, exact costumes, actor likenesses, studio trademarks, or branded symbols."
+        )
+    }
+
+    return [
+        `User studio shorthand: ${safePrompt}.`,
+        ...expandedDirections,
+        "Always convert shorthand into concrete visual details the image model can render: outfit, colors, materials, pose, lighting, background, camera style, atmosphere, and finish."
+    ].join(" ")
+}
+
 function cleanBase64(imageBase64) {
     if (!imageBase64 || typeof imageBase64 !== "string") {
         throw createHttpError("Missing or invalid imageBase64", 400, "INVALID_IMAGE")
@@ -1211,7 +1364,7 @@ function buildGeneratePrompt({
             : "Auto"
 
     const safeCustomPrompt =
-        sanitizeText(customPrompt, "", 700)
+        expandStudioDirection(safeStyleName, customPrompt)
 
     const normalizedStyle =
         safeStyleName.toLowerCase()
@@ -1546,7 +1699,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
         const safeStrength = pickAllowed(strength, studioOptions.strengths, "Balanced")
         const safeVariation = pickAllowed(variation, studioOptions.variations, "Random")
         const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Auto")
-        const safeCustomPrompt = sanitizeText(customPrompt, "", 700)
+        const safeCustomPrompt = expandStudioDirection(safeStyleName, customPrompt)
         const safeAspectRatio = pickAllowed(aspectRatio, studioOptions.aspectRatios, "1:1")
         const shouldUpscale = upscale !== false
 

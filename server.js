@@ -5,9 +5,24 @@ const cors = require("cors")
 const axios = require("axios")
 const FormData = require("form-data")
 const crypto = require("crypto")
-const compression = require("compression")
-const helmet = require("helmet")
-const rateLimit = require("express-rate-limit")
+
+function optionalRequire(moduleName, fallback) {
+    try {
+        return require(moduleName)
+    } catch (error) {
+        if (error.code !== "MODULE_NOT_FOUND") {
+            throw error
+        }
+
+        console.warn(`Optional dependency "${moduleName}" is not installed. Using fallback middleware.`)
+        return fallback
+    }
+}
+
+const noopMiddleware = (req, res, next) => next()
+const compression = optionalRequire("compression", () => noopMiddleware)
+const helmet = optionalRequire("helmet", () => noopMiddleware)
+const rateLimit = optionalRequire("express-rate-limit", () => noopMiddleware)
 
 const app = express()
 

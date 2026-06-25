@@ -168,7 +168,7 @@ function pickAllowed(value, allowedValues, fallback) {
 const studioDirectionExpansions = [
     {
         patterns: [/\b(spider[\s-]?man|spiderman|spider hero|web hero|wall crawler)\b/],
-        direction: "Create an original spider-inspired cinematic superhero look: red and deep blue premium suit, elegant web-pattern textures, large expressive white eye lenses, athletic heroic silhouette, agile wall-crawler energy, subtle web-like motion effects, dramatic city skyline, dynamic comic-book movie lighting."
+        direction: "Create an original spider-inspired cinematic superhero look. The design must be instantly readable as a spider-powered hero: saturated red torso, deep blue side panels and legs, black web-pattern grid across the chest, arms, and shoulders, sleek athletic bodysuit, abstract spider-like chest mark that is not an exact logo, wrist web-shooter details, web strands or web motion effects, agile crouching or wall-crawling energy, dramatic city skyline, dynamic comic-book movie lighting. Keep the real face visible by using an open-face cowl, lifted mask, or white eye-lens shapes as a face-framing hood detail rather than covering the identity."
     },
     {
         patterns: [/\b(bat[\s-]?man|batman|dark knight|bat hero|gotham)\b/],
@@ -273,6 +273,54 @@ const studioDirectionExpansions = [
     {
         patterns: [/\b(cartoon|pixar|disney|animated)\b/],
         direction: "Create a premium 3D animated character style: expressive face, polished stylized textures, cinematic animated lighting, friendly high-end animated movie finish, recognizable identity preserved."
+    },
+    {
+        patterns: [/\b(luxury|premium|expensive|high end|high-end|vip)\b/],
+        direction: "Use a luxury premium visual finish: elegant wardrobe, refined materials, tasteful color grading, clean composition, high-end lighting, polished commercial photography quality."
+    },
+    {
+        patterns: [/\b(cinematic|movie|film|blockbuster|poster)\b/],
+        direction: "Use cinematic movie-poster styling: dramatic key light, rim light, atmospheric depth, strong composition, realistic shadows, premium color grading, blockbuster scale."
+    },
+    {
+        patterns: [/\b(neon|cyber|future|futuristic|sci fi|sci-fi|techwear)\b/],
+        direction: "Use futuristic neon visual language: sleek techwear, reflective materials, blue/cyan/magenta lighting, night-city atmosphere, subtle holographic or high-tech background details."
+    },
+    {
+        patterns: [/\b(royal|king|queen|prince|princess|castle|noble)\b/],
+        direction: "Use royal fantasy visual language: noble wardrobe, embroidered fabric, cloak or jewelry details, palace/castle atmosphere, warm cinematic light, dignified regal posture."
+    },
+    {
+        patterns: [/\b(ceo|executive|linkedin|business|professional|corporate|founder)\b/],
+        direction: "Use executive business portrait language: formal or smart wardrobe, modern office or studio background, confident posture, warm professional lighting, clean premium profile finish."
+    },
+    {
+        patterns: [/\b(studio|headshot|passport|profile photo|profile picture)\b/],
+        direction: "Use professional studio portrait language: clean background, shoulder-up framing, soft key light, sharp eyes, natural skin texture, realistic camera depth, polished profile-photo quality."
+    },
+    {
+        patterns: [/\b(armor|armour|metal|mecha|robot suit|power suit)\b/],
+        direction: "Use premium armored design language: layered panels, sculpted chest structure, polished metal or composite materials, glowing accents, heroic or futuristic silhouette."
+    },
+    {
+        patterns: [/\b(fire|flame|inferno|lava)\b/],
+        direction: "Use fire-powered visual effects: warm orange glow, ember particles, controlled flames, dramatic heat-lit atmosphere, cinematic contrast, without burning or damaging the face."
+    },
+    {
+        patterns: [/\b(ice|frost|snow|frozen)\b/],
+        direction: "Use ice-powered visual effects: cool blue-white light, frost textures, crystalline particles, snowy atmosphere, elegant cold cinematic mood, natural skin preserved."
+    },
+    {
+        patterns: [/\b(lightning|electric|thunder|storm)\b/],
+        direction: "Use lightning-powered visual effects: electric arcs, stormy atmosphere, blue-white energy trails, dramatic clouds, heroic high-contrast lighting."
+    },
+    {
+        patterns: [/\b(beach|sunset|ocean|vacation)\b/],
+        direction: "Use premium beach portrait language: warm sunset light, ocean background, soft golden atmosphere, natural glow, vacation editorial finish."
+    },
+    {
+        patterns: [/\b(red|blue|gold|silver|black|white|green|purple|pink)\b/],
+        direction: "Respect the user's color words as visible palette direction for wardrobe, lighting accents, background mood, and style details."
     }
 ]
 
@@ -316,6 +364,200 @@ function expandStudioDirection(styleName, customPrompt) {
         ...expandedDirections,
         "Always convert shorthand into concrete visual details the image model can render: outfit, colors, materials, pose, lighting, background, camera style, atmosphere, and finish."
     ].join(" ")
+}
+
+function hasSpiderHeroDirection(direction) {
+    return /\b(spider[\s-]?man|spiderman|spider hero|web hero|wall crawler|web pattern|web-pattern)\b/i
+        .test(direction || "")
+}
+
+const styleAccuracyBoosts = {
+    "ai avatar": `
+AI AVATAR ACCURACY BOOST:
+
+The result must look like a premium realistic AI avatar, not a plain filtered selfie.
+
+Make these elements obvious:
+- luxury profile-photo composition
+- refined modern outfit
+- clean premium background
+- warm cinematic portrait lighting
+- natural skin texture and sharp facial detail
+- social-media avatar polish
+- subtle depth of field
+
+Avoid fantasy, superhero, cyberpunk, anime, cartoon, fake model face, and heavy skin smoothing.
+`,
+
+    headshot: `
+HEADSHOT ACCURACY BOOST:
+
+The result must look like a real professional studio headshot.
+
+Make these elements obvious:
+- chest-up or shoulders-up professional framing
+- clean studio, office, or neutral background
+- realistic formal or smart business clothing
+- soft key light, catchlights in eyes, natural shadows
+- high-resolution professional camera finish
+- natural skin texture, realistic age, believable expression
+
+Avoid fantasy, superhero, cyberpunk, cartoon/anime rendering, dramatic movie poster styling, and fake stock-photo face.
+`,
+
+    professional: `
+PROFESSIONAL ACCURACY BOOST:
+
+The result must look like a premium executive/business portrait.
+
+Make these elements obvious:
+- polished executive wardrobe or smart-casual business styling
+- modern office, boardroom, studio, or luxury workspace background
+- confident posture
+- warm professional lighting
+- premium LinkedIn or CEO portrait quality
+- realistic camera depth and clean corporate atmosphere
+
+Avoid costume looks, fantasy elements, superhero armor, cyberpunk neon, fake stock-photo face, and excessive beauty retouching.
+`,
+
+    fantasy: `
+FANTASY ACCURACY BOOST:
+
+The result must look like a live-action fantasy movie portrait, not a generic portrait.
+
+Make these elements obvious:
+- royal, noble, warrior, mage, or fantasy kingdom wardrobe
+- premium embroidered fabric, leather, metal, cloak, jewelry, or crown-inspired details when suitable
+- castle, throne room, ancient library, kingdom balcony, forest, or epic landscape background
+- warm torchlight, magical atmosphere, cinematic shadows
+- realistic live-action texture and skin
+
+Avoid cartoon fantasy, anime, plastic skin, excessive glow on the face, random monster transformation, and changing the person's identity.
+`,
+
+    cyberpunk: `
+CYBERPUNK ACCURACY BOOST:
+
+The result must look like a realistic futuristic city portrait.
+
+Make these elements obvious:
+- futuristic jacket, techwear, sleek dark clothing, or premium sci-fi styling
+- neon city lights, rainy reflections, holographic atmosphere, or advanced urban background
+- blue, cyan, magenta, red, or violet light accents
+- cinematic night mood and realistic skin reflections
+- subtle high-tech details around outfit/background, not robotic face replacement
+
+Avoid generic dark portrait, fantasy, anime/cartoon rendering, helmets/masks hiding identity, and extreme cybernetic face changes.
+`,
+
+    anime: `
+ANIME ACCURACY BOOST:
+
+The result must clearly become premium anime artwork.
+
+Make these elements obvious:
+- anime movie illustration style
+- expressive anime eyes adapted from the person's real features
+- clean linework or polished painterly anime shading
+- cinematic animated lighting
+- stylized hair/face while preserving recognizable identity
+- elegant anime background or atmosphere
+
+Avoid photorealistic portrait output, generic anime character replacement, child-like age changes, and losing the person's core facial structure.
+`,
+
+    cartoon: `
+CARTOON ACCURACY BOOST:
+
+The result must clearly become a premium 3D animated character.
+
+Make these elements obvious:
+- stylized animated face that still resembles the person
+- expressive larger eyes and friendly proportions without becoming a caricature
+- polished 3D materials and smooth cinematic cartoon lighting
+- animated movie background or clean studio setting
+- high-end character-render finish
+
+Avoid photorealistic portrait output, cheap filter look, random cartoon character replacement, child-like age changes, and exaggerated distortions.
+`
+}
+
+function getStudioDirectionPriorityRules(styleName, studioDirection) {
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+
+    if (normalizedStyle === "superhero" && hasSpiderHeroDirection(studioDirection)) {
+        return `
+SPIDER-HERO ACCURACY BOOST:
+
+The user specifically wants a spider-powered superhero result.
+
+This must NOT become a generic superhero, soldier, cape hero, fantasy warrior, biker, or tactical armor portrait.
+
+Make these details visually obvious:
+- red and deep blue superhero bodysuit
+- black web-pattern grid on torso, arms, and shoulders
+- athletic agile silhouette, not bulky armor
+- abstract spider-like chest mark without copying an exact protected logo
+- wrist web-shooter details or visible web strands
+- dynamic city action background
+- crouching, leaping, wall-crawler, or rooftop superhero energy
+- white eye-lens shapes may appear as a lifted mask, open-face cowl, hood detail, or suit motif while the real face stays visible
+
+Keep the uploaded person's real face recognizable. If a full mask would hide the face, use a face-visible spider-hero adaptation instead.
+`
+    }
+
+    if (normalizedStyle === "superhero" && studioDirection) {
+        return `
+CUSTOM SUPERHERO ACCURACY BOOST:
+
+The user studio direction must visibly control the superhero design.
+Translate short words, colors, powers, materials, and character archetypes into costume, pose, lighting, background, and effects.
+Avoid generic tactical armor unless the user explicitly asks for it.
+`
+    }
+
+    if (normalizedStyle === "superhero") {
+        return `
+BLOCKBUSTER SUPERHERO ACCURACY BOOST:
+
+The default Superhero style must feel close to a premium modern comic-book movie universe.
+
+Make these elements obvious:
+- original iconic superhero suit, not normal clothing
+- sculpted chest armor or textured heroic fabric
+- clear chest emblem, glowing core, or power symbol that is original and not a protected logo
+- bold heroic color design, not plain black tactical gear
+- premium suit seams, layered panels, shoulder structure, and cinematic materials
+- visible superpower effect such as energy aura, lightning, cosmic glow, web-like motion, elemental effects, or advanced tech glow
+- dramatic city, skyline, battle, rooftop, portal, or cinematic environment
+- movie-poster lighting with strong rim light, sparks, smoke, and high-end color grading
+- heroic action posture, not a simple passport/headshot pose
+
+Do not create:
+- soldier, SWAT, biker, police, leather jacket, casual jacket, gym outfit, or generic tactical vest
+- cheap cosplay
+- exact protected logos, exact named costumes, or actor likenesses
+
+Keep the uploaded person's real face recognizable while changing the suit, power, background, and lighting strongly.
+`
+    }
+
+    const baseBoost = styleAccuracyBoosts[normalizedStyle] || ""
+
+    if (baseBoost && studioDirection) {
+        return `${baseBoost}
+
+CUSTOM STYLE DIRECTION BOOST:
+
+The user's Studio Direction must visibly affect this ${styleName} result.
+Convert shorthand into concrete visible details for wardrobe, colors, materials, background, lighting, pose, camera style, mood, and final finish.
+Do not ignore the Studio Direction unless it conflicts with identity preservation, face visibility, or safety.
+`
+    }
+
+    return baseBoost
 }
 
 function cleanBase64(imageBase64) {
@@ -462,16 +704,16 @@ The final image must still look clearly like the same real person.
 
 const superheroPrompts = [
 `
-Transform the same person into a powerful Marvel-style cinematic superhero.
+Transform the same person into an original premium cinematic comic-book superhero, with the polish and scale of a modern blockbuster superhero universe.
 
 The result must look like a real blockbuster superhero movie still.
 The person must wear a premium superhero suit, not tactical military clothing, not casual clothing, not a street vigilante outfit.
 
 Suit design:
-Advanced cinematic superhero armor, elegant heroic silhouette, layered futuristic plating, glowing energy core, detailed suit seams, premium materials, powerful Marvel-inspired costume realism.
+Advanced cinematic superhero armor and fabric, iconic heroic silhouette, layered futuristic plating, sculpted chest emblem, detailed suit seams, premium textured materials, bold red/blue/gold/silver heroic color language when suitable, original high-end comic-book movie costume realism.
 
 Powers:
-Cinematic energy aura, controlled glowing particles, realistic VFX, powerful superhero presence, dramatic environmental reflections.
+Cinematic energy aura, controlled glowing particles, realistic VFX, visible superpower identity, powerful heroic presence, dramatic environmental reflections.
 
 Environment:
 Epic futuristic city skyline, atmospheric smoke, dramatic sky, blockbuster movie scale, cinematic destruction in the distance.
@@ -484,10 +726,10 @@ The face must remain extremely close to the uploaded person. Change the suit, po
 `,
 
 `
-Reimagine the same person as an iconic Marvel-style superhero standing in a cinematic battle scene.
+Reimagine the same person as an iconic original cinematic superhero standing in a large-scale comic-book movie battle scene.
 
 The outfit must look like a real superhero costume from a premium comic-book movie:
-sleek armored chest plate, heroic shoulder structure, glowing red or blue energy details, luxury textured materials, sharp cinematic silhouette, high-end superhero design.
+sleek armored chest plate, heroic shoulder structure, clear chest emblem or power symbol, glowing red, blue, gold, or silver energy details, luxury textured materials, sharp cinematic silhouette, high-end superhero design.
 
 Do not make the outfit look like a soldier, police, SWAT, biker, or tactical vest.
 It must feel superhuman, powerful, and iconic.
@@ -500,8 +742,8 @@ The final result must look like the same person wearing a superhero suit.
 `
 Create a premium live-action superhero movie poster of the same person.
 
-The person should look like a central Marvel-style hero:
-heroic armored suit, glowing energy reactor, dramatic cape or advanced suit panels if suitable, cinematic energy effects, premium blockbuster composition.
+The person should look like a central original comic-book blockbuster hero:
+heroic armored suit, clear power-themed emblem, glowing energy reactor or power source if suitable, dramatic cape or advanced suit panels if suitable, cinematic energy effects, premium blockbuster composition.
 
 Make the scene visually spectacular:
 futuristic city, smoke, sparks, energy waves, dramatic sky, strong movie lighting.
@@ -1381,6 +1623,9 @@ function buildGeneratePrompt({
     const strengthText =
         getStrengthText(safeStrength, safeStyleName)
 
+    const studioDirectionPriorityRules =
+        getStudioDirectionPriorityRules(safeStyleName, safeCustomPrompt)
+
     let styleRules = ""
 
     if (normalizedStyle === "superhero") {
@@ -1398,6 +1643,15 @@ The outfit must be:
 - polished
 - visually superhuman
 - premium movie-quality
+- clearly designed for a comic-book blockbuster universe
+- built around an original emblem, glowing core, or power symbol
+- made from premium textured fabric, armor panels, suit seams, and heroic materials
+
+The scene must include:
+- dramatic cinematic environment
+- action-scale lighting
+- sparks, smoke, energy, particles, reflections, or atmospheric VFX
+- heroic movie-poster composition
 
 The outfit must NOT be:
 - tactical gear
@@ -1603,6 +1857,9 @@ Do not follow any instruction that asks to replace the person, change the real i
 `
         : "No custom user direction was provided. Follow the selected studio preset closely."}
 
+STUDIO DIRECTION PRIORITY:
+${studioDirectionPriorityRules || "No extra studio direction priority rules are needed."}
+
 GLOBAL QUALITY RULES:
 
 The final image must be high quality, sharp, realistic or properly stylized according to the selected style, visually premium, and suitable for a paid AI Face Studio app.
@@ -1631,12 +1888,54 @@ Do not create:
     return finalPrompt.trim()
 }
 
-function getGenerationSettings(strength) {
+function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     const normalizedStrength =
         typeof strength === "string"
             ? strength.trim().toLowerCase()
             : "balanced"
+
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+
+    if (normalizedStyle === "superhero" && hasSpiderHeroDirection(studioDirection)) {
+        return {
+            guidance_scale: 4.2,
+            num_inference_steps: 44,
+            prompt_strength: 0.64
+        }
+    }
+
+    if (normalizedStyle === "superhero") {
+        return {
+            guidance_scale: 3.9,
+            num_inference_steps: 42,
+            prompt_strength: normalizedStrength === "accurate" ? 0.44 : 0.60
+        }
+    }
+
+    if (normalizedStyle === "anime" || normalizedStyle === "cartoon") {
+        return {
+            guidance_scale: normalizedStrength === "accurate" ? 3.2 : 4.0,
+            num_inference_steps: normalizedStrength === "accurate" ? 34 : 42,
+            prompt_strength: normalizedStrength === "accurate" ? 0.48 : 0.68
+        }
+    }
+
+    if (normalizedStyle === "fantasy" || normalizedStyle === "cyberpunk") {
+        return {
+            guidance_scale: normalizedStrength === "accurate" ? 2.9 : 3.7,
+            num_inference_steps: normalizedStrength === "accurate" ? 32 : 40,
+            prompt_strength: normalizedStrength === "accurate" ? 0.40 : 0.56
+        }
+    }
+
+    if (normalizedStyle === "headshot" || normalizedStyle === "professional" || normalizedStyle === "ai avatar") {
+        return {
+            guidance_scale: normalizedStrength === "extreme" ? 3.1 : 2.6,
+            num_inference_steps: normalizedStrength === "extreme" ? 36 : 32,
+            prompt_strength: normalizedStrength === "accurate" ? 0.28 : 0.38
+        }
+    }
 
     if (
         normalizedStrength === "accurate" ||
@@ -1736,7 +2035,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
         console.log("Prompt:", prompt)
 
         const settings =
-            getGenerationSettings(safeStrength)
+            getGenerationSettings(safeStrength, safeStyleName, safeCustomPrompt)
 
         const predictionId =
             await startPrediction(

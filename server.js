@@ -35,6 +35,7 @@ const REPLICATE_TIMEOUT_MS = Number(process.env.REPLICATE_TIMEOUT_MS || 60000)
 const PREDICTION_POLL_INTERVAL_MS = Number(process.env.PREDICTION_POLL_INTERVAL_MS || 2000)
 const PREDICTION_MAX_ATTEMPTS = Number(process.env.PREDICTION_MAX_ATTEMPTS || 60)
 const GENERATION_MODEL = process.env.REPLICATE_GENERATION_MODEL || "black-forest-labs/flux-kontext-pro"
+const AGE_GENERATION_MODEL = process.env.REPLICATE_AGE_GENERATION_MODEL || "black-forest-labs/flux-kontext-max"
 const UPSCALE_MODEL = process.env.REPLICATE_UPSCALE_MODEL || "nightmareai/real-esrgan"
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "*")
     .split(",")
@@ -130,6 +131,7 @@ app.get("/health", (req, res) => {
         uptimeSeconds: Math.round(process.uptime()),
         provider: "replicate",
         generationModel: GENERATION_MODEL,
+        ageGenerationModel: AGE_GENERATION_MODEL,
         requestId: req.requestId
     })
 })
@@ -2113,6 +2115,20 @@ Do not create a random cartoon character.
 `
     }
 
+    const ageEditCommandSection =
+        normalizedStyle === "age studio"
+            ? `
+AGE STUDIO EDIT COMMAND:
+This is an image-edit request, not a request to copy the original photo.
+Do not return the original person unchanged.
+Change the uploaded person's visible adult age to: ${safeAgeTarget}.
+The age change must be obvious in the final image while the identity remains recognizable.
+Edit adult age cues directly: skin texture, expression lines, under-eye detail, facial maturity, hair tone, and overall adult age impression.
+Preserve identity, gender presentation, pose, gaze, face shape, glasses, beard pattern, skin tone, and expression, but do not preserve the original apparent age.
+Never make the person look under 18.
+`
+            : ""
+
     const customDirectionSection = hasStudioDirection
         ? `
 PRIMARY CREATIVE BRIEF FROM USER STUDIO DIRECTION:
@@ -2157,6 +2173,8 @@ ${styleRules}
 
     const finalPrompt = `
 ${genderRule}
+
+${ageEditCommandSection}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
@@ -2389,9 +2407,14 @@ app.post("/generate", generationLimiter, async (req, res) => {
         const settings =
             getGenerationSettings(safeStrength, safeStyleName, safeCustomPrompt)
 
+        const generationModel =
+            safeStyleName === "Age Studio"
+                ? AGE_GENERATION_MODEL
+                : GENERATION_MODEL
+
         const predictionId =
             await startPrediction(
-                GENERATION_MODEL,
+                generationModel,
                 {
                     prompt,
                     input_image: uploadedImageUrl,
@@ -2465,7 +2488,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 aspectRatio: safeAspectRatio,
                 customPromptApplied: Boolean(safeCustomPrompt),
                 upscaleApplied,
-                model: GENERATION_MODEL,
+                model: generationModel,
                 durationMs: Date.now() - startedAt
             }
         })

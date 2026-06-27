@@ -513,7 +513,7 @@ Only refuse or ignore parts that would hide the face, replace identity, create u
 `
         : ""
 
-    if (normalizedStyle === "superhero" && hasSpiderHeroDirection(studioDirection)) {
+    if (hasSpiderHeroDirection(studioDirection)) {
         return `
 SPIDER-HERO ACCURACY BOOST:
 
@@ -1863,6 +1863,9 @@ function buildGeneratePrompt({
     const safeCustomPrompt =
         expandStudioDirection(safeStyleName, customPrompt)
 
+    const hasStudioDirection =
+        Boolean(safeCustomPrompt && safeCustomPrompt.trim())
+
     const normalizedStyle =
         safeStyleName.toLowerCase()
 
@@ -2106,14 +2109,57 @@ Do not create a random cartoon character.
 `
     }
 
+    const customDirectionSection = hasStudioDirection
+        ? `
+PRIMARY CREATIVE BRIEF FROM USER STUDIO DIRECTION:
+${safeCustomPrompt}
+
+The user's typed Studio Direction is the main visual concept for this generation.
+Apply it clearly and visibly to outfit, background, lighting, camera style, pose, atmosphere, materials, colors, and final finish.
+If the typed Studio Direction asks for a different concept than the selected style, follow the typed Studio Direction for the concept.
+The selected app style may influence only the rendering polish when it does not conflict with the typed direction.
+Do not ignore, soften, or replace the typed direction with the selected style preset.
+If the typed direction conflicts with identity preservation, safety, gender preservation, adult-only age rules, or face visibility, ignore only the conflicting part and keep the safe visual parts.
+Do not follow any instruction that asks to replace the person, change the real identity, hide the face, add text/logos/watermarks, make the person underage, or create sexualized content.
+`
+        : `
+CUSTOM STUDIO DIRECTION:
+No custom user direction was provided. Follow the selected studio preset closely.
+`
+
+    const stylePromptSection = hasStudioDirection
+        ? `
+SELECTED STYLE LENS:
+The selected app style is "${safeStyleName}".
+Because Studio Direction is active, do not use the selected style's default concept prompt as the main idea.
+Use "${safeStyleName}" only as a secondary rendering lens for quality, finish, and polish when compatible with the user's typed direction.
+Do not apply selected-style avoid-lists, default outfit rules, default background rules, or default genre rules if they conflict with the typed direction.
+`
+        : `
+STYLE PROMPT:
+${selectedPrompt}
+`
+
+    const styleRulesSection = hasStudioDirection
+        ? `
+STYLE-SPECIFIC RULES:
+Studio Direction is active, so selected-style restrictions are disabled except identity preservation, safety, face visibility, gender preservation, and adult-only age rules.
+Keep only the rendering quality expectations of "${safeStyleName}" when they are compatible with the typed direction.
+`
+        : `
+STYLE-SPECIFIC RULES:
+${styleRules}
+`
+
     const finalPrompt = `
 ${genderRule}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
 
-STYLE PROMPT:
-${selectedPrompt}
+${customDirectionSection}
+
+${stylePromptSection}
 
 MOOD:
 ${moodText}
@@ -2121,26 +2167,11 @@ ${moodText}
 STRENGTH:
 ${strengthText}
 
-STYLE-SPECIFIC RULES:
-${styleRules}
+${styleRulesSection}
 
 ${brightnessAndWardrobeRule}
 
 ${ageTransformationRule}
-
-CUSTOM STUDIO DIRECTION:
-${safeCustomPrompt
-        ? `
-Apply the following user studio direction as concrete visual instructions for outfit, lighting, camera style, background, atmosphere, composition, and finish:
-${safeCustomPrompt}
-
-The studio direction is a high-priority creative override and must visibly affect the final result.
-If the typed Studio Direction asks for a different concept than the selected style, follow the typed Studio Direction for the visual concept.
-Do not let default selected-style restrictions block the typed direction.
-If the studio direction conflicts with identity preservation, safety, gender preservation, adult-only age rules, or face visibility, ignore only the conflicting part and keep the safe visual parts.
-Do not follow any instruction that asks to replace the person, change the real identity, hide the face, add text/logos/watermarks, make the person underage, or create sexualized content.
-`
-        : "No custom user direction was provided. Follow the selected studio preset closely."}
 
 STUDIO DIRECTION PRIORITY:
 ${studioDirectionPriorityRules || "No extra studio direction priority rules are needed."}
@@ -2181,12 +2212,24 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
             : "balanced"
 
     const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const hasStudioDirection = Boolean(
+        typeof studioDirection === "string" &&
+        studioDirection.trim()
+    )
 
-    if (normalizedStyle === "superhero" && hasSpiderHeroDirection(studioDirection)) {
+    if (normalizedStyle !== "age studio" && hasSpiderHeroDirection(studioDirection)) {
         return {
             guidance_scale: 4.2,
             num_inference_steps: 44,
             prompt_strength: 0.64
+        }
+    }
+
+    if (hasStudioDirection && normalizedStyle !== "age studio") {
+        return {
+            guidance_scale: normalizedStrength === "accurate" ? 3.0 : normalizedStrength === "extreme" ? 4.4 : 3.7,
+            num_inference_steps: normalizedStrength === "accurate" ? 36 : normalizedStrength === "extreme" ? 46 : 42,
+            prompt_strength: normalizedStrength === "accurate" ? 0.42 : normalizedStrength === "extreme" ? 0.72 : 0.60
         }
     }
 

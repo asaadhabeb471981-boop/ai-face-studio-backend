@@ -2219,11 +2219,20 @@ Do not change clothing into armor or royal clothes.
 Do not add glowing skin.
 Do not add weapons.
 Do not add text, logos, or watermark.
-`
+        `
     }
 
+    const multiPersonRules = `
+MULTI-PERSON PRESERVATION:
+If the uploaded photo contains more than one person, preserve every visible person exactly.
+Keep each person's face, identity, age, skin texture, clothing, body, pose, hairstyle, expression, spacing, and relative position unchanged.
+Do not remove, merge, duplicate, crop out, reposition, resize, replace, or hide any person in the photo.
+Only replace the background behind and around the people.
+`
+
     if (backgroundPrompts[normalizedStyle]) {
-        return backgroundPrompts[normalizedStyle].trim()
+        return `${backgroundPrompts[normalizedStyle]}
+${multiPersonRules}`.trim()
     }
 
     const customBackground =
@@ -2233,7 +2242,7 @@ Do not add text, logos, or watermark.
             300
         )
 
-    return `
+    const customPrompt = `
 Replace only the background with this user-described scene:
 "${customBackground}"
 
@@ -2252,7 +2261,10 @@ Do not change the body shape.
 Do not make the person younger.
 Do not add masks, helmets, sunglasses, weapons, text, logos, signatures, or watermarks.
 Ignore any user background detail that asks to replace the person, hide the face, change identity, create explicit content, or add readable text.
-`.trim()
+`
+
+    return `${customPrompt}
+${multiPersonRules}`.trim()
 }
 
 app.post("/background", generationLimiter, async (req, res) => {

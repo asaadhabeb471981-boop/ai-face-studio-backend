@@ -737,6 +737,7 @@ const ageStudioIdentityRule = `
 Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
 Do not replace the person with another actor, celebrity, generic AI face, or different identity.
 Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
+Do not preserve the original apparent age when an Age Target is selected. Change the visible adult age cues to match the requested target age.
 The final image must still look clearly like the same real person at the requested adult age.
 `
 
@@ -1486,38 +1487,38 @@ function getAgeTransformationRule(styleName, ageTarget) {
     const ageMap = {
         "younger adult": `
 TARGET AGE:
-Make the person look like a younger adult, approximately 25-35 years old.
+Mandatory result: make the person visibly look like a younger adult, approximately 25-35 years old.
 Keep the result clearly adult. Do not make the person look like a child, teenager, minor, or under 18.
 Use smoother adult skin and slightly fresher facial fullness while preserving the same facial structure and identity.
 `,
 
         "30s": `
 TARGET AGE:
-Make the person look like they are in their 30s.
+Mandatory result: make the person visibly look like they are in their 30s.
 Use natural adult skin texture, mild maturity, and realistic facial detail while preserving identity.
 `,
 
         "40s": `
 TARGET AGE:
-Make the person look like they are in their 40s.
+Mandatory result: make the person visibly look like they are in their 40s.
 Use subtle mature facial structure, realistic skin texture, and mild expression lines while preserving identity.
 `,
 
         "50s": `
 TARGET AGE:
-Make the person look like they are in their 50s.
+Mandatory result: make the person visibly look like they are in their 50s.
 Use believable mature adult features: moderate expression lines, natural skin texture, subtle under-eye detail, and tasteful hair-tone changes if appropriate.
 `,
 
         "60s": `
 TARGET AGE:
-Make the person look like they are in their 60s.
+Mandatory result: make the person visibly look like they are in their 60s.
 Use realistic senior-adult cues: deeper expression lines, mature skin texture, subtle hair graying if appropriate, and natural age detail without caricature.
 `,
 
         "senior adult": `
 TARGET AGE:
-Make the person look like a senior adult, approximately 70+.
+Mandatory result: make the person visibly look like a senior adult, approximately 70+.
 Use respectful realistic aging: mature skin texture, deeper wrinkles, natural facial softness, possible gray or white hair if appropriate, while preserving the same identity.
 `
     }
@@ -1525,6 +1526,9 @@ Use respectful realistic aging: mature skin texture, deeper wrinkles, natural fa
     return `
 AGE STUDIO RULES:
 ${ageMap[normalizedAgeTarget] || ageMap["50s"]}
+
+The age target is not optional. The final image must clearly show the selected adult age target while preserving the uploaded person's identity.
+Prioritize visible adult age cues over generic beauty retouching.
 
 Adult-only safety:
 Never create a child, teenager, minor, school-age version, baby face, or under-18 appearance.
@@ -2259,9 +2263,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "age studio") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 2.2 : 2.8,
-            num_inference_steps: normalizedStrength === "extreme" ? 38 : 34,
-            prompt_strength: normalizedStrength === "accurate" ? 0.24 : normalizedStrength === "extreme" ? 0.48 : 0.36
+            guidance_scale: normalizedStrength === "accurate" ? 3.0 : normalizedStrength === "extreme" ? 4.2 : 3.6,
+            num_inference_steps: normalizedStrength === "accurate" ? 38 : normalizedStrength === "extreme" ? 48 : 44,
+            prompt_strength: normalizedStrength === "accurate" ? 0.46 : normalizedStrength === "extreme" ? 0.68 : 0.58
         }
     }
 
@@ -2415,7 +2419,8 @@ app.post("/generate", generationLimiter, async (req, res) => {
             try {
 
                 const shouldFaceEnhance =
-                    safeStrength.toLowerCase() === "extreme"
+                    safeStrength.toLowerCase() === "extreme" &&
+                    safeStyleName !== "Age Studio"
 
                 const upscalePredictionId =
                     await startPrediction(

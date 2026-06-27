@@ -50,12 +50,14 @@ const studioOptions = {
         "Fantasy",
         "Cyberpunk",
         "Anime",
-        "Cartoon"
+        "Cartoon",
+        "Age Studio"
     ],
     moods: ["Cinematic", "Serious", "Luxury", "Editorial", "Dramatic", "Natural"],
     strengths: ["Accurate", "Balanced", "Extreme"],
     variations: ["Random", "Variation 1", "Variation 2", "Variation 3"],
     genderModes: ["Auto", "Female", "Male"],
+    ageTargets: ["Younger Adult", "30s", "40s", "50s", "60s", "Senior Adult"],
     aspectRatios: ["1:1", "3:4", "4:3", "9:16", "16:9", "match_input_image"],
     backgroundStyles: ["Studio", "Beach", "Cyberpunk", "Office", "Fantasy"]
 }
@@ -485,6 +487,31 @@ Avoid photorealistic portrait output, cheap filter look, random cartoon characte
 
 function getStudioDirectionPriorityRules(styleName, studioDirection) {
     const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const hasStudioDirection = Boolean(
+        typeof studioDirection === "string" &&
+        studioDirection.trim()
+    )
+
+    const creativeOverrideRule = hasStudioDirection
+        ? `
+USER STUDIO DIRECTION OVERRIDE:
+
+The user's typed Studio Direction is the highest creative instruction after identity and safety.
+If the selected style's default rules conflict with the user's Studio Direction, follow the user's Studio Direction.
+Use the selected style only as a starting point.
+
+The typed direction may override:
+- outfit or costume
+- background or scene
+- lighting and mood
+- colors and materials
+- pose and camera style
+- genre, such as superhero, royal, fantasy, cyberpunk, business, anime, cartoon, beach, office, fire, ice, or luxury
+
+Do not let default style avoid-lists block the user's requested concept.
+Only refuse or ignore parts that would hide the face, replace identity, create underage/sexual content, add text/logos/watermarks, or violate safety.
+`
+        : ""
 
     if (normalizedStyle === "superhero" && hasSpiderHeroDirection(studioDirection)) {
         return `
@@ -505,6 +532,7 @@ Make these details visually obvious:
 - white eye-lens shapes may appear as a lifted mask, open-face cowl, hood detail, or suit motif while the real face stays visible
 
 Keep the uploaded person's real face recognizable. If a full mask would hide the face, use a face-visible spider-hero adaptation instead.
+${creativeOverrideRule}
 `
     }
 
@@ -515,6 +543,7 @@ CUSTOM SUPERHERO ACCURACY BOOST:
 The user studio direction must visibly control the superhero design.
 Translate short words, colors, powers, materials, and character archetypes into costume, pose, lighting, background, and effects.
 Avoid generic tactical armor unless the user explicitly asks for it.
+${creativeOverrideRule}
 `
     }
 
@@ -553,11 +582,13 @@ CUSTOM STYLE DIRECTION BOOST:
 
 The user's Studio Direction must visibly affect this ${styleName} result.
 Convert shorthand into concrete visible details for wardrobe, colors, materials, background, lighting, pose, camera style, mood, and final finish.
-Do not ignore the Studio Direction unless it conflicts with identity preservation, face visibility, or safety.
+Do not ignore the Studio Direction unless it conflicts with identity preservation, face visibility, adult-only age rules, or safety.
+${creativeOverrideRule}
 `
     }
 
-    return baseBoost
+    return `${baseBoost}
+${creativeOverrideRule}`.trim()
 }
 
 function cleanBase64(imageBase64) {
@@ -700,6 +731,13 @@ Preserve the exact facial identity from the uploaded image.
 Do not replace the person with another actor, celebrity, younger version, or generic AI face.
 Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
 The final image must still look clearly like the same real person.
+`
+
+const ageStudioIdentityRule = `
+Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
+Do not replace the person with another actor, celebrity, generic AI face, or different identity.
+Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
+The final image must still look clearly like the same real person at the requested adult age.
 `
 
 const superheroPrompts = [
@@ -1158,6 +1196,52 @@ The final image should look like a high-budget animated adaptation of the same r
 `
 ]
 
+const ageStudioPrompts = [
+`
+Create a premium realistic age-transformation portrait of the uploaded person.
+
+IMPORTANT: ${ageStudioIdentityRule}
+
+Style:
+Clean high-end portrait photography, natural studio lighting, visible face detail, realistic skin texture, balanced color grading, tasteful wardrobe, and a clear premium background.
+
+Rules:
+Change only adult age cues such as skin texture, facial maturity, subtle lines, hair tone, and overall age impression.
+Do not change identity, gender presentation, pose, expression, body shape, or clothing style more than necessary.
+Do not make the person a child, teenager, minor, or under 18.
+`,
+
+`
+Generate a realistic before-after style age edit as a single polished portrait of the same person at the requested adult age.
+
+IMPORTANT: ${ageStudioIdentityRule}
+
+Style:
+Premium editorial portrait, clear well-lit face, realistic aging details, natural hair and skin changes, clean background, sharp eyes, and professional camera depth.
+
+Rules:
+The result must feel believable and natural, not a caricature.
+Do not exaggerate wrinkles, facial sagging, hair loss, or age marks.
+Do not beautify into a different person.
+Do not make the person younger than an adult.
+`,
+
+`
+Transform the uploaded person into a believable adult age-adjusted portrait while keeping the same identity.
+
+IMPORTANT: ${ageStudioIdentityRule}
+
+Style:
+Modern studio portrait with bright premium lighting, realistic skin pores, natural shadows, clean wardrobe, soft depth of field, and subtle color warmth.
+
+Rules:
+Age adjustment should be visible but respectful and realistic.
+Keep the face recognizable.
+Avoid fantasy styling, anime/cartoon rendering, masks, sunglasses, text, logos, and heavy dark lighting.
+Never create a child-like or underage version.
+`
+]
+
 function getPromptSet(styleName) {
 
     if (!styleName || typeof styleName !== "string") {
@@ -1190,7 +1274,11 @@ function getPromptSet(styleName) {
         anime: animePrompts,
 
         cartoon: cartoonPrompts,
-        animated: cartoonPrompts
+        animated: cartoonPrompts,
+
+        "age studio": ageStudioPrompts,
+        age: ageStudioPrompts,
+        aging: ageStudioPrompts
     }
 
     const selectedPrompts =
@@ -1296,10 +1384,10 @@ Create a sophisticated cinematic luxury mood.
 `,
 
         cinematic: `
-Use cinematic blockbuster lighting.
-Use dramatic movie-style atmosphere.
-Use realistic depth, shadows, and premium color grading.
-Create high-end cinematic portrait realism.
+Use cinematic but well-lit portrait lighting.
+Use movie-style atmosphere without making the whole image dark.
+Use realistic depth, visible facial light, balanced shadows, and premium color grading.
+Create high-end cinematic portrait realism with clear background detail.
 `,
 
         soft: `
@@ -1339,6 +1427,13 @@ Maintain realistic skin tones and believable lighting.
 Use warm fantasy-inspired cinematic lighting.
 Use magical atmospheric depth while keeping realistic skin detail.
 Create premium fantasy movie mood and elegant realism.
+`,
+
+        natural: `
+Use bright natural portrait lighting.
+Use clean realistic shadows without making the scene dark.
+Use fresh premium color grading, clear background detail, and healthy natural skin tones.
+Create a polished studio-quality result that feels open, clear, and modern.
 `
     }
 
@@ -1353,6 +1448,122 @@ Maintain high-end portrait quality and believable realism.
     )
 }
 
+function getBrightnessAndWardrobeRule(styleName, customPrompt = "") {
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const normalizedPrompt = sanitizeText(customPrompt, "", 700).toLowerCase()
+    const userAskedForDark =
+        /\b(black|dark|night|gothic|shadow|moody|low[-\s]?key|cyberpunk|noir)\b/.test(normalizedPrompt)
+
+    if (normalizedStyle === "cyberpunk" || userAskedForDark) {
+        return `
+BRIGHTNESS AND WARDROBE BALANCE:
+The scene may use night, neon, or darker cinematic atmosphere when appropriate, but do not make the result mostly black.
+Keep the face clearly lit.
+Use visible colored highlights, reflective materials, and wardrobe accents such as teal, silver, deep blue, burgundy, white, or metallic details.
+Avoid plain black clothing blending into a black background unless the user specifically requested an all-black look.
+`
+    }
+
+    return `
+BRIGHTNESS AND WARDROBE BALANCE:
+Do not default to black backgrounds, black clothing, black leather jackets, or overly dark scenes.
+Use bright, premium, varied wardrobe colors such as ivory, cream, navy, blue, burgundy, emerald, silver, gold, tan, or soft neutrals.
+Use visible backgrounds with depth and detail: studio, office, warm interior, city daylight, elegant architecture, fantasy hall, or softly lit environment depending on the selected style.
+Keep the face clearly lit with natural skin tones and avoid heavy shadows covering the identity.
+The final image should feel polished and premium, not gloomy or underexposed.
+`
+}
+
+function getAgeTransformationRule(styleName, ageTarget) {
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+
+    if (normalizedStyle !== "age studio") {
+        return ""
+    }
+
+    const normalizedAgeTarget = sanitizeText(ageTarget, "50s", 80).toLowerCase()
+
+    const ageMap = {
+        "younger adult": `
+TARGET AGE:
+Make the person look like a younger adult, approximately 25-35 years old.
+Keep the result clearly adult. Do not make the person look like a child, teenager, minor, or under 18.
+Use smoother adult skin and slightly fresher facial fullness while preserving the same facial structure and identity.
+`,
+
+        "30s": `
+TARGET AGE:
+Make the person look like they are in their 30s.
+Use natural adult skin texture, mild maturity, and realistic facial detail while preserving identity.
+`,
+
+        "40s": `
+TARGET AGE:
+Make the person look like they are in their 40s.
+Use subtle mature facial structure, realistic skin texture, and mild expression lines while preserving identity.
+`,
+
+        "50s": `
+TARGET AGE:
+Make the person look like they are in their 50s.
+Use believable mature adult features: moderate expression lines, natural skin texture, subtle under-eye detail, and tasteful hair-tone changes if appropriate.
+`,
+
+        "60s": `
+TARGET AGE:
+Make the person look like they are in their 60s.
+Use realistic senior-adult cues: deeper expression lines, mature skin texture, subtle hair graying if appropriate, and natural age detail without caricature.
+`,
+
+        "senior adult": `
+TARGET AGE:
+Make the person look like a senior adult, approximately 70+.
+Use respectful realistic aging: mature skin texture, deeper wrinkles, natural facial softness, possible gray or white hair if appropriate, while preserving the same identity.
+`
+    }
+
+    return `
+AGE STUDIO RULES:
+${ageMap[normalizedAgeTarget] || ageMap["50s"]}
+
+Adult-only safety:
+Never create a child, teenager, minor, school-age version, baby face, or under-18 appearance.
+Preserve the original person, pose, gaze, expression, gender presentation, and recognizable identity.
+Do not change the person into a different family member, actor, celebrity, or generic AI face.
+`.trim()
+}
+
+function getStylizedStrengthText(normalizedStrength, styleLabel) {
+    if (
+        normalizedStrength === "accurate" ||
+        normalizedStrength === "identity lock" ||
+        normalizedStrength === "realistic"
+    ) {
+        return `
+STRENGTH SETTING - ACCURATE FACE:
+Keep the ${styleLabel} conversion closer to the uploaded person's real face.
+Use a more conservative stylization, preserve facial proportions strongly, and avoid exaggerated redesign.
+`
+    }
+
+    if (
+        normalizedStrength === "extreme" ||
+        normalizedStrength === "cinematic" ||
+        normalizedStrength === "high"
+    ) {
+        return `
+STRENGTH SETTING - EXTREME STYLE:
+Push the ${styleLabel} styling more boldly with stronger rendering language, more dramatic lighting, richer color, and higher visual transformation.
+Still keep the uploaded person's identity recognizable.
+`
+    }
+
+    return `
+STRENGTH SETTING - BALANCED:
+Balance recognizable identity with a clear premium ${styleLabel} transformation.
+`
+}
+
 function getStrengthText(strength, styleName) {
 
     const normalizedStrength =
@@ -1364,6 +1575,40 @@ function getStrengthText(strength, styleName) {
         typeof styleName === "string"
             ? styleName.trim().toLowerCase()
             : ""
+
+    if (normalizedStyle === "age studio") {
+
+        return `
+AGE STUDIO MODE:
+
+Change visible adult age cues while preserving identity extremely closely.
+
+Preserve:
+- exact facial identity
+- face shape
+- eyes
+- nose
+- lips
+- jawline
+- skin tone
+- hairstyle or baldness pattern
+- beard pattern if present
+- glasses if present
+- gender presentation
+- pose and expression
+
+Allow:
+- realistic adult age texture
+- natural wrinkles or smoother adult skin depending on target age
+- subtle hair graying or hair-tone changes when appropriate
+- tasteful wardrobe/background polish
+
+Rules:
+Do not create a child, teenager, minor, or under-18 version.
+Do not replace the person with a different identity.
+Do not caricature aging.
+`
+    }
 
     // =========================
     // CARTOON MODE
@@ -1393,6 +1638,8 @@ Do not create a completely different cartoon character.
 Do not over-exaggerate proportions.
 Do not turn the person into a child-like caricature.
 The final result should look like a luxury animated adaptation of the same real person.
+
+${getStylizedStrengthText(normalizedStrength, "cartoon")}
 `
     }
 
@@ -1429,6 +1676,8 @@ Rules:
 Do not create a generic anime face.
 Do not replace the person with another anime character.
 The final image must still clearly resemble the uploaded person.
+
+${getStylizedStrengthText(normalizedStrength, "anime")}
 `
     }
 
@@ -1577,7 +1826,8 @@ function buildGeneratePrompt({
     strength,
     variation,
     genderMode,
-    customPrompt
+    customPrompt,
+    ageTarget
 }) {
 
     const safeStyleName =
@@ -1605,6 +1855,11 @@ function buildGeneratePrompt({
             ? genderMode.trim()
             : "Auto"
 
+    const safeAgeTarget =
+        typeof ageTarget === "string" && ageTarget.trim()
+            ? ageTarget.trim()
+            : "50s"
+
     const safeCustomPrompt =
         expandStudioDirection(safeStyleName, customPrompt)
 
@@ -1613,6 +1868,11 @@ function buildGeneratePrompt({
 
     const genderRule =
         getGenderRule(safeGenderMode)
+
+    const effectiveIdentityRule =
+        normalizedStyle === "age studio"
+            ? ageStudioIdentityRule
+            : identityRule
 
     const selectedPrompt =
         getPromptByVariation(safeStyleName, safeVariation)
@@ -1625,6 +1885,12 @@ function buildGeneratePrompt({
 
     const studioDirectionPriorityRules =
         getStudioDirectionPriorityRules(safeStyleName, safeCustomPrompt)
+
+    const brightnessAndWardrobeRule =
+        getBrightnessAndWardrobeRule(safeStyleName, safeCustomPrompt)
+
+    const ageTransformationRule =
+        getAgeTransformationRule(safeStyleName, safeAgeTarget)
 
     let styleRules = ""
 
@@ -1808,6 +2074,19 @@ Do not create a generic anime character.
 `
     }
 
+    if (normalizedStyle === "age studio") {
+
+        styleRules = `
+AGE STUDIO STYLE RULES:
+
+Create a realistic age-edited portrait, not a costume style.
+Keep the image bright, natural, premium, and believable.
+Use realistic adult aging details while preserving the person's identity.
+Do not make the person look under 18.
+Do not create a fantasy, anime, cartoon, superhero, or cyberpunk version unless the user specifically asks for it in Studio Direction.
+`
+    }
+
     if (normalizedStyle === "cartoon") {
 
         styleRules = `
@@ -1831,7 +2110,7 @@ Do not create a random cartoon character.
 ${genderRule}
 
 IDENTITY LOCK:
-${identityRule}
+${effectiveIdentityRule}
 
 STYLE PROMPT:
 ${selectedPrompt}
@@ -1845,14 +2124,20 @@ ${strengthText}
 STYLE-SPECIFIC RULES:
 ${styleRules}
 
+${brightnessAndWardrobeRule}
+
+${ageTransformationRule}
+
 CUSTOM STUDIO DIRECTION:
 ${safeCustomPrompt
         ? `
 Apply the following user studio direction as concrete visual instructions for outfit, lighting, camera style, background, atmosphere, composition, and finish:
 ${safeCustomPrompt}
 
-The studio direction is important and should visibly affect the final result.
-If the studio direction conflicts with identity preservation, safety, gender preservation, age preservation, or face visibility, ignore only the conflicting part and keep the safe visual parts.
+The studio direction is a high-priority creative override and must visibly affect the final result.
+If the typed Studio Direction asks for a different concept than the selected style, follow the typed Studio Direction for the visual concept.
+Do not let default selected-style restrictions block the typed direction.
+If the studio direction conflicts with identity preservation, safety, gender preservation, adult-only age rules, or face visibility, ignore only the conflicting part and keep the safe visual parts.
 Do not follow any instruction that asks to replace the person, change the real identity, hide the face, add text/logos/watermarks, make the person underage, or create sexualized content.
 `
         : "No custom user direction was provided. Follow the selected studio preset closely."}
@@ -1914,10 +2199,26 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
     }
 
     if (normalizedStyle === "anime" || normalizedStyle === "cartoon") {
+        if (normalizedStrength === "extreme") {
+            return {
+                guidance_scale: 4.5,
+                num_inference_steps: 46,
+                prompt_strength: 0.74
+            }
+        }
+
         return {
             guidance_scale: normalizedStrength === "accurate" ? 3.2 : 4.0,
             num_inference_steps: normalizedStrength === "accurate" ? 34 : 42,
-            prompt_strength: normalizedStrength === "accurate" ? 0.48 : 0.68
+            prompt_strength: normalizedStrength === "accurate" ? 0.48 : 0.64
+        }
+    }
+
+    if (normalizedStyle === "age studio") {
+        return {
+            guidance_scale: normalizedStrength === "accurate" ? 2.2 : 2.8,
+            num_inference_steps: normalizedStrength === "extreme" ? 38 : 34,
+            prompt_strength: normalizedStrength === "accurate" ? 0.24 : normalizedStrength === "extreme" ? 0.48 : 0.36
         }
     }
 
@@ -1979,6 +2280,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
             strength = "Balanced",
             variation = "Random",
             genderMode = "Auto",
+            ageTarget = "50s",
             customPrompt = "",
             aspectRatio = "1:1",
             upscale = true
@@ -1998,7 +2300,8 @@ app.post("/generate", generationLimiter, async (req, res) => {
         const safeStrength = pickAllowed(strength, studioOptions.strengths, "Balanced")
         const safeVariation = pickAllowed(variation, studioOptions.variations, "Random")
         const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Auto")
-        const safeCustomPrompt = expandStudioDirection(safeStyleName, customPrompt)
+        const safeAgeTarget = pickAllowed(ageTarget, studioOptions.ageTargets, "50s")
+        const safeCustomPrompt = sanitizeText(customPrompt, "", 700)
         const safeAspectRatio = pickAllowed(aspectRatio, studioOptions.aspectRatios, "1:1")
         const shouldUpscale = upscale !== false
 
@@ -2009,6 +2312,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
             strength: safeStrength,
             variation: safeVariation,
             genderMode: safeGenderMode,
+            ageTarget: safeStyleName === "Age Studio" ? safeAgeTarget : null,
             hasCustomPrompt: Boolean(safeCustomPrompt),
             aspectRatio: safeAspectRatio,
             upscale: shouldUpscale
@@ -2029,6 +2333,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 strength: safeStrength,
                 variation: safeVariation,
                 genderMode: safeGenderMode,
+                ageTarget: safeAgeTarget,
                 customPrompt: safeCustomPrompt
             })
 
@@ -2108,6 +2413,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 strength: safeStrength,
                 variation: safeVariation,
                 genderMode: safeGenderMode,
+                ageTarget: safeStyleName === "Age Studio" ? safeAgeTarget : null,
                 aspectRatio: safeAspectRatio,
                 customPromptApplied: Boolean(safeCustomPrompt),
                 upscaleApplied,

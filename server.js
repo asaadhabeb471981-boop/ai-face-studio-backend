@@ -2610,7 +2610,20 @@ Never make the person look under 18.
             : ""
 
     const customDirectionSection = hasStudioDirection
-        ? `
+        ? normalizedStyle === "age studio"
+            ? `
+AGE STUDIO USER DIRECTION OVERRIDE:
+${safeCustomPrompt}
+
+The user's typed Studio Direction must visibly control non-age creative details: outfit, background, lighting, camera style, pose, expression, atmosphere, colors, materials, and final finish.
+The selected Age Target remains mandatory: ${safeAgeTarget}.
+Do not let Studio Direction cancel, weaken, or replace the age transformation.
+Apply both requirements together: the same uploaded person at the requested adult age, styled according to the user's Studio Direction.
+If the Studio Direction asks for a different setting, outfit, mood, or concept, follow it while keeping identity, face visibility, adult-only rules, and the selected age target.
+Do not ignore, soften, or replace the typed direction with the default Age Studio preset.
+Do not follow any instruction that asks to replace the person, change real identity, hide the face, add text/logos/watermarks, make the person underage, or create sexualized content.
+`
+            : `
 PRIMARY CREATIVE BRIEF FROM USER STUDIO DIRECTION:
 ${safeCustomPrompt}
 
@@ -2628,7 +2641,14 @@ No custom user direction was provided. Follow the selected studio preset closely
 `
 
     const stylePromptSection = hasStudioDirection
-        ? `
+        ? normalizedStyle === "age studio"
+            ? `
+AGE STUDIO STYLE LENS:
+Keep Age Studio as the active editing mode.
+Use the user's Studio Direction for styling and scene details, but keep the Age Studio age transformation and identity preservation rules active.
+The result must not be a normal portrait copy; it must visibly match the selected adult age target.
+`
+            : `
 SELECTED STYLE LENS:
 The selected app style is "${safeStyleName}".
 Because Studio Direction is active, do not use the selected style's default concept prompt as the main idea.
@@ -2641,7 +2661,15 @@ ${selectedPrompt}
 `
 
     const styleRulesSection = hasStudioDirection
-        ? `
+        ? normalizedStyle === "age studio"
+            ? `
+AGE STUDIO STYLE-SPECIFIC RULES:
+Studio Direction is active, but Age Studio age editing is still required.
+Preserve identity and face visibility.
+Apply the selected adult age target visibly.
+Use Studio Direction only to control non-age styling and scene details unless it safely supports the age edit.
+`
+            : `
 STYLE-SPECIFIC RULES:
 Studio Direction is active, so selected-style restrictions are disabled except identity preservation, safety, face visibility, selected Gender Mode, and adult-only age rules.
 Keep only the rendering quality expectations of "${safeStyleName}" when they are compatible with the typed direction.
@@ -2982,6 +3010,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 ageTarget: safeStyleName === "Age Studio" ? safeAgeTarget : null,
                 aspectRatio: safeAspectRatio,
                 customPromptApplied: Boolean(safeCustomPrompt),
+                ageStudioDirectionApplied: safeStyleName === "Age Studio" && Boolean(safeCustomPrompt),
                 upscaleApplied,
                 model: generationModel,
                 durationMs: Date.now() - startedAt

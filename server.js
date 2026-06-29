@@ -1625,6 +1625,114 @@ Avoid repeating the same default cape hero look. Make the chosen power identity 
 `
 }
 
+function getStyleVariationText(styleName, variation) {
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const normalizedVariation =
+        typeof variation === "string"
+            ? variation.trim().toLowerCase()
+            : "random"
+
+    const styleVariationMap = {
+        "ai avatar": {
+            "variation 1": "AI Avatar Variation 1 must be a clean premium studio avatar: close portrait framing, elegant modern outfit, bright studio depth, soft polished light, minimal background clutter.",
+            "variation 2": "AI Avatar Variation 2 must be a luxury lifestyle avatar: richer environment, designed wardrobe, editorial camera depth, premium interior or city background.",
+            "variation 3": "AI Avatar Variation 3 must be a futuristic premium avatar: sleek high-end styling, subtle tech atmosphere, reflective materials, bolder color accents, still realistic."
+        },
+        headshot: {
+            "variation 1": "Headshot Variation 1 must be a classic professional studio headshot: clean neutral background, shoulder-up framing, crisp business profile look.",
+            "variation 2": "Headshot Variation 2 must be an office/environmental headshot: modern workplace depth, natural professional posture, realistic business setting.",
+            "variation 3": "Headshot Variation 3 must be an executive editorial headshot: more premium lighting, stronger camera depth, refined wardrobe, polished leadership presence."
+        },
+        professional: {
+            "variation 1": "Professional Variation 1 must be a clean executive portrait: formal wardrobe, neutral premium studio or office background, confident direct posture.",
+            "variation 2": "Professional Variation 2 must be a corporate lifestyle portrait: modern office, glass, city, desk, or boardroom depth with business atmosphere.",
+            "variation 3": "Professional Variation 3 must be a luxury business editorial: high-end wardrobe, dramatic but bright lighting, premium magazine-style corporate finish."
+        },
+        fantasy: {
+            "variation 1": "Fantasy Variation 1 must be royal palace fantasy: noble wardrobe, palace or castle interior, warm regal lighting, elegant royal atmosphere.",
+            "variation 2": "Fantasy Variation 2 must be enchanted nature fantasy: forest, magical garden, ancient ruins, soft glowing atmosphere, live-action fantasy realism.",
+            "variation 3": "Fantasy Variation 3 must be epic battle-mage fantasy: dramatic sky, armor or robe details, magical energy, cinematic adventure-poster composition."
+        },
+        cyberpunk: {
+            "variation 1": "Cyberpunk Variation 1 must be neon street portrait: rainy city reflections, cyan and magenta signs, futuristic jacket, face clearly lit.",
+            "variation 2": "Cyberpunk Variation 2 must be high-tech interior portrait: holographic panels, sleek lab or lounge, refined sci-fi wardrobe, controlled lighting.",
+            "variation 3": "Cyberpunk Variation 3 must be rooftop action cyberpunk: skyline, rain, stronger neon rim light, dynamic pose, cinematic sci-fi atmosphere."
+        },
+        anime: {
+            "variation 1": "Anime Variation 1 must be a clean anime portrait: polished face-focused anime rendering, simple elegant background, recognizable features.",
+            "variation 2": "Anime Variation 2 must be an anime scene portrait: city, school, fantasy, or cinematic environment behind the person with richer atmosphere.",
+            "variation 3": "Anime Variation 3 must be an anime movie poster: dramatic lighting, stronger stylized effects, expressive composition, premium action-poster finish."
+        },
+        cartoon: {
+            "variation 1": "Cartoon Variation 1 must be a clean premium 3D character portrait: simple studio setting, friendly expression, polished animated materials.",
+            "variation 2": "Cartoon Variation 2 must be an animated adventure scene: richer environment, playful cinematic background, character-story atmosphere.",
+            "variation 3": "Cartoon Variation 3 must be a high-energy animated movie poster: expressive pose, bolder lighting, colorful scene depth, premium character finish."
+        },
+        superhero: {
+            "variation 1": "Superhero Variation 1 must use the agile or tech hero family: spider-powered, armored tech, archer, spy, quantum, winged micro-tech, or optic-energy direction.",
+            "variation 2": "Superhero Variation 2 must use the power or cosmic hero family: thunder, storm, super-strength, cosmic photon, flame, stone-strength, silver cosmic traveler, or telekinetic energy direction.",
+            "variation 3": "Superhero Variation 3 must use the mystic or team hero family: mystic portal, chaos magic, synthetic android, panther-inspired, shield leader, moonlit vigilante, nature guardian, space guardian, or mutant team direction."
+        },
+        "age studio": {
+            "variation 1": "Age Studio Variation 1 must keep a clean realistic portrait format while applying the selected age target.",
+            "variation 2": "Age Studio Variation 2 must use a natural lifestyle portrait format while applying the selected age target.",
+            "variation 3": "Age Studio Variation 3 must use a polished editorial portrait format while applying the selected age target."
+        }
+    }
+
+    const styleMap = styleVariationMap[normalizedStyle] || {}
+    const selected = styleMap[normalizedVariation]
+
+    if (selected) {
+        return `
+STYLE-SPECIFIC PACK VARIATION:
+${selected}
+This variation choice is mandatory and must visibly change composition, environment, wardrobe feel, lighting, or hero/style archetype from the other variations.
+`
+    }
+
+    return `
+STYLE-SPECIFIC PACK VARIATION:
+Random must choose one clear variation direction for "${styleName}" and commit to it visibly.
+Do not make Random look identical to Variation 1, Variation 2, and Variation 3.
+`
+}
+
+function getControlPriorityText({ styleName, mood, strength, variation }) {
+    const normalizedMood = sanitizeText(mood, "Natural", 80).toLowerCase()
+    const normalizedStrength = sanitizeText(strength, "Balanced", 80).toLowerCase()
+    const normalizedVariation = sanitizeText(variation, "Random", 80).toLowerCase()
+
+    const moodDirective = {
+        natural: "Prompt Intelligence Natural: bright, clean, open, realistic, clear face light, fresh color, not dramatic or dark.",
+        serious: "Prompt Intelligence Serious: confident, focused, mature, controlled contrast, less smiling, more professional intensity.",
+        luxury: "Prompt Intelligence Luxury: expensive wardrobe/materials, refined background, warm premium lighting, high-end editorial polish."
+    }[normalizedMood] || "Prompt Intelligence Natural: bright, clean, open, realistic, clear face light, fresh color."
+
+    const strengthDirective = {
+        accurate: "AI Strength Accurate Face: preserve the uploaded face and identity first; change mainly outfit, background, lighting, and finish.",
+        balanced: "AI Strength Balanced: preserve identity while allowing clear style, outfit, lighting, and environment transformation.",
+        extreme: "AI Strength Extreme Style: make the selected style visibly stronger with bolder wardrobe, environment, effects, and composition while keeping the face recognizable."
+    }[normalizedStrength] || "AI Strength Balanced: preserve identity while allowing clear style transformation."
+
+    const variationDirective = {
+        "variation 1": "Pack Variation 1: use the first pack concept and make it visibly distinct.",
+        "variation 2": "Pack Variation 2: use the second pack concept and make it visibly distinct.",
+        "variation 3": "Pack Variation 3: use the third pack concept and make it visibly distinct.",
+        random: "Pack Variation Random: choose one pack concept randomly and commit to a visibly distinct result."
+    }[normalizedVariation] || "Pack Variation Random: choose one pack concept randomly and commit to it."
+
+    return `
+USER SELECTED CONTROLS - MUST BE VISIBLE:
+Style: ${styleName}
+${moodDirective}
+${strengthDirective}
+${variationDirective}
+These controls are not labels. They must visibly change the final image.
+If two generations use different Prompt Intelligence, AI Strength, or Pack Variation choices, the outputs should not look identical.
+`
+}
+
 function getMoodText(mood) {
 
     if (!mood || typeof mood !== "string") {
@@ -1642,19 +1750,19 @@ Maintain believable realism and high-end photography quality.
     const moodMap = {
 
         serious: `
-Use a serious confident expression.
-Use realistic natural shadows.
-Use mature premium portrait mood.
-Use cinematic dramatic lighting with controlled contrast.
+PROMPT INTELLIGENCE - SERIOUS:
+The result must feel serious, focused, confident, and mature.
+Use a composed expression, direct gaze, controlled posture, deeper contrast, sharper shadows, refined professional intensity, and less playful color.
+Avoid cheerful, casual, soft lifestyle, or overly glamorous mood.
 Maintain realistic skin tones and believable realism.
 `,
 
         luxury: `
-Use luxury realistic styling.
-Use elegant clothing and refined atmosphere.
-Use warm premium lighting.
-Use high-end portrait photography aesthetics.
-Create a sophisticated cinematic luxury mood.
+PROMPT INTELLIGENCE - LUXURY:
+The result must feel expensive, refined, premium, and high-end.
+Use elegant wardrobe materials, polished grooming, upscale background, warm premium lighting, tasteful shine, refined color grading, and editorial luxury atmosphere.
+Avoid plain studio, cheap costume, casual clothing, or basic profile-photo styling.
+Create a sophisticated luxury result that is visibly different from Natural and Serious.
 `,
 
         cinematic: `
@@ -1704,10 +1812,11 @@ Create premium fantasy movie mood and elegant realism.
 `,
 
         natural: `
-Use bright natural portrait lighting.
-Use clean realistic shadows without making the scene dark.
-Use fresh premium color grading, clear background detail, and healthy natural skin tones.
-Create a polished studio-quality result that feels open, clear, and modern.
+PROMPT INTELLIGENCE - NATURAL:
+The result must feel bright, clean, realistic, open, and natural.
+Use clear face light, soft realistic shadows, fresh color grading, simple believable wardrobe, healthy natural skin tones, and a modern uncluttered background.
+Avoid dark drama, heavy luxury styling, intense expression, neon, fantasy mood, or overproduced editorial atmosphere.
+Create a polished result that is visibly lighter and cleaner than Serious or Luxury.
 `
     }
 
@@ -2230,10 +2339,21 @@ function buildGeneratePrompt({
     const variationText =
         getVariationText(safeVariation)
 
+    const styleVariationText =
+        getStyleVariationText(safeStyleName, safeVariation)
+
     const superheroVariationText =
         normalizedStyle === "superhero"
             ? getSuperheroVariationText(safeVariation)
             : ""
+
+    const controlPriorityText =
+        getControlPriorityText({
+            styleName: safeStyleName,
+            mood: safeMood,
+            strength: safeStrength,
+            variation: safeVariation
+        })
 
     const strengthText =
         getStrengthText(safeStrength, safeStyleName, safeGenderMode)
@@ -2541,12 +2661,16 @@ ${effectiveIdentityRule}
 
 ${accurateFaceLockRule}
 
+${controlPriorityText}
+
 ${customDirectionSection}
 
 ${stylePromptSection}
 
 VARIATION:
 ${variationText}
+
+${styleVariationText}
 
 ${superheroVariationText}
 

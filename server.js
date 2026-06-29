@@ -37,28 +37,45 @@ const PREDICTION_MAX_ATTEMPTS = Number(process.env.PREDICTION_MAX_ATTEMPTS || 60
 const GENERATION_MODEL = process.env.REPLICATE_GENERATION_MODEL || "black-forest-labs/flux-kontext-pro"
 const AGE_GENERATION_MODEL = process.env.REPLICATE_AGE_GENERATION_MODEL || "black-forest-labs/flux-kontext-max"
 const UPSCALE_MODEL = process.env.REPLICATE_UPSCALE_MODEL || "nightmareai/real-esrgan"
+const UNIVERSAL_MOODS = ["Natural", "Serious", "Luxury"]
+const UNIVERSAL_STRENGTHS = ["Accurate", "Balanced", "Extreme"]
+const UNIVERSAL_VARIATIONS = ["Random", "Variation 1", "Variation 2", "Variation 3"]
+const UNIVERSAL_GENDER_MODES = ["Auto", "Female", "Male"]
+const AGE_TARGETS = ["Younger Adult", "30s", "40s", "50s", "60s", "Senior Adult"]
+const STYLE_NAMES = {
+    AI_AVATAR: "AI Avatar",
+    HEADSHOT: "Headshot",
+    PROFESSIONAL: "Professional",
+    SUPERHERO: "Superhero",
+    FANTASY: "Fantasy",
+    CYBERPUNK: "Cyberpunk",
+    ANIME: "Anime",
+    CARTOON: "Cartoon",
+    AGE_STUDIO: "Age Studio"
+}
+const UNIVERSAL_STYLES = [
+    STYLE_NAMES.AI_AVATAR,
+    STYLE_NAMES.HEADSHOT,
+    STYLE_NAMES.PROFESSIONAL,
+    STYLE_NAMES.SUPERHERO,
+    STYLE_NAMES.FANTASY,
+    STYLE_NAMES.CYBERPUNK,
+    STYLE_NAMES.ANIME,
+    STYLE_NAMES.CARTOON,
+    STYLE_NAMES.AGE_STUDIO
+]
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "*")
     .split(",")
     .map(origin => origin.trim())
     .filter(Boolean)
 
 const studioOptions = {
-    styles: [
-        "AI Avatar",
-        "Headshot",
-        "Professional",
-        "Superhero",
-        "Fantasy",
-        "Cyberpunk",
-        "Anime",
-        "Cartoon",
-        "Age Studio"
-    ],
-    moods: ["Cinematic", "Serious", "Luxury", "Editorial", "Dramatic", "Natural"],
-    strengths: ["Accurate", "Balanced", "Extreme"],
-    variations: ["Random", "Variation 1", "Variation 2", "Variation 3"],
-    genderModes: ["Auto", "Female", "Male"],
-    ageTargets: ["Younger Adult", "30s", "40s", "50s", "60s", "Senior Adult"],
+    styles: UNIVERSAL_STYLES,
+    moods: UNIVERSAL_MOODS,
+    strengths: UNIVERSAL_STRENGTHS,
+    variations: UNIVERSAL_VARIATIONS,
+    genderModes: UNIVERSAL_GENDER_MODES,
+    ageTargets: AGE_TARGETS,
     aspectRatios: ["1:1", "3:4", "4:3", "9:16", "16:9", "match_input_image"],
     backgroundStyles: ["Studio", "Beach", "Cyberpunk", "Office", "Fantasy"]
 }
@@ -511,7 +528,7 @@ The typed direction may override:
 - genre, such as superhero, royal, fantasy, cyberpunk, business, anime, cartoon, beach, office, fire, ice, or luxury
 
 Do not let default style avoid-lists block the user's requested concept.
-Only refuse or ignore parts that would hide the face, replace identity, create underage/sexual content, add text/logos/watermarks, or violate safety.
+Only refuse or ignore parts that would hide the face, replace identity, conflict with the selected Gender Mode, create underage/sexual content, add text/logos/watermarks, or violate safety.
 `
         : ""
 
@@ -718,14 +735,32 @@ function sendError(res, req, error, fallback = "AI request failed") {
 
 function getGenderRule(genderMode) {
     if (genderMode === "Female") {
-        return "The input person is female. Keep her female. Preserve feminine facial features, hairstyle, body shape, age, and natural expression. Do not masculinize the person. Do not add masculine jawline, beard, mustache, or male appearance."
+        return `
+GENDER MODE - FEMALE:
+The requested output gender presentation is female.
+Make the final portrait clearly female-presenting while preserving the uploaded person's recognizable identity.
+Use natural feminine presentation through wardrobe, styling, grooming, hair styling when appropriate, softer presentation, and feminine portrait polish.
+Do not add masculine beard, mustache, heavy masculine jaw styling, or male-presenting wardrobe unless the user specifically requests it.
+Do not replace the person with a different woman, celebrity, model, or generic AI face.
+`
     }
 
     if (genderMode === "Male") {
-        return "The input person is male. Keep him male. Preserve masculine facial features, beard if present, hairstyle, body shape, age, and expression."
+        return `
+GENDER MODE - MALE:
+The requested output gender presentation is male.
+Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
+Use natural masculine presentation through wardrobe, styling, grooming, hair styling when appropriate, stronger masculine portrait polish, and believable facial presentation.
+Facial hair may be kept, refined, reduced, or subtly added only when it looks natural and does not break identity.
+Do not replace the person with a different man, celebrity, model, or generic AI face.
+`
     }
 
-    return "Preserve the person's original gender presentation exactly as shown in the input image."
+    return `
+GENDER MODE - AUTO:
+Preserve the person's original gender presentation exactly as shown in the input image.
+Do not feminize, masculinize, or change gender presentation unless the user's Studio Direction explicitly asks for compatible styling that does not replace identity.
+`
 }
 
 const identityRule = `
@@ -734,6 +769,20 @@ Do not replace the person with another actor, celebrity, younger version, or gen
 Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
 The final image must still look clearly like the same real person.
 `
+
+function getIdentityRuleForGenderMode(genderMode) {
+    if (genderMode === "Female" || genderMode === "Male") {
+        return `
+Preserve the exact facial identity from the uploaded image while applying the selected ${genderMode} gender presentation.
+Do not replace the person with another actor, celebrity, younger version, model, or generic AI face.
+Keep the same core identity: age, face shape, forehead, wrinkles or skin texture, eyes, nose, lips, cheeks, jawline structure, ears, glasses if present, skin tone, and natural expression.
+Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, grooming, hair styling, subtle facial presentation, and overall styling.
+The final image must still look clearly like the same real person with the selected ${genderMode} presentation.
+`
+    }
+
+    return identityRule
+}
 
 const ageStudioIdentityRule = `
 Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
@@ -1354,6 +1403,46 @@ function getPromptByVariation(styleName, variation) {
     return pickRandom(prompts)
 }
 
+function getVariationText(variation) {
+    const normalizedVariation =
+        typeof variation === "string"
+            ? variation.trim().toLowerCase()
+            : "random"
+
+    const variationMap = {
+        "variation 1": `
+PACK VARIATION - 1:
+Use the clean hero portrait version of this style.
+Favor a centered face-visible composition, polished studio-quality lighting, balanced background detail, and a clear premium app-result finish.
+Keep the result direct, readable, and identity-focused.
+`,
+
+        "variation 2": `
+PACK VARIATION - 2:
+Use the editorial environment version of this style.
+Favor a more designed outfit, richer location or background depth, tasteful camera angle, and magazine-quality visual polish.
+Keep the face visible and recognizable while making the scene feel more produced.
+`,
+
+        "variation 3": `
+PACK VARIATION - 3:
+Use the cinematic dramatic version of this style.
+Favor stronger lighting, more atmosphere, deeper depth of field, bolder color grading, and a more expressive premium composition.
+Keep identity and face clarity stronger than the drama.
+`
+    }
+
+    if (variationMap[normalizedVariation]) {
+        return variationMap[normalizedVariation]
+    }
+
+    return `
+PACK VARIATION - RANDOM:
+Use one coherent variation from the selected style pack.
+Make the result feel intentionally chosen, not generic: vary composition, outfit polish, background depth, lighting shape, and camera feel while preserving identity.
+`
+}
+
 function getMoodText(mood) {
 
     if (!mood || typeof mood !== "string") {
@@ -1570,7 +1659,7 @@ Balance recognizable identity with a clear premium ${styleLabel} transformation.
 `
 }
 
-function getStrengthText(strength, styleName) {
+function getStrengthText(strength, styleName, genderMode = "Auto") {
 
     const normalizedStrength =
         typeof strength === "string"
@@ -1581,6 +1670,13 @@ function getStrengthText(strength, styleName) {
         typeof styleName === "string"
             ? styleName.trim().toLowerCase()
             : ""
+
+    const genderPresentationLine =
+        genderMode === "Female"
+            ? "selected female gender presentation"
+            : genderMode === "Male"
+                ? "selected male gender presentation"
+                : "original gender presentation"
 
     if (normalizedStyle === "age studio") {
 
@@ -1631,7 +1727,7 @@ Create a premium 3D animated movie-style character using cinematic cartoon rende
 
 Preserve the uploaded person's:
 - identity
-- gender
+- ${genderPresentationLine}
 - age impression
 - hairstyle or baldness
 - beard if present
@@ -1670,7 +1766,7 @@ Use:
 
 Preserve:
 - same identity
-- same gender
+- ${genderPresentationLine}
 - same age impression
 - hairstyle or baldness
 - beard if present
@@ -1767,7 +1863,7 @@ Allow:
 
 Still preserve:
 - same identity
-- same gender
+- ${genderPresentationLine}
 - same age impression
 - same facial structure
 - hairstyle or baldness
@@ -1839,12 +1935,12 @@ function buildGeneratePrompt({
     const safeStyleName =
         typeof styleName === "string" && styleName.trim()
             ? styleName.trim()
-            : "AI Avatar"
+            : STYLE_NAMES.AI_AVATAR
 
     const safeMood =
         typeof mood === "string" && mood.trim()
             ? mood.trim()
-            : "Cinematic"
+            : "Natural"
 
     const safeStrength =
         typeof strength === "string" && strength.trim()
@@ -1881,7 +1977,7 @@ function buildGeneratePrompt({
     const effectiveIdentityRule =
         normalizedStyle === "age studio"
             ? ageStudioIdentityRule
-            : identityRule
+            : getIdentityRuleForGenderMode(safeGenderMode)
 
     const selectedPrompt =
         getPromptByVariation(safeStyleName, safeVariation)
@@ -1889,8 +1985,11 @@ function buildGeneratePrompt({
     const moodText =
         getMoodText(safeMood)
 
+    const variationText =
+        getVariationText(safeVariation)
+
     const strengthText =
-        getStrengthText(safeStrength, safeStyleName)
+        getStrengthText(safeStrength, safeStyleName, safeGenderMode)
 
     const studioDirectionPriorityRules =
         getStudioDirectionPriorityRules(safeStyleName, safeCustomPrompt)
@@ -2139,7 +2238,7 @@ Apply it clearly and visibly to outfit, background, lighting, camera style, pose
 If the typed Studio Direction asks for a different concept than the selected style, follow the typed Studio Direction for the concept.
 The selected app style may influence only the rendering polish when it does not conflict with the typed direction.
 Do not ignore, soften, or replace the typed direction with the selected style preset.
-If the typed direction conflicts with identity preservation, safety, gender preservation, adult-only age rules, or face visibility, ignore only the conflicting part and keep the safe visual parts.
+If the typed direction conflicts with identity preservation, safety, selected Gender Mode, adult-only age rules, or face visibility, ignore only the conflicting part and keep the safe visual parts.
 Do not follow any instruction that asks to replace the person, change the real identity, hide the face, add text/logos/watermarks, make the person underage, or create sexualized content.
 `
         : `
@@ -2163,7 +2262,7 @@ ${selectedPrompt}
     const styleRulesSection = hasStudioDirection
         ? `
 STYLE-SPECIFIC RULES:
-Studio Direction is active, so selected-style restrictions are disabled except identity preservation, safety, face visibility, gender preservation, and adult-only age rules.
+Studio Direction is active, so selected-style restrictions are disabled except identity preservation, safety, face visibility, selected Gender Mode, and adult-only age rules.
 Keep only the rendering quality expectations of "${safeStyleName}" when they are compatible with the typed direction.
 `
         : `
@@ -2182,6 +2281,9 @@ ${effectiveIdentityRule}
 ${customDirectionSection}
 
 ${stylePromptSection}
+
+VARIATION:
+${variationText}
 
 MOOD:
 ${moodText}
@@ -2257,9 +2359,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "superhero") {
         return {
-            guidance_scale: 3.9,
-            num_inference_steps: 42,
-            prompt_strength: normalizedStrength === "accurate" ? 0.44 : 0.60
+            guidance_scale: normalizedStrength === "accurate" ? 3.2 : normalizedStrength === "extreme" ? 4.4 : 3.9,
+            num_inference_steps: normalizedStrength === "accurate" ? 36 : normalizedStrength === "extreme" ? 46 : 42,
+            prompt_strength: normalizedStrength === "accurate" ? 0.44 : normalizedStrength === "extreme" ? 0.68 : 0.60
         }
     }
 
@@ -2289,17 +2391,17 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "fantasy" || normalizedStyle === "cyberpunk") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 2.9 : 3.7,
-            num_inference_steps: normalizedStrength === "accurate" ? 32 : 40,
-            prompt_strength: normalizedStrength === "accurate" ? 0.40 : 0.56
+            guidance_scale: normalizedStrength === "accurate" ? 2.9 : normalizedStrength === "extreme" ? 4.2 : 3.7,
+            num_inference_steps: normalizedStrength === "accurate" ? 32 : normalizedStrength === "extreme" ? 44 : 40,
+            prompt_strength: normalizedStrength === "accurate" ? 0.40 : normalizedStrength === "extreme" ? 0.66 : 0.56
         }
     }
 
     if (normalizedStyle === "headshot" || normalizedStyle === "professional" || normalizedStyle === "ai avatar") {
         return {
-            guidance_scale: normalizedStrength === "extreme" ? 3.1 : 2.6,
-            num_inference_steps: normalizedStrength === "extreme" ? 36 : 32,
-            prompt_strength: normalizedStrength === "accurate" ? 0.28 : 0.38
+            guidance_scale: normalizedStrength === "accurate" ? 2.4 : normalizedStrength === "extreme" ? 3.4 : 2.8,
+            num_inference_steps: normalizedStrength === "accurate" ? 30 : normalizedStrength === "extreme" ? 38 : 34,
+            prompt_strength: normalizedStrength === "accurate" ? 0.28 : normalizedStrength === "extreme" ? 0.52 : 0.38
         }
     }
 
@@ -2341,7 +2443,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
         const {
             styleName,
             imageBase64,
-            mood = "Cinematic",
+            mood = "Natural",
             strength = "Balanced",
             variation = "Random",
             genderMode = "Auto",
@@ -2360,8 +2462,8 @@ app.post("/generate", generationLimiter, async (req, res) => {
         }
 
         const startedAt = Date.now()
-        const safeStyleName = pickAllowed(styleName, studioOptions.styles, "AI Avatar")
-        const safeMood = pickAllowed(mood, studioOptions.moods, "Cinematic")
+        const safeStyleName = pickAllowed(styleName, studioOptions.styles, STYLE_NAMES.AI_AVATAR)
+        const safeMood = pickAllowed(mood, studioOptions.moods, "Natural")
         const safeStrength = pickAllowed(strength, studioOptions.strengths, "Balanced")
         const safeVariation = pickAllowed(variation, studioOptions.variations, "Random")
         const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Auto")

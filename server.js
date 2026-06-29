@@ -1818,8 +1818,9 @@ function getStylizedStrengthText(normalizedStrength, styleLabel) {
     ) {
         return `
 STRENGTH SETTING - ACCURATE FACE:
-Keep the ${styleLabel} conversion closer to the uploaded person's real face.
-Use a more conservative stylization, preserve facial proportions strongly, and avoid exaggerated redesign.
+Keep the ${styleLabel} conversion as close as possible to the uploaded person's real face and identity.
+Use conservative stylization, preserve exact facial proportions, age impression, gender presentation, expression, hairstyle or baldness, glasses, beard pattern if present, and avoid exaggerated redesign.
+Do not create a generic ${styleLabel} character.
 `
     }
 
@@ -1838,6 +1839,37 @@ Still keep the uploaded person's identity recognizable.
     return `
 STRENGTH SETTING - BALANCED:
 Balance recognizable identity with a clear premium ${styleLabel} transformation.
+`
+}
+
+function getAccurateFaceLockRule(strength, styleName) {
+    const normalizedStrength =
+        typeof strength === "string"
+            ? strength.trim().toLowerCase()
+            : "balanced"
+
+    if (
+        normalizedStrength !== "accurate" &&
+        normalizedStrength !== "identity lock" &&
+        normalizedStrength !== "realistic"
+    ) {
+        return ""
+    }
+
+    const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
+    const styleAllowance =
+        normalizedStyle === "anime" || normalizedStyle === "cartoon"
+            ? "For Anime or Cartoon, stylize the rendering, but keep the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity. Do not create a generic stylized character."
+            : "For realistic styles, keep the face as close as possible to the uploaded photo. The output should look like the same exact person after wardrobe, lighting, and background changes."
+
+    return `
+ACCURATE FACE LOCK - HIGHEST PRIORITY:
+The uploaded face is the identity reference and must be preserved as exactly as the image model allows.
+Do not replace the person with a different face, celebrity, model, younger version, more attractive version, or generic AI face.
+Do not change face shape, eye shape, nose, lips, jawline structure, cheeks, forehead, ears, skin tone, age impression, wrinkles, facial hair pattern, glasses, hairstyle or baldness, natural expression, or original gender presentation.
+Change mainly non-identity elements: outfit, background, lighting, color grading, atmosphere, and style finish.
+${styleAllowance}
+If any style instruction conflicts with exact face preservation, follow Accurate Face Lock first.
 `
 }
 
@@ -2206,6 +2238,9 @@ function buildGeneratePrompt({
     const strengthText =
         getStrengthText(safeStrength, safeStyleName, safeGenderMode)
 
+    const accurateFaceLockRule =
+        getAccurateFaceLockRule(safeStrength, safeStyleName)
+
     const studioDirectionPriorityRules =
         getStudioDirectionPriorityRules(safeStyleName, safeCustomPrompt)
 
@@ -2504,6 +2539,8 @@ ${ageEditCommandSection}
 IDENTITY LOCK:
 ${effectiveIdentityRule}
 
+${accurateFaceLockRule}
+
 ${customDirectionSection}
 
 ${stylePromptSection}
@@ -2568,20 +2605,24 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
         typeof studioDirection === "string" &&
         studioDirection.trim()
     )
+    const isAccurateFace =
+        normalizedStrength === "accurate" ||
+        normalizedStrength === "identity lock" ||
+        normalizedStrength === "realistic"
 
     if (normalizedStyle !== "age studio" && hasSpiderHeroDirection(studioDirection)) {
         return {
-            guidance_scale: 4.2,
-            num_inference_steps: 44,
-            prompt_strength: 0.64
+            guidance_scale: isAccurateFace ? 2.7 : 4.2,
+            num_inference_steps: isAccurateFace ? 34 : 44,
+            prompt_strength: isAccurateFace ? 0.34 : 0.64
         }
     }
 
     if (hasStudioDirection && normalizedStyle !== "age studio") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 3.0 : normalizedStrength === "extreme" ? 4.4 : 3.7,
-            num_inference_steps: normalizedStrength === "accurate" ? 36 : normalizedStrength === "extreme" ? 46 : 42,
-            prompt_strength: normalizedStrength === "accurate" ? 0.42 : normalizedStrength === "extreme" ? 0.72 : 0.60
+            guidance_scale: isAccurateFace ? 2.6 : normalizedStrength === "extreme" ? 4.4 : 3.7,
+            num_inference_steps: isAccurateFace ? 34 : normalizedStrength === "extreme" ? 46 : 42,
+            prompt_strength: isAccurateFace ? 0.32 : normalizedStrength === "extreme" ? 0.72 : 0.60
         }
     }
 
@@ -2603,9 +2644,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
         }
 
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 3.2 : 4.0,
-            num_inference_steps: normalizedStrength === "accurate" ? 34 : 42,
-            prompt_strength: normalizedStrength === "accurate" ? 0.48 : 0.64
+            guidance_scale: isAccurateFace ? 2.8 : 4.0,
+            num_inference_steps: isAccurateFace ? 34 : 42,
+            prompt_strength: isAccurateFace ? 0.38 : 0.64
         }
     }
 
@@ -2619,17 +2660,17 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "fantasy" || normalizedStyle === "cyberpunk") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 2.9 : normalizedStrength === "extreme" ? 4.2 : 3.7,
-            num_inference_steps: normalizedStrength === "accurate" ? 32 : normalizedStrength === "extreme" ? 44 : 40,
-            prompt_strength: normalizedStrength === "accurate" ? 0.40 : normalizedStrength === "extreme" ? 0.66 : 0.56
+            guidance_scale: isAccurateFace ? 2.5 : normalizedStrength === "extreme" ? 4.2 : 3.7,
+            num_inference_steps: isAccurateFace ? 32 : normalizedStrength === "extreme" ? 44 : 40,
+            prompt_strength: isAccurateFace ? 0.32 : normalizedStrength === "extreme" ? 0.66 : 0.56
         }
     }
 
     if (normalizedStyle === "headshot" || normalizedStyle === "professional" || normalizedStyle === "ai avatar") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 2.4 : normalizedStrength === "extreme" ? 3.4 : 2.8,
-            num_inference_steps: normalizedStrength === "accurate" ? 30 : normalizedStrength === "extreme" ? 38 : 34,
-            prompt_strength: normalizedStrength === "accurate" ? 0.28 : normalizedStrength === "extreme" ? 0.52 : 0.38
+            guidance_scale: isAccurateFace ? 2.1 : normalizedStrength === "extreme" ? 3.4 : 2.8,
+            num_inference_steps: isAccurateFace ? 30 : normalizedStrength === "extreme" ? 38 : 34,
+            prompt_strength: isAccurateFace ? 0.22 : normalizedStrength === "extreme" ? 0.52 : 0.38
         }
     }
 

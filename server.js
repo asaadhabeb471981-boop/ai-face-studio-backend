@@ -836,6 +836,25 @@ function sendError(res, req, error, fallback = "AI request failed") {
     })
 }
 
+function logPromptForRequest(req, prompt, details = {}) {
+    if (process.env.LOG_FULL_PROMPT === "true") {
+        console.log("Prompt:", prompt)
+        return
+    }
+
+    console.log("Prompt summary:", {
+        requestId: req.requestId,
+        styleName: details.styleName,
+        mood: details.mood,
+        strength: details.strength,
+        variation: details.variation,
+        genderMode: details.genderMode,
+        hasStudioDirection: Boolean(details.customPrompt),
+        includesKidRule: prompt.includes("KID FACE RECOGNITION"),
+        promptLength: prompt.length
+    })
+}
+
 function getGenderRule(genderMode) {
     if (genderMode === "Female") {
         return `
@@ -2872,8 +2891,8 @@ ${brightnessAndWardrobeRule}
 
 ${ageTransformationRule}
 
-STUDIO DIRECTION PRIORITY:
-${studioDirectionPriorityRules || "No extra studio direction priority rules are needed."}
+STYLE AND STUDIO PRIORITY RULES:
+${studioDirectionPriorityRules || "No extra style or studio priority rules are needed."}
 
 GLOBAL QUALITY RULES:
 
@@ -3117,7 +3136,14 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 customPrompt: safeCustomPrompt
             })
 
-        console.log("Prompt:", prompt)
+        logPromptForRequest(req, prompt, {
+            styleName: safeStyleName,
+            mood: safeMood,
+            strength: safeStrength,
+            variation: safeVariation,
+            genderMode: safeGenderMode,
+            customPrompt: safeCustomPrompt
+        })
 
         const settings =
             getGenerationSettings(safeStrength, safeStyleName, safeCustomPrompt)

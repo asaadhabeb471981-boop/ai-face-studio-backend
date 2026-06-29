@@ -40,7 +40,7 @@ const UPSCALE_MODEL = process.env.REPLICATE_UPSCALE_MODEL || "nightmareai/real-e
 const UNIVERSAL_MOODS = ["Natural", "Serious", "Luxury"]
 const UNIVERSAL_STRENGTHS = ["Accurate", "Balanced", "Extreme"]
 const UNIVERSAL_VARIATIONS = ["Random", "Variation 1", "Variation 2", "Variation 3"]
-const UNIVERSAL_GENDER_MODES = ["Auto", "Female", "Male"]
+const UNIVERSAL_GENDER_MODES = ["Female", "Male"]
 const AGE_TARGETS = ["Younger Adult", "30s", "40s", "50s", "60s", "Senior Adult"]
 const STYLE_NAMES = {
     AI_AVATAR: "AI Avatar",
@@ -798,11 +798,62 @@ async function waitForPrediction(predictionId, label = "Prediction") {
 
         if (prediction.status === "failed" || prediction.status === "canceled") {
             console.log(prediction)
-            throw createHttpError(`${label} failed`, 502, "PROVIDER_FAILED")
+            const providerMessage =
+                [
+                    prediction.error,
+                    prediction.logs,
+                    prediction.status
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+
+            const error = createHttpError(`${label} failed`, 502, "PROVIDER_FAILED")
+            error.providerMessage = providerMessage
+            error.retryableProviderFailure =
+                /interrupted|retry|temporar|timeout|code:\s*pa|\bpa\b/i.test(providerMessage)
+            throw error
         }
     }
 
     throw createHttpError(`${label} timeout`, 504, "PROVIDER_TIMEOUT")
+}
+
+async function runPredictionWithRetry(model, input, label, maxRetries = 1) {
+    let lastError = null
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const predictionId =
+            await startPrediction(
+                model,
+                input
+            )
+
+        console.log(
+            `${label} prediction started:`,
+            predictionId,
+            attempt > 0 ? `(retry ${attempt})` : ""
+        )
+
+        try {
+            return await waitForPrediction(
+                predictionId,
+                label
+            )
+        } catch (error) {
+            lastError = error
+
+            if (!error.retryableProviderFailure || attempt >= maxRetries) {
+                throw error
+            }
+
+            console.log(
+                `${label} failed with retryable provider error, retrying:`,
+                error.providerMessage || error.message
+            )
+        }
+    }
+
+    throw lastError
 }
 
 function sendSuccess(res, req, payload = {}) {
@@ -873,18 +924,24 @@ GENDER MODE - MALE:
 The requested output gender presentation is male.
 Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
 Use natural male presentation through wardrobe, styling, hair styling, and portrait polish while preserving the uploaded person's original apparent age and facial maturity.
-If the uploaded person is an adult man, keep him adult-looking. If the uploaded person is clearly a boy or male child, keep him boy-looking.
-Do not change the source age category.
+Do not change the source age category or facial maturity.
 Facial hair may be kept, refined, or reduced only when facial hair is already visible in the uploaded image or explicitly requested by the user.
-Do not add beard, mustache, goatee, stubble, heavy jaw grooming, or adult masculine facial cues to a clean-shaven child source photo.
+Do not add beard, mustache, goatee, stubble, heavy jaw grooming, or mature facial-hair cues to a clean-shaven source face.
 Do not replace the person with a different man, celebrity, model, or generic AI face.
 `
     }
 
+    return getSourceGenderPreservationRule()
+}
+
+function getSourceGenderPreservationRule() {
     return `
-GENDER MODE - AUTO:
+SOURCE GENDER PRESERVATION:
 Preserve the person's original gender presentation exactly as shown in the input image.
-Do not feminize, masculinize, or change gender presentation unless the user's Studio Direction explicitly asks for compatible styling that does not replace identity.
+Do not feminize, masculinize, or change gender presentation.
+If the source is female-presenting, the output must remain female-presenting with no beard, mustache, goatee, stubble, or masculine facial-hair cues.
+If the source is male-presenting, the output must remain male-presenting.
+The selected style may change wardrobe, background, lighting, and rendering, but not source gender presentation.
 `
 }
 
@@ -892,6 +949,7 @@ const identityRule = `
 Preserve the exact facial identity from the uploaded image.
 Do not replace the person with another actor, celebrity, younger version, or generic AI face.
 Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
+Do not change the source gender presentation. Do not add beard, mustache, goatee, stubble, or masculine facial-hair cues unless they are clearly visible in the uploaded image or explicitly requested by the user.
 The final image must still look clearly like the same real person.
 `
 
@@ -913,22 +971,32 @@ const ageStudioIdentityRule = `
 Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
 Do not replace the person with another actor, celebrity, generic AI face, or different identity.
 Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
+Do not add beard, mustache, goatee, stubble, or masculine facial-hair cues unless they are clearly visible in the uploaded image or explicitly requested by the user.
 Do not preserve the original apparent age when an Age Target is selected. Change the visible adult age cues to match the requested target age.
 The final image must still look clearly like the same real person at the requested adult age.
 `
 
 const ageAndGenderRecognitionRule = `
 AGE AND GENDER RECOGNITION - HIGH PRIORITY:
-First infer the uploaded person's apparent age category and gender presentation from the source photo: child, teenager, young adult, adult, or senior adult.
-For all non-Age-Studio styles, preserve that source age category. Adults must remain adults, senior adults must remain senior adults, teenagers must remain teenagers, and children must remain children.
-Do not make an adult look like a child, teenager, baby-faced version, younger model, or cartoon kid.
-Do not make a child look like an adult, older teen, adult model, adult superhero, adult business person, adult fantasy character, adult anime character, or adult cartoon avatar.
-Preserve the uploaded person's recognizable identity, apparent age, facial maturity, gender presentation, skin tone, hairstyle or baldness, and natural expression while applying the selected style.
-If the source is a child, preserve child-like facial structure such as softer jawline, smoother skin, youthful expression, and natural kid proportions.
-If the source is an adult, preserve adult facial structure, adult jaw/cheek maturity, adult proportions, and adult styling. Do not soften the face into a kid-like output.
-For clean-shaven child source photos, do not add beard, mustache, goatee, stubble, heavy adult jaw, or mature grooming.
+Infer the uploaded person's apparent age category and gender presentation from the source photo.
+For all non-Age-Studio styles, preserve the source age category, facial maturity, gender presentation, skin tone, hairstyle or baldness, and recognizable identity.
+If the source appears female-presenting, the output must remain female-presenting. If the source appears male-presenting, the output must remain male-presenting.
+Do not make the person noticeably younger or older than the uploaded source photo.
+Do not soften an adult face into a baby-faced or kid-like output.
+Do not mature a youthful source face into an older-looking adult output.
+For any clean-shaven source face, do not add beard, mustache, goatee, or stubble unless explicitly requested by the user.
 Style changes may affect outfit, background, lighting, colors, genre, pose, camera style, and rendering finish, but must not change the person's source age category or identity.
 For Age Studio only, the selected Age Target may change apparent age while preserving recognizable identity.
+`
+
+const sourceAppearanceLockRule = `
+SOURCE APPEARANCE LOCK - ABSOLUTE PRIORITY:
+The uploaded image is the source of truth for gender presentation and facial hair.
+Do not change the source gender presentation under any style.
+Do not turn a female-presenting source into a male-presenting face.
+Do not turn a male-presenting source into a female-presenting face unless Gender Mode explicitly requests it.
+Do not add beard, mustache, goatee, stubble, heavy jaw grooming, or facial-hair cues unless they are clearly visible in the uploaded image or explicitly requested by the user.
+This overrides AI Avatar, Headshot, Professional, Superhero, Fantasy, Cyberpunk, Anime, Cartoon, and Age Studio style instructions.
 `
 
 const superheroPrompts = [
@@ -2055,7 +2123,7 @@ If any style instruction conflicts with exact face preservation, follow Accurate
 `
 }
 
-function getStrengthText(strength, styleName, genderMode = "Auto") {
+function getStrengthText(strength, styleName, genderMode = "Female") {
 
     const normalizedStrength =
         typeof strength === "string"
@@ -2068,11 +2136,9 @@ function getStrengthText(strength, styleName, genderMode = "Auto") {
             : ""
 
     const genderPresentationLine =
-        genderMode === "Female"
-            ? "selected female gender presentation"
-            : genderMode === "Male"
-                ? "selected male gender presentation"
-                : "original gender presentation"
+        genderMode === "Male"
+            ? "selected male gender presentation"
+            : "selected female gender presentation"
 
     if (normalizedStyle === "age studio") {
 
@@ -2379,7 +2445,7 @@ function buildGeneratePrompt({
     const safeGenderMode =
         typeof genderMode === "string" && genderMode.trim()
             ? genderMode.trim()
-            : "Auto"
+            : "Female"
 
     const safeAgeTarget =
         typeof ageTarget === "string" && ageTarget.trim()
@@ -2396,7 +2462,9 @@ function buildGeneratePrompt({
         safeStyleName.toLowerCase()
 
     const genderRule =
-        getGenderRule(safeGenderMode)
+        normalizedStyle === "age studio"
+            ? getSourceGenderPreservationRule()
+            : getGenderRule(safeGenderMode)
 
     const effectiveIdentityRule =
         normalizedStyle === "age studio"
@@ -2489,7 +2557,7 @@ The outfit must NOT be:
 - full mask, helmet, visor, sunglasses, hidden eyes, or covered face
 
 Gender and face:
-Preserve the uploaded person's original gender presentation when Gender Mode is Auto.
+Use the selected Gender Mode while preserving the uploaded person's recognizable identity.
 If the uploaded person is female-presenting, the output must remain female-presenting.
 If the uploaded person is male-presenting, the output must remain male-presenting.
 Do not add masculine beard, masculine jaw styling, male body shape, or male-presenting costume to a female-presenting uploaded person.
@@ -2515,6 +2583,8 @@ Upgrade:
 - luxury portrait atmosphere
 
 Do not add:
+- source gender change
+- beard, mustache, goatee, stubble, or masculine facial-hair cues when not visible in the uploaded photo
 - superhero suit
 - cyberpunk neon
 - fantasy glow
@@ -2537,12 +2607,16 @@ Create a clean professional headshot suitable for LinkedIn, CV, business profile
 Keep:
 - realistic skin texture
 - natural age
+- original gender presentation
+- no new beard, mustache, goatee, or stubble unless already visible in the uploaded photo
 - professional framing
 - clean background
 - sharp eyes
 - believable studio lighting
 
 Avoid:
+- changing source gender presentation
+- adding beard, mustache, goatee, stubble, or masculine facial-hair cues when not visible in the uploaded photo
 - heavy beauty retouching
 - fake model face
 - fantasy effects
@@ -2586,6 +2660,7 @@ Avoid:
 FANTASY RULES:
 
 Create a realistic live-action magical fantasy portrait.
+The result must clearly look like a fantasy transformation, not a normal portrait.
 
 Use:
 - royal or noble clothing
@@ -2598,6 +2673,8 @@ Use:
 - believable human skin
 
 Avoid:
+- normal leather jacket portrait
+- plain studio portrait
 - cartoon fantasy rendering
 - excessive glowing magic directly on the face
 - unrealistic fantasy skin
@@ -2686,6 +2763,7 @@ Use:
 - high-end animated movie quality
 
 Preserve the uploaded person's recognizable identity.
+Preserve source gender presentation and facial-hair state. Do not add beard, mustache, goatee, or stubble unless clearly visible in the uploaded photo.
 Do not create a random cartoon character.
 Do not output photorealism, anime, flat 2D drawing, sketch, comic filter, or cheap app filter.
 `
@@ -2844,6 +2922,8 @@ ${styleRules}
 `
 
     const finalPrompt = `
+${sourceAppearanceLockRule}
+
 ${ageAndGenderRecognitionRule}
 
 ${genderRule}
@@ -2905,9 +2985,8 @@ Do not create:
 - blurry output
 - distorted face
 - wrong age category compared with the uploaded source photo in non-Age-Studio styles
-- child-like output when the uploaded source photo is an adult
-- adult-looking output when the uploaded source photo is a child
-- beard, mustache, goatee, stubble, heavy adult jaw, or mature grooming on a clean-shaven child source photo
+- noticeably younger or older face than the uploaded source photo in non-Age-Studio styles
+- beard, mustache, goatee, stubble, heavy jaw, or mature grooming on a clean-shaven youthful source face
 - extra eyes
 - broken mouth
 - deformed hands near the face
@@ -2962,25 +3041,25 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "superhero") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 2.6 : normalizedStrength === "extreme" ? 4.4 : 3.7,
-            num_inference_steps: normalizedStrength === "accurate" ? 32 : normalizedStrength === "extreme" ? 46 : 40,
-            prompt_strength: normalizedStrength === "accurate" ? 0.34 : normalizedStrength === "extreme" ? 0.70 : 0.62
+            guidance_scale: normalizedStrength === "accurate" ? 2.8 : normalizedStrength === "extreme" ? 4.8 : 4.3,
+            num_inference_steps: normalizedStrength === "accurate" ? 34 : normalizedStrength === "extreme" ? 50 : 46,
+            prompt_strength: normalizedStrength === "accurate" ? 0.42 : normalizedStrength === "extreme" ? 0.82 : 0.76
         }
     }
 
     if (normalizedStyle === "cartoon") {
         if (normalizedStrength === "extreme") {
             return {
-                guidance_scale: 5.0,
+                guidance_scale: 4.8,
                 num_inference_steps: 50,
-                prompt_strength: 0.82
+                prompt_strength: 0.76
             }
         }
 
         return {
-            guidance_scale: isAccurateFace ? 3.4 : 4.6,
-            num_inference_steps: isAccurateFace ? 40 : 46,
-            prompt_strength: isAccurateFace ? 0.52 : 0.74
+            guidance_scale: isAccurateFace ? 3.0 : 4.2,
+            num_inference_steps: isAccurateFace ? 38 : 44,
+            prompt_strength: isAccurateFace ? 0.42 : 0.62
         }
     }
 
@@ -3010,9 +3089,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "fantasy") {
         return {
-            guidance_scale: isAccurateFace ? 2.9 : normalizedStrength === "extreme" ? 4.7 : 4.1,
-            num_inference_steps: isAccurateFace ? 36 : normalizedStrength === "extreme" ? 48 : 44,
-            prompt_strength: isAccurateFace ? 0.40 : normalizedStrength === "extreme" ? 0.74 : 0.64
+            guidance_scale: isAccurateFace ? 3.0 : normalizedStrength === "extreme" ? 4.9 : 4.5,
+            num_inference_steps: isAccurateFace ? 38 : normalizedStrength === "extreme" ? 50 : 48,
+            prompt_strength: isAccurateFace ? 0.46 : normalizedStrength === "extreme" ? 0.82 : 0.74
         }
     }
 
@@ -3034,9 +3113,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "headshot" || normalizedStyle === "ai avatar") {
         return {
-            guidance_scale: isAccurateFace ? 2.1 : normalizedStrength === "extreme" ? 3.4 : 2.8,
-            num_inference_steps: isAccurateFace ? 30 : normalizedStrength === "extreme" ? 38 : 34,
-            prompt_strength: isAccurateFace ? 0.22 : normalizedStrength === "extreme" ? 0.52 : 0.38
+            guidance_scale: isAccurateFace ? 1.9 : normalizedStrength === "extreme" ? 3.0 : 2.4,
+            num_inference_steps: isAccurateFace ? 28 : normalizedStrength === "extreme" ? 36 : 32,
+            prompt_strength: isAccurateFace ? 0.16 : normalizedStrength === "extreme" ? 0.42 : 0.24
         }
     }
 
@@ -3081,7 +3160,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
             mood = "Natural",
             strength = "Balanced",
             variation = "Random",
-            genderMode = "Auto",
+            genderMode = "Female",
             ageTarget = "50s",
             customPrompt = "",
             aspectRatio = "1:1",
@@ -3101,7 +3180,7 @@ app.post("/generate", generationLimiter, async (req, res) => {
         const safeMood = pickAllowed(mood, studioOptions.moods, "Natural")
         const safeStrength = pickAllowed(strength, studioOptions.strengths, "Balanced")
         const safeVariation = pickAllowed(variation, studioOptions.variations, "Random")
-        const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Auto")
+        const safeGenderMode = pickAllowed(genderMode, studioOptions.genderModes, "Female")
         const safeAgeTarget = pickAllowed(ageTarget, studioOptions.ageTargets, "50s")
         const safeCustomPrompt = sanitizeText(customPrompt, "", 700)
         const safeAspectRatio = pickAllowed(aspectRatio, studioOptions.aspectRatios, "1:1")
@@ -3156,8 +3235,8 @@ app.post("/generate", generationLimiter, async (req, res) => {
                 ? AGE_GENERATION_MODEL
                 : GENERATION_MODEL
 
-        const predictionId =
-            await startPrediction(
+        const generatedUrl =
+            await runPredictionWithRetry(
                 generationModel,
                 {
                     prompt,
@@ -3166,15 +3245,9 @@ app.post("/generate", generationLimiter, async (req, res) => {
                     output_format: "jpg",
                     safety_tolerance: 2,
                     ...settings
-                }
-            )
-
-        console.log("Prediction started:", predictionId)
-
-        const generatedUrl =
-            await waitForPrediction(
-                predictionId,
-                "AI generation"
+                },
+                "AI generation",
+                1
             )
 
         console.log("Generated image:", generatedUrl)
@@ -3189,22 +3262,16 @@ app.post("/generate", generationLimiter, async (req, res) => {
                     safeStrength.toLowerCase() === "extreme" &&
                     safeStyleName !== "Age Studio"
 
-                const upscalePredictionId =
-                    await startPrediction(
+                finalUrl =
+                    await runPredictionWithRetry(
                         UPSCALE_MODEL,
                         {
                             image: generatedUrl,
                             scale: 2,
                             face_enhance: shouldFaceEnhance
-                        }
-                    )
-
-                console.log("Upscale started:", upscalePredictionId)
-
-                finalUrl =
-                    await waitForPrediction(
-                        upscalePredictionId,
-                        "Upscale"
+                        },
+                        "Upscale",
+                        1
                     )
 
                 upscaleApplied = true
@@ -3426,8 +3493,8 @@ app.post("/background", generationLimiter, async (req, res) => {
 
         console.log("Background prompt:", prompt)
 
-        const predictionId =
-            await startPrediction(
+        const outputUrl =
+            await runPredictionWithRetry(
                 GENERATION_MODEL,
                 {
                     prompt,
@@ -3439,15 +3506,9 @@ app.post("/background", generationLimiter, async (req, res) => {
                     guidance_scale: 2.0,
                     num_inference_steps: 30,
                     prompt_strength: 0.30
-                }
-            )
-
-        console.log("Background prediction started:", predictionId)
-
-        const outputUrl =
-            await waitForPrediction(
-                predictionId,
-                "Background generation"
+                },
+                "Background generation",
+                1
             )
 
         console.log("Background generated:", outputUrl)

@@ -842,7 +842,10 @@ function getGenderRule(genderMode) {
 GENDER MODE - FEMALE:
 The requested output gender presentation is female.
 Make the final portrait clearly female-presenting while preserving the uploaded person's recognizable identity.
-Use natural feminine presentation through wardrobe, styling, grooming, hair styling when appropriate, softer presentation, and feminine portrait polish.
+Use natural female presentation through wardrobe, styling, hair styling, and portrait polish while preserving the uploaded person's original age impression, facial maturity, and face features.
+If the uploaded person is a girl, female child, teenager, or young-looking female, keep her looking like the same girl or young person.
+Do not turn a girl or young-looking female into an adult woman.
+Do not add adult makeup, mature cheekbones, adult jaw styling, adult glamour retouching, or grown-woman facial cues to a child, girl, teenager, or young-looking female.
 Do not add masculine beard, mustache, heavy masculine jaw styling, or male-presenting wardrobe unless the user specifically requests it.
 Do not replace the person with a different woman, celebrity, model, or generic AI face.
 `
@@ -853,11 +856,11 @@ Do not replace the person with a different woman, celebrity, model, or generic A
 GENDER MODE - MALE:
 The requested output gender presentation is male.
 Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
-Use natural male presentation through wardrobe, styling, hair styling, and portrait polish while preserving the uploaded person's original age impression and facial maturity.
+Use natural male presentation through wardrobe, styling, hair styling, and portrait polish while preserving the uploaded person's original age impression, facial maturity, and face features.
 If the uploaded person is a boy, male child, teenager, or young-looking male, keep him looking like the same boy or young person.
 Do not turn a boy or young-looking male into an adult man.
 Facial hair may be kept, refined, or reduced only when facial hair is already visible in the uploaded image.
-Do not add beard, mustache, goatee, stubble, heavy jaw grooming, or adult masculine facial cues to a child, boy, teenager, young-looking male, or clean-shaven face.
+Do not add beard, mustache, goatee, stubble, heavy jaw grooming, adult cheek hollows, muscular neck, or adult masculine facial cues to a child, boy, teenager, young-looking male, or clean-shaven face.
 Do not replace the person with a different man, celebrity, model, or generic AI face.
 `
     }
@@ -881,8 +884,10 @@ function getIdentityRuleForGenderMode(genderMode) {
         return `
 Preserve the exact facial identity from the uploaded image while applying the selected ${genderMode} gender presentation.
 Do not replace the person with another actor, celebrity, younger version, model, or generic AI face.
-Keep the same core identity: age, face shape, forehead, wrinkles or skin texture, eyes, nose, lips, cheeks, jawline structure, ears, glasses if present, skin tone, and natural expression.
-Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, grooming, hair styling, subtle facial presentation, and overall styling.
+Keep the same core identity: age, facial maturity, face shape, forehead, wrinkles or skin texture, eyes, eye spacing, eyebrows, nose, lips, cheeks, chin, jawline structure, ears, glasses if present, skin tone, hairline, hairstyle, and natural expression.
+If the uploaded person is a child, preserve the same child face features and the same child gender presentation from the source photo.
+Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, hair styling, subtle presentation, and overall styling.
+Do not alter the face features, child facial proportions, age impression, or recognizable identity.
 The final image must still look clearly like the same real person with the selected ${genderMode} presentation.
 `
     }
@@ -902,11 +907,16 @@ const kidFaceRecognitionRule = `
 KID FACE RECOGNITION - HIGH PRIORITY:
 If the uploaded photo shows a child, kid, boy, girl, teenager, or young-looking person, the AI must recognize that youth and preserve it.
 For all non-Age-Studio styles, keep the subject the same apparent age as the uploaded photo.
+Recognize child gender presentation from the uploaded image: a male child must remain the same boy, and a female child must remain the same girl.
+Do not swap a boy into a girl, do not swap a girl into a boy, and do not turn either into an adult male or adult female.
 Do not make a child look like an adult, older teen, adult model, adult superhero, adult business person, adult fantasy character, adult anime character, or adult cartoon avatar.
+Preserve the child's exact face features: face shape, eye shape, eye spacing, eyebrows, nose shape, lips, cheeks, chin, jawline softness, forehead, ears, skin tone, hairline, hairstyle, expression, and natural asymmetry.
 Preserve kid-specific facial identity: rounder cheeks, softer jawline, smaller facial proportions, smooth skin, youthful expression, natural child-like face shape, original hair, original eyes, original nose, original lips, and original skin tone.
 For boys or male children, keep the face clean-shaven unless facial hair is already clearly visible in the uploaded photo.
 Do not add beard, mustache, goatee, stubble, heavy adult jaw, mature grooming, adult wrinkles, adult cheek hollows, adult muscular neck, or adult masculine face structure to a kid photo.
-Style changes may affect outfit, background, lighting, colors, genre, and rendering finish, but must not change the kid's age, identity, or child facial structure.
+For girls or female children, do not add adult makeup, adult glamour styling, mature cheekbones, adult jawline, adult eyelashes, adult lipstick, or grown-woman face structure.
+Style changes may affect outfit, background, lighting, colors, genre, and rendering finish, but must not change the kid's age, child gender presentation, exact face features, identity, or child facial structure.
+Every style must follow this: AI Avatar, Headshot, Professional, Superhero, Fantasy, Cyberpunk, Anime, Cartoon, and Background.
 For Age Studio only, the selected Age Target may change apparent age, but the original kid's identity must still remain recognizable and facial hair must not be added unless explicitly requested.
 `
 

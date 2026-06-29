@@ -885,9 +885,9 @@ function getIdentityRuleForGenderMode(genderMode) {
 Preserve the exact facial identity from the uploaded image while applying the selected ${genderMode} gender presentation.
 Do not replace the person with another actor, celebrity, younger version, model, or generic AI face.
 Keep the same core identity: age, facial maturity, face shape, forehead, wrinkles or skin texture, eyes, eye spacing, eyebrows, nose, lips, cheeks, chin, jawline structure, ears, glasses if present, skin tone, hairline, hairstyle, and natural expression.
-If the uploaded person is a child, preserve the same child face features and the same child gender presentation from the source photo.
+If the uploaded person is a child, preserve the same recognizable child identity and child gender presentation from the source photo.
 Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, hair styling, subtle presentation, and overall styling.
-Do not alter the face features, child facial proportions, age impression, or recognizable identity.
+Do not change the person into a different identity, different age group, or adult version.
 The final image must still look clearly like the same real person with the selected ${genderMode} presentation.
 `
     }
@@ -910,12 +910,15 @@ For all non-Age-Studio styles, keep the subject the same apparent age as the upl
 Recognize child gender presentation from the uploaded image: a male child must remain the same boy, and a female child must remain the same girl.
 Do not swap a boy into a girl, do not swap a girl into a boy, and do not turn either into an adult male or adult female.
 Do not make a child look like an adult, older teen, adult model, adult superhero, adult business person, adult fantasy character, adult anime character, or adult cartoon avatar.
-Preserve the child's exact face features: face shape, eye shape, eye spacing, eyebrows, nose shape, lips, cheeks, chin, jawline softness, forehead, ears, skin tone, hairline, hairstyle, expression, and natural asymmetry.
-Preserve kid-specific facial identity: rounder cheeks, softer jawline, smaller facial proportions, smooth skin, youthful expression, natural child-like face shape, original hair, original eyes, original nose, original lips, and original skin tone.
+Preserve the child's recognizable identity and child-like facial structure: youthful face shape, softer jawline, smooth skin, natural kid expression, original skin tone, original hairstyle or hairline, and the same general eyes, nose, lips, cheeks, and face proportions.
 For boys or male children, keep the face clean-shaven unless facial hair is already clearly visible in the uploaded photo.
 Do not add beard, mustache, goatee, stubble, heavy adult jaw, mature grooming, adult wrinkles, adult cheek hollows, adult muscular neck, or adult masculine face structure to a kid photo.
 For girls or female children, do not add adult makeup, adult glamour styling, mature cheekbones, adult jawline, adult eyelashes, adult lipstick, or grown-woman face structure.
-Style changes may affect outfit, background, lighting, colors, genre, and rendering finish, but must not change the kid's age, child gender presentation, exact face features, identity, or child facial structure.
+The result must still visibly follow the selected style. Do not copy the input photo unchanged.
+Style changes should strongly affect outfit, background, lighting, colors, pose, camera angle, genre details, rendering finish, and atmosphere while keeping the child recognizable.
+For Anime and Cartoon, translate the child into the selected stylized form; do not keep the output photorealistic just to preserve identity.
+For Superhero, Fantasy, Cyberpunk, Professional, Headshot, and AI Avatar, visibly change the wardrobe, environment, lighting, and finish according to the style while preserving kid age and recognizable child identity.
+Do not change the kid's age, child gender presentation, or recognizable identity, but do allow the face to be rendered in the selected style.
 Every style must follow this: AI Avatar, Headshot, Professional, Superhero, Fantasy, Cyberpunk, Anime, Cartoon, and Background.
 For Age Studio only, the selected Age Target may change apparent age, but the original kid's identity must still remain recognizable and facial hair must not be added unless explicitly requested.
 `
@@ -2889,6 +2892,8 @@ GLOBAL QUALITY RULES:
 The final image must be high quality, sharp, realistic or properly stylized according to the selected style, visually premium, and suitable for a paid AI Face Studio app.
 
 The face must remain visible, clear, well-lit, and recognizable unless the selected style is Anime or Cartoon, where identity must still be preserved through stylized features.
+
+The output must not be an unchanged copy of the input photo. Apply the selected style visibly through wardrobe, background, lighting, color grade, pose, rendering method, and atmosphere while preserving identity.
 
 Do not create:
 - blurry output

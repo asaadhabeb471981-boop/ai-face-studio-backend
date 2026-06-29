@@ -236,6 +236,106 @@ const studioDirectionExpansions = [
         direction: "Create an original rugged clawed hero look: yellow and dark premium superhero suit, intense expression, cinematic battle atmosphere, sharp metallic claw-like energy accents without copying exact costume details."
     },
     {
+        patterns: [/\b(doctor strange|dr strange|strange|mystic doctor|portal hero)\b/],
+        direction: "Create an original mystic superhero look: elegant sorcerer-inspired cloak shapes, glowing circular portal energy, ancient symbols as abstract light patterns, cinematic temple or city background, premium magical realism, no exact protected costume or logo."
+    },
+    {
+        patterns: [/\b(scarlet witch|wanda|chaos magic|red magic)\b/],
+        direction: "Create an original chaos-magic superhero look: deep red energy aura, elegant cinematic outfit, floating ember-like magical particles, powerful graceful pose, dramatic red lighting, no exact protected costume or headpiece."
+    },
+    {
+        patterns: [/\b(vision|synthezoid|android hero|mind stone)\b/],
+        direction: "Create an original synthetic superhero look: sleek elegant humanoid tech suit, subtle gold and green energy accents, refined futuristic materials, calm intelligent pose, premium sci-fi portrait realism, face still recognizable."
+    },
+    {
+        patterns: [/\b(black widow|widow|spy hero|assassin hero)\b/],
+        direction: "Create an original elite spy superhero look: sleek tactical-but-premium suit, subtle red accents, cinematic stealth lighting, agile confident pose, modern city or mission background, face visible and identity preserved."
+    },
+    {
+        patterns: [/\b(hawkeye|archer hero|bow hero|marksman)\b/],
+        direction: "Create an original archer superhero look: premium tactical archer suit, bow-inspired composition, purple or dark accent lighting, rooftop or battlefield atmosphere, focused heroic pose, no exact protected costume."
+    },
+    {
+        patterns: [/\b(captain marvel|marvel hero|cosmic hero|photon hero)\b/],
+        direction: "Create an original cosmic energy superhero look: premium red, blue, and gold-inspired suit accents, glowing photon energy, powerful flight-ready pose, starfield or sky atmosphere, no exact protected emblem or costume."
+    },
+    {
+        patterns: [/\b(ant[\s-]?man|antman|shrinking hero|quantum hero)\b/],
+        direction: "Create an original size-shifting tech superhero look: sleek red and black micro-tech suit, quantum particle glow, futuristic helmet kept open or face visible, cinematic laboratory or city-scale perspective."
+    },
+    {
+        patterns: [/\b(wasp|winged tech hero|insect hero)\b/],
+        direction: "Create an original winged tech superhero look: elegant yellow and black micro-tech suit, translucent energy-wing motifs, agile airborne pose, premium futuristic lighting, face visible and recognizable."
+    },
+    {
+        patterns: [/\b(moon knight|moon hero|white knight)\b/],
+        direction: "Create an original moonlit vigilante hero look: premium white and silver layered suit, crescent-inspired abstract shapes, desert or rooftop night atmosphere, dramatic moonlight, no exact protected costume."
+    },
+    {
+        patterns: [/\b(blade|vampire hunter)\b/],
+        direction: "Create an original vampire-hunter superhero look: black premium tactical coat, silver accents, cinematic night city lighting, confident action pose, stylish dark fantasy atmosphere, face visible."
+    },
+    {
+        patterns: [/\b(daredevil|devil hero|blind hero)\b/],
+        direction: "Create an original red urban vigilante hero look: sleek red armored suit, subtle horn-like abstract silhouette only if face remains visible, gritty rooftop lighting, athletic martial-arts posture, no exact protected costume."
+    },
+    {
+        patterns: [/\b(punisher|skull vigilante|vigilante)\b/],
+        direction: "Create an original gritty vigilante antihero look: dark tactical premium outfit, abstract chest mark that is not a skull logo, urban night lighting, intense cinematic pose, face visible and recognizable."
+    },
+    {
+        patterns: [/\b(fantastic four|mr fantastic|mister fantastic|elastic hero|stretch hero)\b/],
+        direction: "Create an original elastic science-hero look: sleek blue-and-white futuristic explorer suit, dynamic stretching-inspired motion composition, clean sci-fi lab or city background, no exact protected logo."
+    },
+    {
+        patterns: [/\b(invisible woman|force field hero|invisible hero)\b/],
+        direction: "Create an original force-field superhero look: elegant blue-white futuristic suit, translucent shield-like energy around the person, clean cinematic sci-fi lighting, graceful powerful pose."
+    },
+    {
+        patterns: [/\b(human torch|flame hero|fire hero)\b/],
+        direction: "Create an original flame-powered superhero look: sleek suit with controlled orange fire aura, ember particles, glowing heat light, dramatic sky or city background, keep face safe, visible, and recognizable."
+    },
+    {
+        patterns: [/\b(the thing|rock hero|stone hero)\b/],
+        direction: "Create an original stone-strength hero look: premium rocky armor texture or stone energy accents, powerful but human-recognizable face, dramatic impact lighting, heroic city or canyon background."
+    },
+    {
+        patterns: [/\b(silver surfer|surfing hero|cosmic surfer)\b/],
+        direction: "Create an original silver cosmic traveler look: reflective silver suit, cosmic board-inspired composition, starfield energy trails, elegant space lighting, face visible and identity preserved."
+    },
+    {
+        patterns: [/\b(star lord|starlord|space outlaw|guardian hero)\b/],
+        direction: "Create an original space-outlaw hero look: premium red-brown sci-fi jacket or armor, glowing space blaster-inspired accents without weapons pointed at camera, cosmic city background, adventurous cinematic mood."
+    },
+    {
+        patterns: [/\b(gamora|green warrior|space warrior)\b/],
+        direction: "Create an original space-warrior hero look: sleek armored sci-fi outfit, emerald or cosmic accent lighting, alien-city or starship atmosphere, strong graceful action pose, identity preserved."
+    },
+    {
+        patterns: [/\b(groot|tree hero|plant hero|nature guardian)\b/],
+        direction: "Create an original nature-guardian hero look: organic wood-like armor motifs over a human-recognizable portrait, glowing green nature energy, forest or cosmic garden atmosphere, do not replace the person with a tree creature."
+    },
+    {
+        patterns: [/\b(venom|symbiote|black suit hero)\b/],
+        direction: "Create an original symbiote-inspired dark hero look: glossy black organic suit texture, white abstract chest/eye motifs as costume accents only, intense cinematic lighting, keep the real face visible and do not create a monster face."
+    },
+    {
+        patterns: [/\b(storm|weather hero|weather goddess)\b/],
+        direction: "Create an original weather-commanding superhero look: elegant suit, white or silver energy accents, lightning and wind atmosphere, dramatic sky, powerful graceful pose, face visible and recognizable."
+    },
+    {
+        patterns: [/\b(cyclops|optic blast|laser eyes)\b/],
+        direction: "Create an original optic-energy superhero look: sleek tactical suit, visor-inspired face-framing design without hiding identity, red energy beam accents, cinematic training-room or city background."
+    },
+    {
+        patterns: [/\b(jean grey|phoenix hero|telekinetic hero)\b/],
+        direction: "Create an original telekinetic firebird-energy superhero look: elegant green/gold or red/gold-inspired suit accents, glowing aura, floating particles, cosmic fire atmosphere, no exact protected costume."
+    },
+    {
+        patterns: [/\b(rogue|gambit|nightcrawler|mutant hero|x men|x-men)\b/],
+        direction: "Create an original mutant superhero look: premium team-style suit, unique power aura, cinematic academy or city background, expressive heroic pose, no exact protected logos, face visible and recognizable."
+    },
+    {
         patterns: [/\b(joker|chaos villain|clown villain)\b/],
         direction: "Create an original cinematic chaos-villain portrait: dramatic tailored outfit, unsettling theatrical color grading, moody urban background, expressive face, high-end movie-poster lighting."
     },
@@ -572,23 +672,26 @@ BLOCKBUSTER SUPERHERO ACCURACY BOOST:
 
 The default Superhero style must feel close to a premium modern comic-book movie universe.
 
+${superheroVarietyRule}
+
 Make these elements obvious:
-- original iconic superhero suit, not normal clothing
+- original face-visible superhero suit, not normal clothing
 - sculpted chest armor or textured heroic fabric
 - clear chest emblem, glowing core, or power symbol that is original and not a protected logo
-- bold heroic color design, not plain black tactical gear
+- bold original color design, not plain black tactical gear
 - premium suit seams, layered panels, shoulder structure, and cinematic materials
 - visible superpower effect such as energy aura, lightning, cosmic glow, web-like motion, elemental effects, or advanced tech glow
 - dramatic city, skyline, battle, rooftop, portal, or cinematic environment
 - movie-poster lighting with strong rim light, sparks, smoke, and high-end color grading
-- heroic action posture, not a simple passport/headshot pose
+- confident action posture adapted to the uploaded person's original gender presentation, not a simple passport/headshot pose
 
 Do not create:
 - soldier, SWAT, biker, police, leather jacket, casual jacket, gym outfit, or generic tactical vest
 - cheap cosplay
 - exact protected logos, exact named costumes, or actor likenesses
+- Superman-style red cape, S logo, Kryptonian blue suit, or generic male cape hero unless directly requested by the user
 
-Keep the uploaded person's real face recognizable while changing the suit, power, background, and lighting strongly.
+Keep the uploaded person's real face, original gender presentation, age impression, and recognizable identity while changing the suit, power, background, and lighting.
 `
     }
 
@@ -798,9 +901,10 @@ Transform the same person into an original premium cinematic comic-book superher
 
 The result must look like a real blockbuster superhero movie still.
 The person must wear a premium superhero suit, not tactical military clothing, not casual clothing, not a street vigilante outfit.
+Preserve the uploaded person's original gender presentation exactly. Do not masculinize a female-presenting person or feminize a male-presenting person.
 
 Suit design:
-Advanced cinematic superhero armor and fabric, iconic heroic silhouette, layered futuristic plating, sculpted chest emblem, detailed suit seams, premium textured materials, bold red/blue/gold/silver heroic color language when suitable, original high-end comic-book movie costume realism.
+Advanced cinematic superhero armor and fabric, original heroic silhouette, layered futuristic panels, abstract original chest emblem, detailed suit seams, premium textured materials, bold color language when suitable, original high-end comic-book movie costume realism.
 
 Powers:
 Cinematic energy aura, controlled glowing particles, realistic VFX, visible superpower identity, powerful heroic presence, dramatic environmental reflections.
@@ -812,28 +916,30 @@ Lighting:
 Premium cinematic lighting, strong key light, realistic shadows, heroic glow, IMAX-style movie color grading.
 
 Face rule:
-The face must remain extremely close to the uploaded person. Change the suit, power, and environment more than the face.
+The face and gender presentation must remain extremely close to the uploaded person. Change the suit, power, and environment more than the face.
+Avoid Superman-style output unless the user explicitly requested it: no red cape, no S shield, no Kryptonian blue suit, no Clark Kent/actor likeness.
 `,
 
 `
 Reimagine the same person as an iconic original cinematic superhero standing in a large-scale comic-book movie battle scene.
 
 The outfit must look like a real superhero costume from a premium comic-book movie:
-sleek armored chest plate, heroic shoulder structure, clear chest emblem or power symbol, glowing red, blue, gold, or silver energy details, luxury textured materials, sharp cinematic silhouette, high-end superhero design.
+sleek armored chest plate, original shoulder structure, abstract chest emblem or power symbol, glowing energy details, luxury textured materials, sharp cinematic silhouette, high-end superhero design.
 
 Do not make the outfit look like a soldier, police, SWAT, biker, or tactical vest.
 It must feel superhuman, powerful, and iconic.
 
 Preserve the real face strongly.
-Keep the same age, wrinkles, forehead, nose, eyes, lips, jawline, beard or baldness if present.
+Keep the same gender presentation, age, wrinkles, forehead, nose, eyes, lips, jawline, beard or baldness if present.
 The final result must look like the same person wearing a superhero suit.
+Avoid default Superman styling unless directly requested: no red cape, no S chest symbol, no exact blue-and-red Kryptonian costume, no actor likeness.
 `,
 
 `
 Create a premium live-action superhero movie poster of the same person.
 
 The person should look like a central original comic-book blockbuster hero:
-heroic armored suit, clear power-themed emblem, glowing energy reactor or power source if suitable, dramatic cape or advanced suit panels if suitable, cinematic energy effects, premium blockbuster composition.
+heroic armored suit, clear original power-themed emblem, glowing energy reactor or power source if suitable, advanced suit panels, cinematic energy effects, premium blockbuster composition.
 
 Make the scene visually spectacular:
 futuristic city, smoke, sparks, energy waves, dramatic sky, strong movie lighting.
@@ -843,7 +949,8 @@ Do not make the person younger.
 Do not beautify the face heavily.
 Do not change facial proportions.
 Do not replace the face with a fake actor face.
-Keep the original person's real facial identity highly recognizable.
+Keep the original person's real facial identity and gender presentation highly recognizable.
+Do not turn the result into Superman unless the user explicitly requested Superman: no red cape, no S logo, no Kryptonian suit, no celebrity superhero face.
 `
 ]
 
@@ -1294,6 +1401,48 @@ Never create a child-like or underage version.
 `
 ]
 
+const superheroVarietyRule = `
+SUPERHERO VARIETY SYSTEM:
+
+Do not default to one generic cape hero.
+Choose one original cinematic hero archetype that fits the uploaded person and selected variation, then build a premium face-visible design around it.
+
+Allowed original archetype directions include:
+- spider-powered agile web hero
+- armored tech hero
+- thunder or storm warrior
+- super-strength hero
+- patriotic shield-inspired leader
+- sleek panther-inspired agile hero
+- mystic portal sorcerer
+- chaos-magic energy hero
+- synthetic android tech hero
+- elite spy hero
+- archer or marksman hero
+- cosmic photon hero
+- size-shifting quantum tech hero
+- winged micro-tech hero
+- moonlit vigilante
+- vampire-hunter antihero
+- red urban vigilante
+- elastic science hero
+- force-field hero
+- flame-powered hero
+- stone-strength hero
+- silver cosmic traveler
+- space-outlaw guardian
+- space-warrior guardian
+- nature guardian
+- symbiote-inspired dark hero with real face visible
+- weather-commanding hero
+- optic-energy hero
+- telekinetic cosmic-energy hero
+- mutant team hero
+
+The design must be original. Do not copy exact Marvel, DC, or other protected costumes, logos, chest symbols, masks, actor likenesses, or character faces.
+Keep the uploaded person's real face visible, identity recognizable, and original gender presentation unless the user selected another Gender Mode.
+`
+
 function getPromptSet(styleName) {
 
     if (!styleName || typeof styleName !== "string") {
@@ -1440,6 +1589,39 @@ Keep identity and face clarity stronger than the drama.
 PACK VARIATION - RANDOM:
 Use one coherent variation from the selected style pack.
 Make the result feel intentionally chosen, not generic: vary composition, outfit polish, background depth, lighting shape, and camera feel while preserving identity.
+`
+}
+
+function getSuperheroVariationText(variation) {
+    const normalizedVariation =
+        typeof variation === "string"
+            ? variation.trim().toLowerCase()
+            : "random"
+
+    const variationMap = {
+        "variation 1": `
+SUPERHERO PACK VARIATION - AGILE / TECH:
+Prefer an original spider-powered, armored tech, archer, spy, quantum, winged micro-tech, red vigilante, or optic-energy hero direction.
+Use a face-visible suit with athletic movement, detailed materials, and modern city action energy.
+`,
+
+        "variation 2": `
+SUPERHERO PACK VARIATION - POWER / COSMIC:
+Prefer an original thunder, storm, super-strength, cosmic photon, flame, stone-strength, silver cosmic traveler, or telekinetic energy hero direction.
+Use dramatic power effects, sky or space atmosphere, and blockbuster scale while keeping the face recognizable.
+`,
+
+        "variation 3": `
+SUPERHERO PACK VARIATION - MYSTIC / TEAM HERO:
+Prefer an original mystic portal, chaos-magic, synthetic android, panther-inspired, patriotic shield, moonlit vigilante, vampire-hunter, nature guardian, space guardian, or mutant team hero direction.
+Use a distinctive costume language, cinematic environment, and clear original power identity.
+`
+    }
+
+    return variationMap[normalizedVariation] || `
+SUPERHERO PACK VARIATION - RANDOM HERO TYPE:
+Randomly choose one original hero archetype from the full superhero variety system.
+Avoid repeating the same default cape hero look. Make the chosen power identity obvious through suit design, lighting, pose, and background.
 `
 }
 
@@ -1792,6 +1974,34 @@ ${getStylizedStrengthText(normalizedStrength, "anime")}
         normalizedStrength === "identity lock" ||
         normalizedStrength === "realistic"
     ) {
+        if (normalizedStyle === "superhero") {
+            return `
+ACCURATE FACE SUPERHERO MODE:
+
+The uploaded person's face, gender presentation, age, skin texture, expression, hairstyle or baldness, beard if present, and facial proportions are the top priority.
+
+Create a superhero result by changing mainly:
+- suit
+- background
+- lighting
+- cinematic power effects
+- color grading
+
+Do not change:
+- gender presentation
+- face shape
+- eyes
+- nose
+- lips
+- jawline structure
+- age impression
+- recognizable identity
+
+Do not create a generic male superhero, Superman-style hero, celebrity superhero face, red cape, S logo, or exact protected costume.
+If the uploaded person is female-presenting, keep the result clearly female-presenting.
+The final image must look like the same person wearing a premium original superhero suit.
+`
+        }
 
         return `
 ACCURATE MODE:
@@ -1988,6 +2198,11 @@ function buildGeneratePrompt({
     const variationText =
         getVariationText(safeVariation)
 
+    const superheroVariationText =
+        normalizedStyle === "superhero"
+            ? getSuperheroVariationText(safeVariation)
+            : ""
+
     const strengthText =
         getStrengthText(safeStrength, safeStyleName, safeGenderMode)
 
@@ -2009,6 +2224,8 @@ SUPERHERO RULES:
 
 The result must clearly look like a real premium superhero movie scene.
 
+${superheroVarietyRule}
+
 The outfit must be:
 - a cinematic superhero suit
 - powerful
@@ -2020,6 +2237,7 @@ The outfit must be:
 - clearly designed for a comic-book blockbuster universe
 - built around an original emblem, glowing core, or power symbol
 - made from premium textured fabric, armor panels, suit seams, and heroic materials
+- adapted to the uploaded person's original gender presentation, body shape, hairstyle, and facial identity
 
 The scene must include:
 - dramatic cinematic environment
@@ -2036,6 +2254,14 @@ The outfit must NOT be:
 - a biker outfit
 - a SWAT vest
 - a generic combat suit
+- Superman-style red cape and blue suit unless the user specifically asked for that
+- S logo, shield logo, exact protected costume, or celebrity superhero face
+
+Gender and face:
+Preserve the uploaded person's original gender presentation when Gender Mode is Auto.
+If the uploaded person is female-presenting, the output must remain female-presenting.
+If the uploaded person is male-presenting, the output must remain male-presenting.
+Do not add masculine beard, masculine jaw styling, male body shape, or male-presenting costume to a female-presenting uploaded person.
 
 Make the suit and environment dramatic, but keep the face highly recognizable.
 Change the costume, background, lighting, and powers more than the face.
@@ -2285,6 +2511,8 @@ ${stylePromptSection}
 VARIATION:
 ${variationText}
 
+${superheroVariationText}
+
 MOOD:
 ${moodText}
 
@@ -2359,9 +2587,9 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "superhero") {
         return {
-            guidance_scale: normalizedStrength === "accurate" ? 3.2 : normalizedStrength === "extreme" ? 4.4 : 3.9,
-            num_inference_steps: normalizedStrength === "accurate" ? 36 : normalizedStrength === "extreme" ? 46 : 42,
-            prompt_strength: normalizedStrength === "accurate" ? 0.44 : normalizedStrength === "extreme" ? 0.68 : 0.60
+            guidance_scale: normalizedStrength === "accurate" ? 2.6 : normalizedStrength === "extreme" ? 4.4 : 3.7,
+            num_inference_steps: normalizedStrength === "accurate" ? 32 : normalizedStrength === "extreme" ? 46 : 40,
+            prompt_strength: normalizedStrength === "accurate" ? 0.30 : normalizedStrength === "extreme" ? 0.68 : 0.54
         }
     }
 

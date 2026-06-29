@@ -1309,10 +1309,14 @@ IMPORTANT: ${identityRule}
 Preserve the same recognizable identity, age, face shape, hairstyle or baldness, beard if present, eyes, nose, lips, jawline, cheeks, skin tone, and natural expression while converting the person into polished animated style.
 
 Style:
-High-end 3D animated movie rendering, cinematic cartoon lighting, expressive animated eyes, premium stylized textures, smooth character shading, realistic depth, blockbuster animation quality, elegant animated atmosphere.
+Premium 3D animated feature-film character rendering.
+The output must look like a fully modeled 3D character, not a photo filter.
+Use rounded stylized 3D facial forms, expressive animated eyes adapted from the real eyes, soft subsurface animated skin material, sculpted hair or stylized hair strands, clean geometry, smooth premium shaders, cinematic global illumination, rim light, depth of field, and blockbuster animation quality.
 
 Rules:
-The result must clearly look animated.
+The result must clearly look like a premium 3D animated character.
+Do not leave the result photorealistic.
+Do not create a flat 2D drawing, sketch, comic filter, oil painting, anime, or cheap cartoon filter.
 Do not create a completely different cartoon character.
 Do not remove important identity features.
 Do not make the person look much younger.
@@ -1327,9 +1331,13 @@ IMPORTANT: ${identityRule}
 Keep the face highly recognizable. Preserve natural age impression, hairstyle or baldness, beard if present, face structure, eyes, nose, lips, cheeks, jawline, and expression.
 
 Style:
-Premium cartoon avatar, cinematic 3D rendering, elegant lighting, smooth stylized textures, polished animated skin, expressive cartoon detail, modern animated realism, social-media premium avatar quality.
+Premium 3D cartoon avatar with visible 3D shape and depth.
+Use polished animated skin, stylized but recognizable face anatomy, expressive larger eyes, clean sculpted cheeks and jawline, stylized hair, soft studio-quality 3D lighting, smooth materials, and modern animated movie realism.
 
 Rules:
+The output must look rendered in 3D with premium animated materials.
+Do not leave it as a realistic portrait with slight smoothing.
+Do not create 2D anime, flat illustration, sketch, or filter-art.
 Avoid generic cartoon faces.
 Avoid turning the person into a child-like character.
 Avoid extreme caricature distortion.
@@ -1344,13 +1352,15 @@ IMPORTANT: ${identityRule}
 Preserve the exact facial identity while applying stylized cartoon rendering. Keep the same age, face shape, hairstyle or baldness, beard if present, eyes, nose, lips, jawline, cheeks, and natural expression.
 
 Style:
-Blockbuster animated film aesthetic, premium 3D cartoon realism, elegant cinematic lighting, expressive animated features, polished textures, luxury color grading, modern animation studio quality.
+Blockbuster 3D animated film aesthetic, premium cartoon realism, elegant cinematic lighting, expressive animated features, polished textures, stylized 3D hair, soft animated skin shading, luxury color grading, and modern animation studio quality.
 
 Rules:
+The final image must be obviously 3D animated, with depth, shaders, and sculpted character forms.
 Keep the character recognizable as the uploaded person.
 Do not over-simplify the face.
 Do not create unrealistic cartoon proportions.
 Do not replace the identity with a random animated character.
+Do not output a photorealistic portrait, 2D illustration, anime image, cheap app filter, or plastic-looking face.
 The final image should look like a high-budget animated adaptation of the same real person.
 `
 ]
@@ -1967,9 +1977,11 @@ function getAccurateFaceLockRule(strength, styleName) {
 
     const normalizedStyle = sanitizeText(styleName, "", 80).toLowerCase()
     const styleAllowance =
-        normalizedStyle === "anime" || normalizedStyle === "cartoon"
-            ? "For Anime or Cartoon, stylize the rendering, but keep the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity. Do not create a generic stylized character."
-            : "For realistic styles, keep the face as close as possible to the uploaded photo. The output should look like the same exact person after wardrobe, lighting, and background changes."
+        normalizedStyle === "cartoon"
+            ? "For Cartoon, still convert the person into a premium 3D animated character. Preserve the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity while using clear 3D animated materials and stylized character geometry."
+            : normalizedStyle === "anime"
+                ? "For Anime, stylize the rendering, but keep the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity. Do not create a generic anime character."
+                : "For realistic styles, keep the face as close as possible to the uploaded photo. The output should look like the same exact person after wardrobe, lighting, and background changes."
 
     return `
 ACCURATE FACE LOCK - HIGHEST PRIORITY:
@@ -2581,17 +2593,22 @@ Do not create a fantasy, anime, cartoon, superhero, or cyberpunk version unless 
         styleRules = `
 CARTOON RULES:
 
-The result must clearly look like a premium 3D animated character.
+The result must clearly look like a premium 3D animated character, not a lightly edited photo.
 
 Use:
+- visible 3D character geometry
 - cinematic cartoon lighting
 - expressive animated eyes
 - polished stylized textures
 - smooth animated shading
+- sculpted stylized hair
+- soft animated skin material
+- rounded feature-film character forms
 - high-end animated movie quality
 
 Preserve the uploaded person's recognizable identity.
 Do not create a random cartoon character.
+Do not output photorealism, anime, flat 2D drawing, sketch, comic filter, or cheap app filter.
 `
     }
 
@@ -2606,6 +2623,18 @@ The age change must be obvious in the final image while the identity remains rec
 Edit adult age cues directly: skin texture, expression lines, under-eye detail, facial maturity, hair tone, and overall adult age impression.
 Preserve identity, gender presentation, pose, gaze, face shape, glasses, beard pattern, skin tone, and expression, but do not preserve the original apparent age.
 Never make the person look under 18.
+`
+            : ""
+
+    const cartoon3dCommandSection =
+        normalizedStyle === "cartoon"
+            ? `
+CARTOON 3D CONVERSION COMMAND:
+This must be a premium 3D animated movie character conversion.
+The result must not remain photorealistic and must not look like a simple beauty filter.
+Use clear 3D character geometry: stylized facial volumes, expressive animated eyes, sculpted hair, smooth premium shaders, soft subsurface animated skin, cinematic global illumination, rim light, and real depth of field.
+Keep the uploaded person's identity recognizable through face shape, expression, hairstyle or baldness, skin tone, age impression, glasses, beard pattern if present, and original gender presentation.
+Avoid flat 2D illustration, anime, sketch, oil painting, cheap cartoon filter, plastic face, random child-like character, or generic animated avatar.
 `
             : ""
 
@@ -2683,6 +2712,8 @@ ${styleRules}
 ${genderRule}
 
 ${ageEditCommandSection}
+
+${cartoon3dCommandSection}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
@@ -2786,7 +2817,23 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
         }
     }
 
-    if (normalizedStyle === "anime" || normalizedStyle === "cartoon") {
+    if (normalizedStyle === "cartoon") {
+        if (normalizedStrength === "extreme") {
+            return {
+                guidance_scale: 5.0,
+                num_inference_steps: 50,
+                prompt_strength: 0.82
+            }
+        }
+
+        return {
+            guidance_scale: isAccurateFace ? 3.4 : 4.6,
+            num_inference_steps: isAccurateFace ? 40 : 46,
+            prompt_strength: isAccurateFace ? 0.52 : 0.74
+        }
+    }
+
+    if (normalizedStyle === "anime") {
         if (normalizedStrength === "extreme") {
             return {
                 guidance_scale: 4.5,

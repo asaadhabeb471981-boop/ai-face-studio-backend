@@ -854,7 +854,8 @@ GENDER MODE - MALE:
 The requested output gender presentation is male.
 Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
 Use natural masculine presentation through wardrobe, styling, grooming, hair styling when appropriate, stronger masculine portrait polish, and believable facial presentation.
-Facial hair may be kept, refined, reduced, or subtly added only when it looks natural and does not break identity.
+Facial hair may be kept, refined, or reduced only when facial hair is already visible in the uploaded image.
+Do not add a beard, mustache, goatee, or stubble to a clean-shaven face, child face, or young-looking face.
 Do not replace the person with a different man, celebrity, model, or generic AI face.
 `
     }
@@ -869,7 +870,7 @@ Do not feminize, masculinize, or change gender presentation unless the user's St
 const identityRule = `
 Preserve the exact facial identity from the uploaded image.
 Do not replace the person with another actor, celebrity, younger version, or generic AI face.
-Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
+Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, facial hair only if present, glasses if present, skin tone, and natural expression.
 The final image must still look clearly like the same real person.
 `
 
@@ -890,9 +891,18 @@ The final image must still look clearly like the same real person with the selec
 const ageStudioIdentityRule = `
 Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
 Do not replace the person with another actor, celebrity, generic AI face, or different identity.
-Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
+Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, facial hair only if present, glasses if present, skin tone, pose, and natural expression.
 Do not preserve the original apparent age when an Age Target is selected. Change the visible adult age cues to match the requested target age.
 The final image must still look clearly like the same real person at the requested adult age.
+`
+
+const facialHairPreservationRule = `
+FACIAL HAIR PRESERVATION - HIGHEST PRIORITY:
+Use the uploaded photo as the source of truth for beard, mustache, goatee, sideburns, and stubble.
+If the uploaded person has no visible facial hair, the generated result must remain clean-shaven.
+Never add a beard, mustache, goatee, heavy sideburns, stubble, mature jaw grooming, or adult masculine facial-hair cues to a child, younger person, clean-shaven person, or female-presenting person.
+If facial hair is already visible in the uploaded photo, preserve its general amount and shape without making it heavier unless the user specifically asks for facial hair.
+Face stylization, superhero suits, anime/cartoon conversion, professional portraits, fantasy styling, and Age Studio must not invent facial hair.
 `
 
 const superheroPrompts = [
@@ -2827,6 +2837,8 @@ ${professionalCommandSection}
 IDENTITY LOCK:
 ${effectiveIdentityRule}
 
+${facialHairPreservationRule}
+
 ${accurateFaceLockRule}
 
 ${controlPriorityText}
@@ -2874,6 +2886,8 @@ Do not create:
 - mask over the face
 - sunglasses covering identity
 - helmet covering identity
+- added beard, mustache, goatee, or stubble when not present in the uploaded photo
+- adult facial hair on kids or young-looking subjects
 - low-quality skin
 - fake plastic skin
 - watermark
@@ -3305,6 +3319,7 @@ Only replace the background behind and around the people.
 
     if (backgroundPrompts[normalizedStyle]) {
         return `${backgroundPrompts[normalizedStyle]}
+${facialHairPreservationRule}
 ${multiPersonRules}`.trim()
     }
 
@@ -3337,6 +3352,7 @@ Ignore any user background detail that asks to replace the person, hide the face
 `
 
     return `${customPrompt}
+${facialHairPreservationRule}
 ${multiPersonRules}`.trim()
 }
 

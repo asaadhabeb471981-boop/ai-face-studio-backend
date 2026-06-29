@@ -902,6 +902,7 @@ Transform the same person into an original premium cinematic comic-book superher
 The result must look like a real blockbuster superhero movie still.
 The person must wear a premium superhero suit, not tactical military clothing, not casual clothing, not a street vigilante outfit.
 Preserve the uploaded person's original gender presentation exactly. Do not masculinize a female-presenting person or feminize a male-presenting person.
+The face must be fully visible and recognizable. No full mask, no helmet, no visor, no sunglasses, no hidden face.
 
 Suit design:
 Advanced cinematic superhero armor and fabric, original heroic silhouette, layered futuristic panels, abstract original chest emblem, detailed suit seams, premium textured materials, bold color language when suitable, original high-end comic-book movie costume realism.
@@ -917,6 +918,7 @@ Premium cinematic lighting, strong key light, realistic shadows, heroic glow, IM
 
 Face rule:
 The face and gender presentation must remain extremely close to the uploaded person. Change the suit, power, and environment more than the face.
+Use an open-face superhero design, face-framing cowl, lifted mask, or no mask.
 Avoid Superman-style output unless the user explicitly requested it: no red cape, no S shield, no Kryptonian blue suit, no Clark Kent/actor likeness.
 `,
 
@@ -932,6 +934,7 @@ It must feel superhuman, powerful, and iconic.
 Preserve the real face strongly.
 Keep the same gender presentation, age, wrinkles, forehead, nose, eyes, lips, jawline, beard or baldness if present.
 The final result must look like the same person wearing a superhero suit.
+The face must be uncovered, well-lit, and readable. Do not use a full mask, helmet, visor, or sunglasses.
 Avoid default Superman styling unless directly requested: no red cape, no S chest symbol, no exact blue-and-red Kryptonian costume, no actor likeness.
 `,
 
@@ -950,6 +953,7 @@ Do not beautify the face heavily.
 Do not change facial proportions.
 Do not replace the face with a fake actor face.
 Keep the original person's real facial identity and gender presentation highly recognizable.
+The superhero portrait must show the full face clearly. No full mask, no helmet, no visor, no face-covering cowl.
 Do not turn the result into Superman unless the user explicitly requested Superman: no red cape, no S logo, no Kryptonian suit, no celebrity superhero face.
 `
 ]
@@ -1076,9 +1080,11 @@ IMPORTANT: ${identityRule}
 Preserve the exact same real face, age, wrinkles, skin texture, forehead, eye bags, hairstyle or baldness, beard if present, cheeks, jawline, eyes, nose, lips, facial proportions, and natural expression.
 
 Style:
-Luxury executive portrait, elegant business suit, premium office background blur, cinematic professional lighting, realistic skin tones, refined corporate atmosphere, high-end LinkedIn-quality photography, premium camera depth of field.
+Luxury executive business portrait, elegant business suit or polished executive wardrobe, premium office or glass-boardroom background blur, cinematic professional lighting, realistic skin tones, refined corporate atmosphere, high-end LinkedIn-quality photography, premium camera depth of field.
 
 Rules:
+The result must clearly read as a premium business portrait.
+Do not make it a casual lifestyle portrait or generic social-media portrait.
 Do not make the person younger.
 Do not heavily beautify the face.
 Do not over-smooth skin.
@@ -1094,9 +1100,11 @@ IMPORTANT: ${identityRule}
 Keep the face highly recognizable. Preserve natural aging, wrinkles, skin texture, hairstyle or baldness, beard if present, forehead shape, eyes, nose, lips, cheeks, jawline, and natural expression.
 
 Style:
-High-end CEO portrait, refined formal clothing, elegant executive office atmosphere, warm professional lighting, premium camera realism, cinematic depth of field, luxury business environment, believable executive photography.
+High-end CEO portrait, refined formal clothing, elegant executive office atmosphere, glass walls, desk or boardroom depth, warm professional lighting, premium camera realism, cinematic depth of field, luxury business environment, believable executive photography.
 
 Rules:
+The result must look like a premium executive/business photoshoot.
+Include clear business wardrobe and corporate environment cues.
 No fake actor face.
 No unrealistic beauty enhancement.
 No artificial symmetry.
@@ -1113,9 +1121,11 @@ IMPORTANT: ${identityRule}
 Preserve exact facial identity, age, wrinkles, skin texture, baldness or hairstyle, beard if present, facial structure, jawline, cheeks, eyes, nose, lips, and natural expression.
 
 Style:
-Modern entrepreneur aesthetic, elegant smart-casual business styling, luxury minimal background, realistic cinematic lighting, social-media premium photography quality, warm natural tones, clean high-end portrait atmosphere.
+Modern entrepreneur business aesthetic, elegant smart-casual business styling, blazer, tailored shirt, refined executive wardrobe, luxury minimal office or studio background, realistic cinematic lighting, premium personal-brand photography quality, warm natural tones, clean high-end business portrait atmosphere.
 
 Rules:
+The result must still look professional and business-focused.
+Do not make it casual, fantasy, fashion-only, cyberpunk, superhero, anime, or cartoon.
 Keep the face realistic and natural.
 Do not heavily retouch the skin.
 Do not make the person look younger.
@@ -1199,9 +1209,11 @@ IMPORTANT: ${identityRule}
 Preserve the exact same real face, age, wrinkles, skin texture, forehead, eye bags, hairstyle or baldness, beard if present, jawline, cheeks, eyes, nose, lips, facial proportions, and natural expression.
 
 Style:
-Premium cyberpunk portrait, futuristic dark clothing, cinematic night city background, realistic neon reflections, high-tech urban atmosphere, rain-slick streets, soft city lights, premium camera depth of field, realistic skin tones.
+Premium neon cyberpunk portrait, futuristic techwear clothing, cinematic night city background, strong cyan and magenta neon reflections, holographic signs, high-tech urban atmosphere, rain-slick streets, wet pavement reflections, glowing rim light, premium camera depth of field, realistic skin tones.
 
 Rules:
+The result must clearly show a neon cyberpunk city mood.
+Do not make it a normal dark portrait.
 Do not replace the face.
 Do not make the person younger.
 Do not over-smooth skin.
@@ -1217,9 +1229,11 @@ IMPORTANT: ${identityRule}
 Keep the face highly recognizable. Preserve natural aging, wrinkles, skin texture, hairstyle or baldness, beard if present, face shape, jawline, eyes, nose, lips, cheeks, and natural expression.
 
 Style:
-Sleek futuristic outfit, premium urban background, soft neon city lights, realistic cinematic photography, subtle high-tech atmosphere, elegant dark styling, natural skin texture, professional portrait realism.
+Sleek futuristic outfit, premium neon urban background, visible cyan/magenta city lights, holographic panels, realistic cinematic photography, clear high-tech atmosphere, reflective materials, elegant dark styling with colored neon rim light, natural skin texture, professional portrait realism.
 
 Rules:
+The neon futuristic environment must be obvious.
+Do not make the scene plain, neutral, or only slightly futuristic.
 No fake actor face.
 No heavy beauty enhancement.
 No extreme cybernetic changes.
@@ -1235,9 +1249,10 @@ IMPORTANT: ${identityRule}
 Preserve exact facial identity, age, wrinkles, skin detail, baldness or hairstyle, beard if present, cheeks, jawline, eyes, nose, lips, and expression.
 
 Style:
-Luxury cyberpunk realism, cinematic neon skyline, elegant futuristic jacket, realistic rain reflections, moody urban lighting, premium sci-fi atmosphere, sharp professional portrait detail, high-end movie color grading.
+Luxury cyberpunk realism, cinematic neon skyline, elegant futuristic jacket, bright cyan and magenta rim lights, realistic rain reflections, holographic billboards, moody urban lighting, premium sci-fi atmosphere, sharp professional portrait detail, high-end movie color grading.
 
 Rules:
+The result must clearly read as neon cyberpunk.
 Keep the person human and realistic.
 Do not create a robot face.
 Do not change facial proportions.
@@ -1255,9 +1270,14 @@ IMPORTANT: ${identityRule}
 Preserve the same recognizable identity, age, face shape, hairstyle or baldness, beard if present, skin tone, eyes, nose, lips, jawline, cheeks, and natural expression while converting the person into polished anime style.
 
 Style:
-Modern anime movie rendering, premium illustrated textures, expressive anime eyes, cinematic anime lighting, clean detailed shading, elegant background atmosphere, high-end animated film quality.
+Premium anime movie portrait rendering.
+The output must look like polished anime artwork, not a realistic photo filter.
+Use clean linework or painterly anime line definition, expressive anime eyes adapted from the real eyes, stylized anime nose and mouth, refined anime hair shapes, smooth cel-shading plus soft cinematic gradients, elegant background atmosphere, and high-end animated film quality.
 
 Rules:
+The result must be unmistakably anime.
+Do not leave the output photorealistic.
+Do not create a 3D cartoon, western cartoon, sketch, comic filter, or cheap app filter.
 Do not turn the person into a completely different anime character.
 Do not make the person much younger.
 Do not change gender.
@@ -1273,9 +1293,12 @@ IMPORTANT: ${identityRule}
 Keep the same real identity strongly visible. Preserve age, facial proportions, face shape, hairstyle or baldness, beard if present, skin tone, eyes, nose, lips, jawline, cheeks, and expression.
 
 Style:
-Premium anime hero portrait, cinematic anime lighting, polished illustration quality, detailed animated facial features, elegant heroic outfit, soft atmospheric background, modern anime film realism.
+Premium anime hero portrait, cinematic anime lighting, polished illustration quality, clean anime linework, detailed animated facial features, expressive anime eyes, elegant heroic outfit, soft atmospheric background, modern anime film realism.
 
 Rules:
+The image must read as high-end anime artwork immediately.
+Do not leave realistic skin/photo texture as the main rendering style.
+Do not create 3D cartoon, photorealistic portrait, or western animation style.
 Keep the person recognizable.
 Avoid generic anime beauty face.
 Avoid changing facial structure too much.
@@ -1290,10 +1313,12 @@ IMPORTANT: ${identityRule}
 Preserve the original person's identity while anime-stylizing the face. Keep the same age impression, hairstyle or baldness, beard if present, face shape, eyes, nose, lips, jawline, cheeks, skin tone, and natural expression.
 
 Style:
-High-end anime avatar, clean cinematic shading, expressive eyes, premium anime artwork, elegant lighting, refined outfit styling, soft depth background, polished animated portrait quality.
+High-end anime avatar, clean cinematic shading, expressive anime eyes, premium anime artwork, refined linework, stylized hair and facial features, elegant lighting, refined outfit styling, soft depth background, polished animated portrait quality.
 
 Rules:
 The result must be clearly anime.
+Do not leave the image photorealistic or only slightly stylized.
+Do not create 3D cartoon, comic sketch, oil painting, or cheap filter-art.
 The result must still resemble the uploaded person.
 Do not over-beautify.
 Do not create a random anime model.
@@ -1980,7 +2005,7 @@ function getAccurateFaceLockRule(strength, styleName) {
         normalizedStyle === "cartoon"
             ? "For Cartoon, still convert the person into a premium 3D animated character. Preserve the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity while using clear 3D animated materials and stylized character geometry."
             : normalizedStyle === "anime"
-                ? "For Anime, stylize the rendering, but keep the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity. Do not create a generic anime character."
+                ? "For Anime, still convert the person into polished premium anime artwork. Preserve the person's unique facial structure, expression, age impression, hairstyle or baldness, glasses, beard pattern if present, and recognizable identity while using clean anime linework, expressive anime eyes, cel-shading, and animated film styling. Do not create a generic anime character."
                 : "For realistic styles, keep the face as close as possible to the uploaded photo. The output should look like the same exact person after wardrobe, lighting, and background changes."
 
     return `
@@ -2390,6 +2415,7 @@ function buildGeneratePrompt({
 SUPERHERO RULES:
 
 The result must clearly look like a real premium superhero movie scene.
+It must not look like a normal portrait with ordinary clothes.
 
 ${superheroVarietyRule}
 
@@ -2405,6 +2431,7 @@ The outfit must be:
 - built around an original emblem, glowing core, or power symbol
 - made from premium textured fabric, armor panels, suit seams, and heroic materials
 - adapted to the uploaded person's original gender presentation, body shape, hairstyle, and facial identity
+- clearly visible in the frame as a superhero costume, not just a jacket or shirt
 
 The scene must include:
 - dramatic cinematic environment
@@ -2423,6 +2450,7 @@ The outfit must NOT be:
 - a generic combat suit
 - Superman-style red cape and blue suit unless the user specifically asked for that
 - S logo, shield logo, exact protected costume, or celebrity superhero face
+- full mask, helmet, visor, sunglasses, hidden eyes, or covered face
 
 Gender and face:
 Preserve the uploaded person's original gender presentation when Gender Mode is Auto.
@@ -2432,6 +2460,7 @@ Do not add masculine beard, masculine jaw styling, male body shape, or male-pres
 
 Make the suit and environment dramatic, but keep the face highly recognizable.
 Change the costume, background, lighting, and powers more than the face.
+The final image must read instantly as a face-visible superhero portrait.
 `
     }
 
@@ -2493,17 +2522,21 @@ Avoid:
 PROFESSIONAL RULES:
 
 Create a premium business portrait with executive quality.
+The result must clearly look like a business/professional portrait.
 
 Use:
-- elegant business clothing
-- realistic office or studio background
+- elegant business clothing, blazer, suit, tailored shirt, or executive smart-casual wardrobe
+- realistic executive office, boardroom, glass-wall workplace, city-office depth, or premium studio business background
 - warm professional lighting
 - premium camera depth of field
 - refined corporate atmosphere
+- confident posture and executive presence
 
 Avoid:
 - fake CEO stock-photo face
 - unrealistic beauty edits
+- casual social-media portrait
+- party/fashion-only styling
 - fantasy elements
 - superhero costume
 - cyberpunk effects
@@ -2541,12 +2574,14 @@ Avoid:
         styleRules = `
 CYBERPUNK RULES:
 
-Create a realistic futuristic city portrait.
+Create a realistic neon cyberpunk futuristic city portrait.
 
 Use:
-- subtle neon reflections
-- futuristic clothing
-- cinematic night city background
+- strong cyan and magenta neon reflections
+- futuristic techwear or reflective clothing
+- cinematic night city background with visible signs or holograms
+- rainy street reflections, wet pavement glow, skyline lights, or high-tech panels
+- colored rim light on hair, shoulders, and background
 - realistic urban atmosphere
 - premium sci-fi photography
 
@@ -2556,6 +2591,7 @@ Avoid:
 - extreme cybernetic implants
 - anime/cartoon rendering
 - replacing the person with a different cyberpunk character
+- plain dark portrait with no visible neon
 `
     }
 
@@ -2564,17 +2600,21 @@ Avoid:
         styleRules = `
 ANIME RULES:
 
-The result must clearly look like premium anime artwork.
+The result must clearly look like premium anime artwork, not a lightly edited photo.
 
 Use:
+- clean anime linework or painterly anime edge definition
 - cinematic anime rendering
 - expressive anime eyes
+- stylized anime nose and mouth
+- refined anime hair shapes
 - polished illustration quality
-- clean anime shading
+- clean cel-shading with soft cinematic gradients
 - elegant animated atmosphere
 
 Preserve the uploaded person's identity features while converting them into anime style.
 Do not create a generic anime character.
+Do not output photorealism, western 3D cartoon, sketch, comic filter, or cheap anime filter.
 `
     }
 
@@ -2641,6 +2681,17 @@ Avoid flat 2D illustration, anime, sketch, oil painting, cheap cartoon filter, p
 `
             : ""
 
+    const animeCommandSection =
+        normalizedStyle === "anime"
+            ? `
+ANIME CONVERSION COMMAND:
+This must be a polished anime portrait, not a photorealistic portrait and not a 3D cartoon.
+Use unmistakable premium anime artwork: clean linework or painterly anime edge definition, expressive anime eyes adapted from the real eyes, stylized anime nose and mouth, refined anime hair shapes, smooth cel-shading, soft cinematic gradients, detailed anime outfit rendering, and elegant animated background atmosphere.
+Preserve recognizable identity through face shape, expression, age impression, hairstyle or baldness, skin tone, glasses, beard pattern if present, and original gender presentation.
+Avoid photorealism, western 3D cartoon, cheap anime filter, generic anime face, child-like redesign, or replacing the uploaded person with a fictional anime character.
+`
+            : ""
+
     const fantasyCommandSection =
         normalizedStyle === "fantasy"
             ? `
@@ -2649,6 +2700,40 @@ This must be a magical live-action fantasy movie portrait, not a normal royal ph
 The result must visibly include fantasy transformation through wardrobe, environment, atmosphere, and controlled magical details.
 Use at least three of these fantasy cues: castle or palace architecture, enchanted forest or ancient library, noble robe or fantasy armor, embroidered cloak, crown or magical jewelry, floating glowing particles, magical aura around hands or background, portal light, candlelit throne room, misty kingdom landscape, dramatic fantasy sky, warm torchlight, realistic spell glow.
 Keep the uploaded face realistic and recognizable. Do not put magical glow directly over the face. Do not turn the person into a monster, elf, child, cartoon, anime, or different character.
+`
+            : ""
+
+    const cyberpunkCommandSection =
+        normalizedStyle === "cyberpunk"
+            ? `
+CYBERPUNK NEON CONVERSION COMMAND:
+This must be a neon cyberpunk portrait, not a normal dark city portrait.
+The final image must visibly include futuristic city atmosphere and strong colored neon.
+Use at least four of these cyberpunk cues: cyan neon rim light, magenta neon rim light, holographic signs, rainy street reflections, wet pavement glow, futuristic techwear, reflective jacket materials, high-tech panels, sci-fi skyline, night city depth, subtle facial neon reflections, blue/purple/pink color contrast, cinematic urban haze.
+Keep the face clearly lit and recognizable. Do not hide the face in shadow, helmet, goggles, mask, or heavy cybernetic implants.
+`
+            : ""
+
+    const superheroFaceCommandSection =
+        normalizedStyle === "superhero"
+            ? `
+FACE-VISIBLE SUPERHERO PORTRAIT COMMAND:
+This must be a superhero portrait with the uploaded person's real face clearly visible.
+The output must show a premium original superhero suit, visible power identity, cinematic superhero environment, and uncovered recognizable face.
+Do not use a full mask, helmet, visor, sunglasses, face-covering cowl, heavy shadow over the face, or any design that hides identity.
+Allowed face-safe options: no mask, open-face cowl, lifted mask, face-framing hood, suit collar, cheek/temple costume accents, or eye-lens motifs placed around the face without covering the real eyes and facial identity.
+The costume, background, power effects, and lighting should transform strongly, but the face must remain visible, well-lit, and recognizable.
+`
+            : ""
+
+    const professionalCommandSection =
+        normalizedStyle === "professional"
+            ? `
+PREMIUM BUSINESS PORTRAIT COMMAND:
+This must be a premium professional business portrait, not a casual portrait or generic beauty photo.
+The final image must visibly include business/executive cues: tailored blazer, suit, formal shirt, smart professional wardrobe, executive office, boardroom, glass-wall workplace, refined studio business backdrop, desk area, city-office depth, or corporate environment.
+Use warm professional lighting, realistic camera depth, sharp eyes, refined grooming, polished but natural skin, confident posture, and executive presence.
+Avoid casual T-shirt, party/fashion styling, fantasy, cyberpunk, superhero costume, anime, cartoon, fake stock-photo face, or over-smoothed beauty retouch.
 `
             : ""
 
@@ -2729,7 +2814,15 @@ ${ageEditCommandSection}
 
 ${cartoon3dCommandSection}
 
+${animeCommandSection}
+
 ${fantasyCommandSection}
+
+${cyberpunkCommandSection}
+
+${superheroFaceCommandSection}
+
+${professionalCommandSection}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
@@ -2829,7 +2922,7 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
         return {
             guidance_scale: normalizedStrength === "accurate" ? 2.6 : normalizedStrength === "extreme" ? 4.4 : 3.7,
             num_inference_steps: normalizedStrength === "accurate" ? 32 : normalizedStrength === "extreme" ? 46 : 40,
-            prompt_strength: normalizedStrength === "accurate" ? 0.30 : normalizedStrength === "extreme" ? 0.68 : 0.54
+            prompt_strength: normalizedStrength === "accurate" ? 0.34 : normalizedStrength === "extreme" ? 0.70 : 0.62
         }
     }
 
@@ -2852,16 +2945,16 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
     if (normalizedStyle === "anime") {
         if (normalizedStrength === "extreme") {
             return {
-                guidance_scale: 4.5,
-                num_inference_steps: 46,
-                prompt_strength: 0.74
+                guidance_scale: 4.9,
+                num_inference_steps: 50,
+                prompt_strength: 0.82
             }
         }
 
         return {
-            guidance_scale: isAccurateFace ? 2.8 : 4.0,
-            num_inference_steps: isAccurateFace ? 34 : 42,
-            prompt_strength: isAccurateFace ? 0.38 : 0.64
+            guidance_scale: isAccurateFace ? 3.2 : 4.5,
+            num_inference_steps: isAccurateFace ? 38 : 46,
+            prompt_strength: isAccurateFace ? 0.48 : 0.74
         }
     }
 
@@ -2883,13 +2976,21 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
 
     if (normalizedStyle === "cyberpunk") {
         return {
-            guidance_scale: isAccurateFace ? 2.5 : normalizedStrength === "extreme" ? 4.2 : 3.7,
-            num_inference_steps: isAccurateFace ? 32 : normalizedStrength === "extreme" ? 44 : 40,
-            prompt_strength: isAccurateFace ? 0.32 : normalizedStrength === "extreme" ? 0.66 : 0.56
+            guidance_scale: isAccurateFace ? 2.9 : normalizedStrength === "extreme" ? 4.8 : 4.2,
+            num_inference_steps: isAccurateFace ? 36 : normalizedStrength === "extreme" ? 48 : 44,
+            prompt_strength: isAccurateFace ? 0.40 : normalizedStrength === "extreme" ? 0.76 : 0.66
         }
     }
 
-    if (normalizedStyle === "headshot" || normalizedStyle === "professional" || normalizedStyle === "ai avatar") {
+    if (normalizedStyle === "professional") {
+        return {
+            guidance_scale: isAccurateFace ? 2.4 : normalizedStrength === "extreme" ? 3.9 : 3.2,
+            num_inference_steps: isAccurateFace ? 32 : normalizedStrength === "extreme" ? 42 : 38,
+            prompt_strength: isAccurateFace ? 0.30 : normalizedStrength === "extreme" ? 0.60 : 0.48
+        }
+    }
+
+    if (normalizedStyle === "headshot" || normalizedStyle === "ai avatar") {
         return {
             guidance_scale: isAccurateFace ? 2.1 : normalizedStrength === "extreme" ? 3.4 : 2.8,
             num_inference_steps: isAccurateFace ? 30 : normalizedStrength === "extreme" ? 38 : 34,

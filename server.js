@@ -1127,42 +1127,42 @@ The final result should feel like a real premium entrepreneur photoshoot of the 
 
 const fantasyPrompts = [
 `
-Using the uploaded image as the identity reference, transform the same person into a realistic luxury fantasy-inspired royal portrait.
+Using the uploaded image as the identity reference, transform the same person into a realistic magical fantasy movie portrait.
 
 IMPORTANT: ${identityRule}
 Preserve the exact same real face, age, wrinkles, skin texture, forehead, eye bags, hairstyle or baldness, beard if present, jawline, cheeks, eyes, nose, lips, facial proportions, and natural expression.
 
 Style:
-Elegant royal fantasy portrait, luxurious medieval-inspired clothing, noble king or queen aesthetic, premium embroidered fabrics, cinematic castle environment, warm golden lighting, realistic shadows, atmospheric depth, high-end fantasy movie photography.
+Elegant magical fantasy portrait, luxurious medieval-inspired clothing, noble ruler, royal mage, enchanted warrior, or fantasy kingdom aesthetic, premium embroidered fabrics, subtle magical jewelry or cloak details, cinematic castle environment, warm golden lighting, realistic shadows, atmospheric depth, high-end fantasy movie photography.
 
 Environment:
-Luxury royal hall, elegant throne room, cinematic castle interior, candles, warm ambient glow, premium fantasy atmosphere.
+Luxury royal hall, elegant throne room, cinematic castle interior, candles, warm ambient glow, enchanted particles, magical window light, premium fantasy atmosphere.
 
 Rules:
 Do not turn the person into a different fantasy character.
 Do not make the person younger.
 Do not heavily beautify the face.
-Do not create glowing magical skin.
+Do not create glowing magical skin, but do include visible magical atmosphere around the person.
 Do not create cartoon or anime style.
 Keep the portrait realistic, cinematic, and highly recognizable as the same real person.
 `,
 
 `
-Create a grounded cinematic noble portrait of the uploaded person.
+Create a grounded cinematic magical noble portrait of the uploaded person.
 
 IMPORTANT: ${identityRule}
 Keep the face highly recognizable. Preserve natural aging, wrinkles, skin texture, hairstyle or baldness, beard if present, facial structure, jawline, cheeks, eyes, nose, lips, and natural expression.
 
 Style:
-Classic noble fantasy aesthetic, elegant royal clothing, luxury fabrics, cinematic warm lighting, realistic medieval-inspired environment, premium editorial photography, natural shadows, realistic skin detail, believable fantasy realism.
+Classic noble fantasy aesthetic, elegant royal or mage clothing, luxury fabrics, subtle runes or enchanted accessories, cinematic warm lighting, realistic medieval-inspired environment, premium fantasy movie photography, natural shadows, realistic skin detail, believable magical realism.
 
 Environment:
-Elegant palace interior, royal library, noble hall, warm firelight atmosphere, luxury architectural details, cinematic depth of field.
+Elegant palace interior, ancient magical library, noble hall, warm firelight atmosphere, floating dust or subtle glowing particles, luxury architectural details, cinematic depth of field.
 
 Rules:
 No fake actor face.
 No unrealistic beauty enhancement.
-No heavy fantasy glow.
+Use visible but controlled fantasy magic. Avoid only excessive glow on the face.
 No superhero styling.
 No cyberpunk lighting.
 No cartoon rendering.
@@ -1176,17 +1176,17 @@ IMPORTANT: ${identityRule}
 Preserve exact facial identity, age, wrinkles, skin detail, baldness or hairstyle, beard if present, face shape, jawline, cheeks, eyes, nose, lips, and natural expression.
 
 Style:
-Epic fantasy movie realism, royal warrior or noble ruler aesthetic, luxurious fantasy clothing, cinematic dramatic lighting, realistic textures, premium blockbuster fantasy photography, elegant atmosphere, believable medieval realism.
+Epic fantasy movie realism, royal warrior, noble ruler, battle mage, or enchanted guardian aesthetic, luxurious fantasy clothing or elegant armor, magical aura around hands or background, cinematic dramatic lighting, realistic textures, premium blockbuster fantasy photography, elegant atmosphere, believable medieval realism.
 
 Environment:
-Grand fantasy castle balcony, misty royal kingdom background, cinematic sky, elegant architectural details, atmospheric lighting.
+Grand fantasy castle balcony, misty royal kingdom background, cinematic sky, magical clouds or portal glow, elegant architectural details, atmospheric lighting.
 
 Rules:
 Keep the face realistic and natural.
 Do not dramatically change facial proportions.
 Do not replace the person with a younger or more attractive AI character.
 Avoid cartoon fantasy styling.
-Avoid exaggerated magical effects.
+Use magical effects clearly, but keep them tasteful and away from changing the face.
 The final image should feel like a real live-action fantasy movie portrait of the same person.
 `
 ]
@@ -2516,18 +2516,21 @@ Avoid:
         styleRules = `
 FANTASY RULES:
 
-Create a realistic live-action fantasy portrait.
+Create a realistic live-action magical fantasy portrait.
 
 Use:
 - royal or noble clothing
+- mage robes, enchanted warrior wardrobe, embroidered cloak, crown-inspired detail, or fantasy armor when suitable
 - cinematic castle or palace atmosphere
+- magical library, enchanted forest, throne room, kingdom balcony, or misty fantasy landscape
 - warm fantasy movie lighting
+- visible magical particles, portal glow, aura, spell light, torchlight, or enchanted atmosphere away from the face
 - realistic luxury textures
 - believable human skin
 
 Avoid:
 - cartoon fantasy rendering
-- excessive glowing magic
+- excessive glowing magic directly on the face
 - unrealistic fantasy skin
 - changing the person into a different character
 `
@@ -2638,6 +2641,17 @@ Avoid flat 2D illustration, anime, sketch, oil painting, cheap cartoon filter, p
 `
             : ""
 
+    const fantasyCommandSection =
+        normalizedStyle === "fantasy"
+            ? `
+FANTASY MAGIC CONVERSION COMMAND:
+This must be a magical live-action fantasy movie portrait, not a normal royal photoshoot.
+The result must visibly include fantasy transformation through wardrobe, environment, atmosphere, and controlled magical details.
+Use at least three of these fantasy cues: castle or palace architecture, enchanted forest or ancient library, noble robe or fantasy armor, embroidered cloak, crown or magical jewelry, floating glowing particles, magical aura around hands or background, portal light, candlelit throne room, misty kingdom landscape, dramatic fantasy sky, warm torchlight, realistic spell glow.
+Keep the uploaded face realistic and recognizable. Do not put magical glow directly over the face. Do not turn the person into a monster, elf, child, cartoon, anime, or different character.
+`
+            : ""
+
     const customDirectionSection = hasStudioDirection
         ? normalizedStyle === "age studio"
             ? `
@@ -2714,6 +2728,8 @@ ${genderRule}
 ${ageEditCommandSection}
 
 ${cartoon3dCommandSection}
+
+${fantasyCommandSection}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
@@ -2857,7 +2873,15 @@ function getGenerationSettings(strength, styleName = "", studioDirection = "") {
         }
     }
 
-    if (normalizedStyle === "fantasy" || normalizedStyle === "cyberpunk") {
+    if (normalizedStyle === "fantasy") {
+        return {
+            guidance_scale: isAccurateFace ? 2.9 : normalizedStrength === "extreme" ? 4.7 : 4.1,
+            num_inference_steps: isAccurateFace ? 36 : normalizedStrength === "extreme" ? 48 : 44,
+            prompt_strength: isAccurateFace ? 0.40 : normalizedStrength === "extreme" ? 0.74 : 0.64
+        }
+    }
+
+    if (normalizedStyle === "cyberpunk") {
         return {
             guidance_scale: isAccurateFace ? 2.5 : normalizedStrength === "extreme" ? 4.2 : 3.7,
             num_inference_steps: isAccurateFace ? 32 : normalizedStrength === "extreme" ? 44 : 40,

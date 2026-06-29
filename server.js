@@ -852,12 +852,9 @@ Do not replace the person with a different woman, celebrity, model, or generic A
         return `
 GENDER MODE - MALE:
 The requested output gender presentation is male.
-Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity, original apparent age, and original facial maturity.
-If the uploaded person is a male child, boy, teenager, or young-looking male, keep him the same age and keep the face child-like or youth-like as shown in the photo.
-Male mode means preserve or apply male gender presentation only; it does not mean adult man, older face, beard, mustache, stubble, heavy jaw, mature grooming, or adult facial-hair styling.
-Use age-appropriate male presentation through wardrobe, hair styling, and portrait polish without changing age or adding adult facial features.
-Facial hair may be kept, refined, or reduced only when facial hair is already visible in the uploaded image.
-Do not add a beard, mustache, goatee, or stubble to a clean-shaven face, child face, or young-looking face.
+Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
+Use natural masculine presentation through wardrobe, styling, grooming, hair styling when appropriate, stronger masculine portrait polish, and believable facial presentation.
+Facial hair may be kept, refined, reduced, or subtly added only when it looks natural and does not break identity.
 Do not replace the person with a different man, celebrity, model, or generic AI face.
 `
     }
@@ -872,7 +869,7 @@ Do not feminize, masculinize, or change gender presentation unless the user's St
 const identityRule = `
 Preserve the exact facial identity from the uploaded image.
 Do not replace the person with another actor, celebrity, younger version, or generic AI face.
-Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, facial hair only if present, glasses if present, skin tone, and natural expression.
+Keep the same gender, age, face shape, forehead, wrinkles, skin texture, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness, beard if present, glasses if present, skin tone, and natural expression.
 The final image must still look clearly like the same real person.
 `
 
@@ -882,9 +879,7 @@ function getIdentityRuleForGenderMode(genderMode) {
 Preserve the exact facial identity from the uploaded image while applying the selected ${genderMode} gender presentation.
 Do not replace the person with another actor, celebrity, younger version, model, or generic AI face.
 Keep the same core identity: age, face shape, forehead, wrinkles or skin texture, eyes, nose, lips, cheeks, jawline structure, ears, glasses if present, skin tone, and natural expression.
-Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, hair styling, subtle facial presentation, and overall styling.
-Do not change a child or young-looking person into an adult.
-Do not add beard, mustache, goatee, stubble, mature jaw grooming, or adult facial-hair cues unless those features are already visible in the uploaded image.
+Allow only the gender-presentation changes needed for the selected ${genderMode} mode, such as wardrobe, grooming, hair styling, subtle facial presentation, and overall styling.
 The final image must still look clearly like the same real person with the selected ${genderMode} presentation.
 `
     }
@@ -895,28 +890,9 @@ The final image must still look clearly like the same real person with the selec
 const ageStudioIdentityRule = `
 Preserve the exact facial identity from the uploaded image while changing only visible adult age cues.
 Do not replace the person with another actor, celebrity, generic AI face, or different identity.
-Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, facial hair only if present, glasses if present, skin tone, pose, and natural expression.
+Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
 Do not preserve the original apparent age when an Age Target is selected. Change the visible adult age cues to match the requested target age.
 The final image must still look clearly like the same real person at the requested adult age.
-`
-
-const facialHairPreservationRule = `
-FACIAL HAIR PRESERVATION - HIGHEST PRIORITY:
-Use the uploaded photo as the source of truth for beard, mustache, goatee, sideburns, and stubble.
-If the uploaded person has no visible facial hair, the generated result must remain clean-shaven.
-Never add a beard, mustache, goatee, heavy sideburns, stubble, mature jaw grooming, or adult masculine facial-hair cues to a child, younger person, clean-shaven person, or female-presenting person.
-If facial hair is already visible in the uploaded photo, preserve its general amount and shape without making it heavier unless the user specifically asks for facial hair.
-Face stylization, superhero suits, anime/cartoon conversion, professional portraits, fantasy styling, and Age Studio must not invent facial hair.
-`
-
-const sourcePhotoTruthRule = `
-SOURCE PHOTO TRUTH - ABSOLUTE FIRST PRIORITY:
-The uploaded photo controls the person's age, facial maturity, gender presentation, and facial hair.
-Except when the selected style is Age Studio with a selected adult age target, preserve the uploaded person's original age impression exactly and do not age them into an adult.
-If the uploaded subject is a child, boy, teenager, or young-looking person in any non-Age-Studio style, preserve that young age impression exactly.
-For a male child or boy in any non-Age-Studio style, the result must remain a clean-shaven boy with no beard, no mustache, no goatee, no stubble, no heavy adult jaw, and no mature adult grooming.
-Do not add adult male features just because Gender Mode is Male, the style is Superhero, Professional, Fantasy, Cyberpunk, Anime, Cartoon, or the result is cinematic.
-If the source face is smooth or clean-shaven, the output face must stay smooth and clean-shaven.
 `
 
 const superheroPrompts = [
@@ -2832,10 +2808,6 @@ ${styleRules}
 `
 
     const finalPrompt = `
-${sourcePhotoTruthRule}
-
-${facialHairPreservationRule}
-
 ${genderRule}
 
 ${ageEditCommandSection}
@@ -2854,8 +2826,6 @@ ${professionalCommandSection}
 
 IDENTITY LOCK:
 ${effectiveIdentityRule}
-
-${facialHairPreservationRule}
 
 ${accurateFaceLockRule}
 
@@ -2904,8 +2874,6 @@ Do not create:
 - mask over the face
 - sunglasses covering identity
 - helmet covering identity
-- added beard, mustache, goatee, or stubble when not present in the uploaded photo
-- adult facial hair on kids or young-looking subjects
 - low-quality skin
 - fake plastic skin
 - watermark
@@ -3337,8 +3305,6 @@ Only replace the background behind and around the people.
 
     if (backgroundPrompts[normalizedStyle]) {
         return `${backgroundPrompts[normalizedStyle]}
-${sourcePhotoTruthRule}
-${facialHairPreservationRule}
 ${multiPersonRules}`.trim()
     }
 
@@ -3371,8 +3337,6 @@ Ignore any user background detail that asks to replace the person, hide the face
 `
 
     return `${customPrompt}
-${sourcePhotoTruthRule}
-${facialHairPreservationRule}
 ${multiPersonRules}`.trim()
 }
 

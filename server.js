@@ -853,8 +853,11 @@ Do not replace the person with a different woman, celebrity, model, or generic A
 GENDER MODE - MALE:
 The requested output gender presentation is male.
 Make the final portrait clearly male-presenting while preserving the uploaded person's recognizable identity.
-Use natural masculine presentation through wardrobe, styling, grooming, hair styling when appropriate, stronger masculine portrait polish, and believable facial presentation.
-Facial hair may be kept, refined, reduced, or subtly added only when it looks natural and does not break identity.
+Use natural male presentation through wardrobe, styling, hair styling, and portrait polish while preserving the uploaded person's original age impression and facial maturity.
+If the uploaded person is a boy, male child, teenager, or young-looking male, keep him looking like the same boy or young person.
+Do not turn a boy or young-looking male into an adult man.
+Facial hair may be kept, refined, or reduced only when facial hair is already visible in the uploaded image.
+Do not add beard, mustache, goatee, stubble, heavy jaw grooming, or adult masculine facial cues to a child, boy, teenager, young-looking male, or clean-shaven face.
 Do not replace the person with a different man, celebrity, model, or generic AI face.
 `
     }
@@ -893,6 +896,18 @@ Do not replace the person with another actor, celebrity, generic AI face, or dif
 Keep the same gender presentation, face shape, eyes, nose, lips, cheeks, jawline, ears, hairstyle or baldness pattern, beard pattern if present, glasses if present, skin tone, pose, and natural expression.
 Do not preserve the original apparent age when an Age Target is selected. Change the visible adult age cues to match the requested target age.
 The final image must still look clearly like the same real person at the requested adult age.
+`
+
+const kidFaceRecognitionRule = `
+KID FACE RECOGNITION - HIGH PRIORITY:
+If the uploaded photo shows a child, kid, boy, girl, teenager, or young-looking person, the AI must recognize that youth and preserve it.
+For all non-Age-Studio styles, keep the subject the same apparent age as the uploaded photo.
+Do not make a child look like an adult, older teen, adult model, adult superhero, adult business person, adult fantasy character, adult anime character, or adult cartoon avatar.
+Preserve kid-specific facial identity: rounder cheeks, softer jawline, smaller facial proportions, smooth skin, youthful expression, natural child-like face shape, original hair, original eyes, original nose, original lips, and original skin tone.
+For boys or male children, keep the face clean-shaven unless facial hair is already clearly visible in the uploaded photo.
+Do not add beard, mustache, goatee, stubble, heavy adult jaw, mature grooming, adult wrinkles, adult cheek hollows, adult muscular neck, or adult masculine face structure to a kid photo.
+Style changes may affect outfit, background, lighting, colors, genre, and rendering finish, but must not change the kid's age, identity, or child facial structure.
+For Age Studio only, the selected Age Target may change apparent age, but the original kid's identity must still remain recognizable and facial hair must not be added unless explicitly requested.
 `
 
 const superheroPrompts = [
@@ -2808,6 +2823,8 @@ ${styleRules}
 `
 
     const finalPrompt = `
+${kidFaceRecognitionRule}
+
 ${genderRule}
 
 ${ageEditCommandSection}
@@ -2866,6 +2883,8 @@ The face must remain visible, clear, well-lit, and recognizable unless the selec
 Do not create:
 - blurry output
 - distorted face
+- adult version of a child source photo in non-Age-Studio styles
+- beard, mustache, goatee, stubble, heavy adult jaw, or mature grooming on a kid photo
 - extra eyes
 - broken mouth
 - deformed hands near the face
@@ -3305,6 +3324,7 @@ Only replace the background behind and around the people.
 
     if (backgroundPrompts[normalizedStyle]) {
         return `${backgroundPrompts[normalizedStyle]}
+${kidFaceRecognitionRule}
 ${multiPersonRules}`.trim()
     }
 
@@ -3337,6 +3357,7 @@ Ignore any user background detail that asks to replace the person, hide the face
 `
 
     return `${customPrompt}
+${kidFaceRecognitionRule}
 ${multiPersonRules}`.trim()
 }
 

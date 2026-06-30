@@ -3,11 +3,31 @@ require("dotenv").config();
 const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
-const helmet = require("helmet");
-const compression = require("compression");
-const rateLimit = require("express-rate-limit");
 const axios = require("axios");
 const FormData = require("form-data");
+
+function optionalRequire(name, fallback) {
+  try {
+    return require(name);
+  } catch (error) {
+    if (error.code === "MODULE_NOT_FOUND") {
+      console.warn(
+        `Optional dependency "${name}" is not installed. Using fallback middleware.`
+      );
+      return fallback;
+    }
+    throw error;
+  }
+}
+
+const helmet = optionalRequire("helmet", () => (_req, _res, next) => next());
+const compression = optionalRequire(
+  "compression",
+  () => (_req, _res, next) => next()
+);
+const rateLimit = optionalRequire("express-rate-limit", () => {
+  return (_req, _res, next) => next();
+});
 
 const app = express();
 

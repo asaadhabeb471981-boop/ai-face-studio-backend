@@ -527,8 +527,10 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
     "",
     studioDirection
       ? [
-          "STUDIO DIRECTION IS ACTIVE AND HAS CREATIVE PRIORITY.",
-          "Apply the user's Studio Direction to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
+          "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+          "The user's Studio Direction is the primary creative instruction for the AI Avatar result.",
+          "Apply the user's Studio Direction strongly to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
+          "The final image must visibly reflect the exact Studio Direction text.",
           "Studio Direction must style the original uploaded subject; it must not erase or replace the source subject unless the user explicitly asks for replacement.",
           "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central artwork in a premium semi-realistic avatar style.",
           "If Studio Direction conflicts with the default AI Avatar look, keep the request but render it as a premium subject icon made from the uploaded source.",
@@ -557,7 +559,11 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   }
 
   if (styleName === "AI Avatar") {
-    return Number(process.env.AI_AVATAR_PROMPT_STRENGTH || 0.72);
+    return Number(
+      customPrompt
+        ? process.env.AI_AVATAR_DIRECTION_PROMPT_STRENGTH || 0.88
+        : process.env.AI_AVATAR_PROMPT_STRENGTH || 0.72
+    );
   }
 
   if (styleName === "Cartoon") {

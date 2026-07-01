@@ -59,38 +59,38 @@ const STYLE_NAMES = new Set([
 
 const STYLE_BASELINES = {
   "AI Avatar":
-    "premium AI-styled version of the uploaded subject, polished digital studio finish, strong visual identity, high-end app result",
+    "premium AI-styled transformation of the exact uploaded subject or subjects",
   Cartoon:
-    "premium 3D animated movie-style version of the uploaded subject, polished materials, cinematic cartoon lighting",
+    "premium 3D animated movie-style transformation of the exact uploaded subject or subjects",
   Headshot:
-    "clean professional studio presentation of the uploaded subject, premium lighting, sharp detail, simple profile-style composition",
+    "clean professional close-up studio presentation of the exact uploaded subject or subjects",
   Fantasy:
-    "cinematic fantasy version of the uploaded subject, magical environment, elegant lighting, detailed atmosphere, premium fantasy finish",
+    "cinematic fantasy transformation of the exact uploaded subject or subjects",
   Anime:
-    "high-end anime-style version of the uploaded subject, clean linework, polished color, cinematic anime lighting, detailed background",
+    "high-end anime-style transformation of the exact uploaded subject or subjects",
   Cyberpunk:
-    "futuristic cyberpunk version of the uploaded subject, neon city lighting, reflective materials, cinematic sci-fi atmosphere",
+    "futuristic cyberpunk transformation of the exact uploaded subject or subjects",
   Superhero:
-    "cinematic superhero-inspired version of the uploaded subject, heroic design language, dramatic lighting, premium action-poster finish",
+    "cinematic superhero-inspired transformation of the exact uploaded subject or subjects",
   Professional:
-    "premium professional studio presentation of the uploaded subject, refined styling, modern office or studio background, polished commercial photography",
+    "premium professional commercial presentation of the exact uploaded subject or subjects",
   "Age Studio":
-    "realistic age-edited human portrait when the uploaded subject is human, premium studio photography, natural identity preservation",
+    "age-aware transformation of the exact uploaded subject or subjects, using human age editing only when the uploaded subject is human",
 };
 
 const AGE_TARGETS = {
   "Younger Adult":
-    "make the person look like a younger adult, with realistic adult facial maturity and natural polished skin texture",
+    "make each visible human look like a younger adult, with realistic adult facial maturity and natural polished skin texture",
   "30s":
-    "make the person look like they are in their 30s, with natural adult maturity and realistic skin texture",
+    "make each visible human look like they are in their 30s, with natural adult maturity and realistic skin texture",
   "40s":
-    "make the person look like they are in their 40s, with realistic mature adult facial detail",
+    "make each visible human look like they are in their 40s, with realistic mature adult facial detail",
   "50s":
-    "make the person look like they are in their 50s, with natural age texture and premium portrait realism",
+    "make each visible human look like they are in their 50s, with natural age texture and premium portrait realism",
   "60s":
-    "make the person look like they are in their 60s, with realistic senior-adult detail, mature skin texture, and natural dignity",
+    "make each visible human look like they are in their 60s, with realistic senior-adult detail, mature skin texture, and natural dignity",
   "Senior Adult":
-    "make the person look like a senior adult, with believable mature aging details and premium portrait realism",
+    "make each visible human look like a senior adult, with believable mature aging details and premium portrait realism",
 };
 
 app.set("trust proxy", 1);
@@ -240,6 +240,16 @@ function normalizeSubjectAnalysis(value = {}) {
     value.objectKind || value.plantKind || value.productKind || value.kind
   ).slice(0, 60);
   const confidence = normalizeString(value.confidence, "unknown").slice(0, 24);
+  const subjectCount = Number.isFinite(Number(value.subjectCount))
+    ? Math.max(0, Math.min(20, Number(value.subjectCount)))
+    : null;
+  const hasMultipleSubjects =
+    typeof value.hasMultipleSubjects === "boolean"
+      ? value.hasMultipleSubjects
+      : subjectCount != null
+        ? subjectCount > 1
+        : false;
+  const subjectSummary = normalizeString(value.subjectSummary).slice(0, 180);
 
   let label = "Detected: Automatic subject analysis";
   if (subjectType === "human") {
@@ -252,6 +262,9 @@ function normalizeSubjectAnalysis(value = {}) {
   } else if (subjectType === "object") {
     label = `Detected: Object${objectKind ? ` - ${titleCase(objectKind)}` : ""}`;
   }
+  if (hasMultipleSubjects && !label.includes("Multiple")) {
+    label = label.replace("Detected:", "Detected: Multiple");
+  }
 
   const promptLabel =
     subjectType === "human"
@@ -263,15 +276,26 @@ function normalizeSubjectAnalysis(value = {}) {
         : subjectType === "object"
           ? `object${objectKind ? ` (${objectKind})` : ""}`
           : "unknown subject";
+  const compositionLabel = [
+    hasMultipleSubjects ? "multiple visible subjects" : "single visible subject or unclear count",
+    subjectCount != null && subjectCount > 0 ? `count ${subjectCount}` : "",
+    subjectSummary ? `summary: ${subjectSummary}` : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
 
   return {
     subjectType,
     humanCategory,
     animalKind: animalKind || null,
     objectKind: objectKind || null,
+    subjectCount,
+    hasMultipleSubjects,
+    subjectSummary: subjectSummary || null,
     confidence,
     label,
     promptLabel,
+    compositionLabel,
   };
 }
 
@@ -305,7 +329,7 @@ async function analyzeSubject(imageBase64) {
           {
             role: "system",
             content:
-              "You classify the main visible subject in a user photo for an image-editing app. Return only compact JSON.",
+              "You classify all prominent visible subjects in a user photo for an image-editing app. Return only compact JSON.",
           },
           {
             role: "user",
@@ -313,7 +337,7 @@ async function analyzeSubject(imageBase64) {
               {
                 type: "text",
                 text:
-                  "Classify the main subject. subjectType must be human, animal, object, or unknown. Use object for any non-human and non-animal subject, including physical items, plants, products, scenes, vehicles, buildings, food, or abstract/non-living subjects. If human, humanCategory must be adult female, adult male, child female, child male, or unknown based on visible presentation. If animal, include animalKind when clear. If object, include objectKind when clear. Include confidence as high, medium, or low.",
+                  "Classify the prominent subjects. subjectType must be human, animal, object, or unknown based on the overall image. Use object for any non-human and non-animal subject, including physical items, plants, products, scenes, vehicles, buildings, food, or abstract/non-living subjects. If human, humanCategory must be adult female, adult male, child female, child male, or unknown based on the most prominent visible human when clear. If animal, include animalKind when clear. If object, include objectKind when clear. Include subjectCount as the count of prominent people/animals/objects, hasMultipleSubjects as true when more than one prominent subject exists, subjectSummary as a short description of all prominent subjects and their layout, and confidence as high, medium, or low.",
               },
               {
                 type: "image_url",
@@ -348,37 +372,107 @@ async function analyzeSubject(imageBase64) {
 
 function buildSubjectInstruction(subjectAnalysis) {
   const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "composition must be inferred from the source image";
 
   return [
-    "The uploaded source image is the authority for the main subject.",
-    "Before editing, inspect the uploaded source image and infer the main subject.",
-    "Classify it as human, animal, object, or unknown. Treat any non-human and non-animal subject as object. For humans, infer visible presentation only when clear: adult female, adult male, child female, or child male.",
+    "The uploaded source image is the authority for every prominent subject.",
+    "Before editing, inspect the uploaded source image and infer all prominent people, animals, objects, and scene subjects.",
+    "Classify the overall image as human, animal, object, mixed, or unknown. Treat any non-human and non-animal subject as object. For humans, infer visible presentation only when clear: adult female, adult male, child female, or child male.",
     `Server subject analysis: ${detected}.`,
-    "Hard rule: preserve the same primary subject category and physical identity from the uploaded image.",
+    `Server composition analysis: ${composition}.`,
+    "Hard rule: preserve every prominent source subject, including subject count, identities, object types, relative positions, scale relationships, and group layout.",
+    "Hard rule: do not drop extra people, animals, or objects from the input unless the user's Studio Direction explicitly asks to remove them.",
+    "Hard rule: do not merge multiple people or objects into one subject. Keep separate subjects visually separate.",
     "Hard rule: never introduce a person, woman, man, child, face, body, hair, skin, or human portrait when the uploaded image does not clearly contain a human.",
     "If the uploaded image is not clearly human, the output must remain non-human and preserve the original subject category.",
     "Only create a human result when the uploaded image clearly contains a human or the user's Studio Direction explicitly asks to transform the subject into a human.",
-    "If the source appears to be a child, keep the result child-appropriate and do not age the child into an adult unless the selected Age Studio target explicitly requests an adult age edit.",
+    "If the source contains multiple humans, preserve all visible people as separate people and apply the selected style consistently to the group.",
+    "If the source contains multiple objects, preserve all prominent objects and their arrangement while applying the selected style.",
+    "If the source contains both humans and objects or animals, preserve the mixed composition instead of focusing only on one subject.",
+    "If any source person appears to be a child, keep that person child-appropriate and do not age the child into an adult unless the selected Age Studio target explicitly requests an adult age edit.",
   ].join("\n");
 }
 
 function resultTypeInstruction(subjectAnalysis) {
   if (subjectAnalysis?.subjectType === "human") {
-    return "Create a premium, sharp, finished human result that preserves the person's identity, age category, and visible presentation.";
+    return "Create a premium, sharp, finished human result that preserves every visible person's identity, age category, visible presentation, and position in the group.";
   }
 
   if (subjectAnalysis?.subjectType === "animal") {
-    return "Create a premium, sharp, finished animal result that preserves the animal as an animal. Do not add human facial features, human clothing, or a human body unless explicitly requested.";
+    return "Create a premium, sharp, finished animal result that preserves every visible animal as an animal. Do not add human facial features, human clothing, or a human body unless explicitly requested.";
   }
 
   if (subjectAnalysis?.subjectType === "object") {
-    return "Create a premium, sharp, finished object or product-style result that preserves the object as an object. Do not add any human person.";
+    return "Create a premium, sharp, finished object or product-style result that preserves every prominent object as an object. Do not add any human person.";
   }
 
-  return "Create a premium, sharp, finished result based on the uploaded subject. If the source is not clearly human, do not add any human person.";
+  return "Create a premium, sharp, finished result based on all prominent uploaded subjects. If the source is not clearly human, do not add any human person.";
+}
+
+function styleBranchInstruction(styleName) {
+  const universal = [
+    "Interpret the selected style through the subject or subjects that are actually visible in the source image.",
+    "If the source contains humans, human portrait conventions are allowed for those humans.",
+    "If the source contains multiple humans, style the whole group and preserve each person.",
+    "If the source contains multiple non-human subjects, style the whole arrangement and preserve each prominent subject.",
+    "If the source is not human, translate the style into an object, animal, product, scene, or subject treatment without adding any human figure.",
+  ];
+
+  const byStyle = {
+    "AI Avatar": [
+      "For human sources, create AI avatars of all visible people.",
+      "For non-human sources, create a polished AI icon or stylized hero version of the same subject arrangement, not a human avatar.",
+    ],
+    Cartoon: [
+      "For human sources, create cartoon character versions of all visible people.",
+      "For non-human sources, create a cartoon version of the same subject arrangement with original structures preserved.",
+    ],
+    Headshot: [
+      "For human sources, create a clean professional headshot or group headshot that preserves all visible people.",
+      "For non-human sources, treat Headshot as a clean centered close-up product or subject shot with studio lighting, preserving all prominent subjects, not a human headshot.",
+    ],
+    Fantasy: [
+      "For human sources, create a fantasy portrait or group fantasy scene preserving all visible people.",
+      "For non-human sources, create a fantasy-styled version of the same subject arrangement in a magical setting.",
+    ],
+    Anime: [
+      "For human sources, create an anime portrait or anime group scene preserving all visible people.",
+      "For non-human sources, create an anime-styled version of the same subject arrangement without adding a human character.",
+    ],
+    Cyberpunk: [
+      "For human sources, create a cyberpunk portrait or group scene preserving all visible people.",
+      "For non-human sources, create a cyberpunk-styled version of the same subject arrangement with neon lighting and sci-fi atmosphere.",
+    ],
+    Superhero: [
+      "For human sources, create superhero versions of all visible people.",
+      "For non-human sources, create a heroic poster-style version of the same subject arrangement without converting it into a human hero.",
+    ],
+    Professional: [
+      "For human sources, create a premium professional business portrait or group business portrait preserving all visible people.",
+      "For non-human sources, treat Professional as premium commercial product photography or polished subject presentation preserving all prominent subjects, not a person in business clothing.",
+    ],
+    "Age Studio": [
+      "For human sources, apply the requested visible age target to each visible person while preserving individual identity and group layout.",
+      "For non-human sources, do not create an aged person. Preserve the original subject arrangement and apply only subtle time, patina, maturity, season, or material-detail cues when appropriate.",
+    ],
+  };
+
+  return [...universal, ...(byStyle[styleName] || [])].join("\n");
 }
 
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
+  const preserveFirstStyles = new Set([
+    "AI Avatar",
+    "Headshot",
+    "Professional",
+    "Age Studio",
+  ]);
+
+  if (subjectAnalysis?.subjectType === "unknown" && preserveFirstStyles.has(styleName)) {
+    return Number(process.env.SUBJECT_PRESERVE_STRICT_PROMPT_STRENGTH || 0.52);
+  }
+
   if (styleName === "Age Studio") {
     return Number(process.env.AGE_PROMPT_STRENGTH || 0.82);
   }
@@ -407,10 +501,13 @@ function buildPortraitPrompt({
       ? AGE_TARGETS[normalizeString(ageTarget)] || AGE_TARGETS["50s"]
       : "";
   const subjectInstruction = buildSubjectInstruction(subjectAnalysis);
+  const branchInstruction = styleBranchInstruction(styleName);
 
   if (studioDirection) {
     return [
       subjectInstruction,
+      "",
+      branchInstruction,
       "",
       "STUDIO DIRECTION IS THE PRIMARY CREATIVE COMMAND.",
       "Follow the user's Studio Direction with maximum weight for wardrobe, identity styling, expression, pose, lighting, colors, background, camera angle, composition, genre, realism level, and final finish.",
@@ -429,6 +526,8 @@ function buildPortraitPrompt({
 
   return [
     subjectInstruction,
+    "",
+    branchInstruction,
     "",
     `Create a ${baseline}.`,
     ageInstruction ? `Age Studio target: ${ageInstruction}.` : "",

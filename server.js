@@ -79,7 +79,7 @@ const STYLE_BASELINES = {
 };
 
 const DEFAULT_PROFESSIONAL_DIRECTION =
-  "premium catalog commercial photography, clean white or light-gray seamless studio background, softbox lighting, elegant professional presentation, sharp detail, high-end retouching, remove casual room clutter and household furniture from the background";
+  "premium catalog commercial photography, clean white or light-gray seamless studio background, softbox lighting, elegant professional presentation, professional clothing for visible people, sharp detail, high-end retouching, remove casual room clutter and household furniture from the background";
 
 const AGE_TARGETS = {
   "Younger Adult":
@@ -772,7 +772,11 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Do not invent, substitute, or add a new main subject category that is not visible in the uploaded image.",
     "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
     "Professional styling can be applied to any category: person, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
-    "If the source contains visible people, create professional business, editorial, corporate, or commercial portrait photography while preserving each person's identity, age category, and group layout.",
+    "If the source contains visible people, create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
+    "For visible people, change casual clothing into age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
+    "For visible people, preserve the same person, identity, face, age category, gender presentation, ethnicity, natural body proportions, and recognizable features.",
+    "For visible children, use child-appropriate formal or school-photo style clothing; do not make children look adult.",
+    "If Studio Direction specifies clothing, follow that clothing while keeping it professional and preserving identity, age, and gender presentation.",
     "If the source contains multiple people, preserve every person as a separate person and create a professional group or team-style result.",
     "If the source contains no visible person, create professional product, catalog, editorial, commercial, real estate, food, object, animal, plant, or subject photography for the same source category.",
     "If the source contains no visible person, do not add a human, face, body, hair, skin, clothing, business suit, office worker, model, or corporate identity cues.",

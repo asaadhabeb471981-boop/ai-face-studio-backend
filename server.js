@@ -743,6 +743,11 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
   const detected = subjectAnalysis?.promptLabel || "unknown subject";
   const composition =
     subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+  const detectedHumanCategory = subjectAnalysis?.humanCategory || "unknown";
+  const ageLockInstruction =
+    detectedHumanCategory !== "unknown"
+      ? `Server visible age/presentation analysis: ${detectedHumanCategory}. Preserve this visible category unless the user's Studio Direction explicitly asks for an age edit.`
+      : "Server visible age/presentation analysis is unknown. The image model must inspect the uploaded source image and preserve each visible person's apparent age category.";
   const studioDirectionBlock = [
     studioDirection
       ? "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY."
@@ -773,10 +778,14 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
     "Professional styling can be applied to any category: person, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
     "If the source contains visible people, create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
+    ageLockInstruction,
+    "Before changing clothing, inspect each visible person's apparent age: child, teen, young adult, adult, middle-aged adult, or senior adult.",
+    "Preserve each visible person's apparent age range. Do not make anyone younger, older, more mature, more childish, or more adult-looking.",
     "For visible people, change casual clothing into age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
-    "For visible people, preserve the same person, identity, face, age category, gender presentation, ethnicity, natural body proportions, and recognizable features.",
-    "For visible children, use child-appropriate formal or school-photo style clothing; do not make children look adult.",
-    "If Studio Direction specifies clothing, follow that clothing while keeping it professional and preserving identity, age, and gender presentation.",
+    "For visible people, preserve the same person, identity, face, apparent age range, age category, gender presentation, ethnicity, natural body proportions, and recognizable features.",
+    "For visible children or teens, use child-appropriate or teen-appropriate formal, school-photo, graduation, or smart casual clothing; do not add adult business suits, adult makeup, mature facial structure, mature body proportions, or adult styling.",
+    "For visible senior adults, preserve senior-adult facial maturity, hair, skin texture, and age-appropriate professional clothing; do not make them look young.",
+    "If Studio Direction specifies clothing, follow that clothing while keeping it professional and preserving identity, apparent age, age category, and gender presentation.",
     "If the source contains multiple people, preserve every person as a separate person and create a professional group or team-style result.",
     "If the source contains no visible person, create professional product, catalog, editorial, commercial, real estate, food, object, animal, plant, or subject photography for the same source category.",
     "If the source contains no visible person, do not add a human, face, body, hair, skin, clothing, business suit, office worker, model, or corporate identity cues.",

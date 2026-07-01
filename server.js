@@ -36,6 +36,9 @@ const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const REPLICATE_API_BASE = "https://api.replicate.com/v1";
 const REPLICATE_MODEL =
   process.env.REPLICATE_MODEL || "black-forest-labs/flux-kontext-pro";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_BASE = process.env.OPENAI_API_BASE || "https://api.openai.com/v1";
+const OPENAI_VISION_MODEL = process.env.OPENAI_VISION_MODEL || "gpt-4o-mini";
 const POLL_INTERVAL_MS = Number(process.env.REPLICATE_POLL_INTERVAL_MS || 1800);
 const PREDICTION_TIMEOUT_MS = Number(
   process.env.REPLICATE_PREDICTION_TIMEOUT_MS || 120000
@@ -56,23 +59,23 @@ const STYLE_NAMES = new Set([
 
 const STYLE_BASELINES = {
   "AI Avatar":
-    "premium AI avatar portrait, polished digital studio finish, clear face, detailed outfit, strong visual identity, high-end app result",
+    "premium AI-styled version of the uploaded subject, polished digital studio finish, strong visual identity, high-end app result",
   Cartoon:
-    "premium 3D animated movie character portrait, expressive stylized face, polished character materials, cinematic cartoon lighting",
+    "premium 3D animated movie-style version of the uploaded subject, polished materials, cinematic cartoon lighting",
   Headshot:
-    "clean professional headshot, sharp eyes, natural skin texture, premium studio lighting, confident profile-photo composition",
+    "clean professional studio presentation of the uploaded subject, premium lighting, sharp detail, simple profile-style composition",
   Fantasy:
-    "cinematic fantasy portrait, rich wardrobe, magical environment, elegant lighting, detailed atmosphere, premium fantasy finish",
+    "cinematic fantasy version of the uploaded subject, magical environment, elegant lighting, detailed atmosphere, premium fantasy finish",
   Anime:
-    "high-end anime portrait, expressive eyes, clean linework, polished color, cinematic anime lighting, detailed background",
+    "high-end anime-style version of the uploaded subject, clean linework, polished color, cinematic anime lighting, detailed background",
   Cyberpunk:
-    "futuristic cyberpunk portrait, neon city lighting, sleek techwear, reflective materials, cinematic sci-fi atmosphere",
+    "futuristic cyberpunk version of the uploaded subject, neon city lighting, reflective materials, cinematic sci-fi atmosphere",
   Superhero:
-    "cinematic superhero portrait, powerful costume design, heroic posture, dramatic lighting, premium action-poster finish",
+    "cinematic superhero-inspired version of the uploaded subject, heroic design language, dramatic lighting, premium action-poster finish",
   Professional:
-    "premium business portrait, refined wardrobe, modern office or studio background, confident posture, polished commercial photography",
+    "premium professional studio presentation of the uploaded subject, refined styling, modern office or studio background, polished commercial photography",
   "Age Studio":
-    "realistic age-edited portrait, premium studio photography, natural skin texture, clear face, tasteful wardrobe and background",
+    "realistic age-edited human portrait when the uploaded subject is human, premium studio photography, natural identity preservation",
 };
 
 const AGE_TARGETS = {
@@ -202,22 +205,213 @@ async function uploadImageToReplicate(imageBase64) {
   return fileUrl;
 }
 
+function titleCase(value) {
+  return normalizeString(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function normalizeSubjectAnalysis(value = {}) {
+  const allowedSubjectTypes = new Set(["human", "animal", "object", "unknown"]);
+  const allowedHumanCategories = new Set([
+    "adult female",
+    "adult male",
+    "child female",
+    "child male",
+    "unknown",
+  ]);
+
+  const rawSubjectType = normalizeString(value.subjectType).toLowerCase();
+  const subjectType =
+    rawSubjectType === "human" ||
+    rawSubjectType === "animal" ||
+    rawSubjectType === "unknown"
+      ? rawSubjectType
+      : rawSubjectType
+        ? "object"
+        : "unknown";
+  const humanCategory = allowedHumanCategories.has(value.humanCategory)
+    ? value.humanCategory
+    : "unknown";
+  const animalKind = normalizeString(value.animalKind).slice(0, 60);
+  const objectKind = normalizeString(
+    value.objectKind || value.plantKind || value.productKind || value.kind
+  ).slice(0, 60);
+  const confidence = normalizeString(value.confidence, "unknown").slice(0, 24);
+
+  let label = "Detected: Automatic subject analysis";
+  if (subjectType === "human") {
+    label =
+      humanCategory !== "unknown"
+        ? `Detected: ${titleCase(humanCategory)}`
+        : "Detected: Human";
+  } else if (subjectType === "animal") {
+    label = `Detected: Animal${animalKind ? ` - ${titleCase(animalKind)}` : ""}`;
+  } else if (subjectType === "object") {
+    label = `Detected: Object${objectKind ? ` - ${titleCase(objectKind)}` : ""}`;
+  }
+
+  const promptLabel =
+    subjectType === "human"
+      ? humanCategory !== "unknown"
+        ? humanCategory
+        : "human"
+      : subjectType === "animal"
+        ? `animal${animalKind ? ` (${animalKind})` : ""}`
+        : subjectType === "object"
+          ? `object${objectKind ? ` (${objectKind})` : ""}`
+          : "unknown subject";
+
+  return {
+    subjectType,
+    humanCategory,
+    animalKind: animalKind || null,
+    objectKind: objectKind || null,
+    confidence,
+    label,
+    promptLabel,
+  };
+}
+
+function fallbackSubjectAnalysis(reason = "vision_api_unavailable") {
+  return normalizeSubjectAnalysis({
+    subjectType: "unknown",
+    humanCategory: "unknown",
+    confidence: reason,
+  });
+}
+
+async function analyzeSubject(imageBase64) {
+  if (!OPENAI_API_KEY) {
+    return fallbackSubjectAnalysis("openai_key_missing");
+  }
+
+  const raw = normalizeString(imageBase64);
+  const { contentType } = parseDataUriOrBase64(raw);
+  const dataUrl = raw.startsWith("data:")
+    ? raw
+    : `data:${contentType};base64,${raw}`;
+
+  try {
+    const response = await axios.post(
+      `${OPENAI_API_BASE}/chat/completions`,
+      {
+        model: OPENAI_VISION_MODEL,
+        temperature: 0,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You classify the main visible subject in a user photo for an image-editing app. Return only compact JSON.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Classify the main subject. subjectType must be human, animal, object, or unknown. Use object for any non-human and non-animal subject, including physical items, plants, products, scenes, vehicles, buildings, food, or abstract/non-living subjects. If human, humanCategory must be adult female, adult male, child female, child male, or unknown based on visible presentation. If animal, include animalKind when clear. If object, include objectKind when clear. Include confidence as high, medium, or low.",
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: dataUrl,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 45000,
+      }
+    );
+
+    const content = response.data?.choices?.[0]?.message?.content;
+    const parsed = content ? JSON.parse(content) : {};
+    return normalizeSubjectAnalysis(parsed);
+  } catch (error) {
+    console.warn("Subject analysis failed, using generation-time detection:", {
+      message: error.message,
+      status: error.response?.status,
+    });
+    return fallbackSubjectAnalysis("vision_api_failed");
+  }
+}
+
+function buildSubjectInstruction(subjectAnalysis) {
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+
+  return [
+    "The uploaded source image is the authority for the main subject.",
+    "Before editing, inspect the uploaded source image and infer the main subject.",
+    "Classify it as human, animal, object, or unknown. Treat any non-human and non-animal subject as object. For humans, infer visible presentation only when clear: adult female, adult male, child female, or child male.",
+    `Server subject analysis: ${detected}.`,
+    "Hard rule: preserve the same primary subject category and physical identity from the uploaded image.",
+    "Hard rule: never introduce a person, woman, man, child, face, body, hair, skin, or human portrait when the uploaded image does not clearly contain a human.",
+    "If the uploaded image is not clearly human, the output must remain non-human and preserve the original subject category.",
+    "Only create a human result when the uploaded image clearly contains a human or the user's Studio Direction explicitly asks to transform the subject into a human.",
+    "If the source appears to be a child, keep the result child-appropriate and do not age the child into an adult unless the selected Age Studio target explicitly requests an adult age edit.",
+  ].join("\n");
+}
+
+function resultTypeInstruction(subjectAnalysis) {
+  if (subjectAnalysis?.subjectType === "human") {
+    return "Create a premium, sharp, finished human result that preserves the person's identity, age category, and visible presentation.";
+  }
+
+  if (subjectAnalysis?.subjectType === "animal") {
+    return "Create a premium, sharp, finished animal result that preserves the animal as an animal. Do not add human facial features, human clothing, or a human body unless explicitly requested.";
+  }
+
+  if (subjectAnalysis?.subjectType === "object") {
+    return "Create a premium, sharp, finished object or product-style result that preserves the object as an object. Do not add any human person.";
+  }
+
+  return "Create a premium, sharp, finished result based on the uploaded subject. If the source is not clearly human, do not add any human person.";
+}
+
+function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
+  if (styleName === "Age Studio") {
+    return Number(process.env.AGE_PROMPT_STRENGTH || 0.82);
+  }
+
+  if (customPrompt) {
+    return Number(process.env.CUSTOM_PROMPT_STRENGTH || 0.84);
+  }
+
+  if (subjectAnalysis?.subjectType === "human") {
+    return Number(process.env.HUMAN_PROMPT_STRENGTH || 0.82);
+  }
+
+  return Number(process.env.SUBJECT_PRESERVE_PROMPT_STRENGTH || 0.68);
+}
+
 function buildPortraitPrompt({
   styleName,
-  genderMode,
   customPrompt,
   ageTarget,
+  subjectAnalysis,
 }) {
   const baseline = STYLE_BASELINES[styleName] || STYLE_BASELINES["AI Avatar"];
   const studioDirection = normalizeString(customPrompt);
-  const gender = normalizeString(genderMode, "Auto");
   const ageInstruction =
     styleName === "Age Studio"
       ? AGE_TARGETS[normalizeString(ageTarget)] || AGE_TARGETS["50s"]
       : "";
+  const subjectInstruction = buildSubjectInstruction(subjectAnalysis);
 
   if (studioDirection) {
     return [
+      subjectInstruction,
+      "",
       "STUDIO DIRECTION IS THE PRIMARY CREATIVE COMMAND.",
       "Follow the user's Studio Direction with maximum weight for wardrobe, identity styling, expression, pose, lighting, colors, background, camera angle, composition, genre, realism level, and final finish.",
       "If Studio Direction asks for something different from the selected style baseline, Studio Direction wins.",
@@ -225,20 +419,20 @@ function buildPortraitPrompt({
       `User Studio Direction: ${studioDirection}`,
       "",
       `Selected app style baseline: ${styleName} - ${baseline}.`,
-      gender && gender !== "Auto" ? `Requested gender mode: ${gender}.` : "",
       ageInstruction ? `Age Studio target: ${ageInstruction}.` : "",
       "",
-      "Use the uploaded photo as the visual source image. Produce a premium, sharp, finished portrait that visibly obeys the Studio Direction.",
+      `Use the uploaded photo as the visual source image. ${resultTypeInstruction(subjectAnalysis)} Visibly obey the Studio Direction without changing a non-human source into a human.`,
     ]
       .filter(Boolean)
       .join("\n");
   }
 
   return [
+    subjectInstruction,
+    "",
     `Create a ${baseline}.`,
-    gender && gender !== "Auto" ? `Requested gender mode: ${gender}.` : "",
     ageInstruction ? `Age Studio target: ${ageInstruction}.` : "",
-    "Use the uploaded photo as the visual source image. Produce a premium, sharp, finished portrait.",
+    `Use the uploaded photo as the visual source image. ${resultTypeInstruction(subjectAnalysis)}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -415,30 +609,34 @@ app.post("/generate", async (req, res) => {
 
   try {
     const styleName = normalizeStyle(req.body?.styleName);
-    const genderMode = normalizeString(req.body?.genderMode, "Auto");
     const ageTarget = normalizeString(req.body?.ageTarget);
     const customPrompt = normalizeString(req.body?.customPrompt);
+    const subjectAnalysis = await analyzeSubject(req.body?.imageBase64);
 
     console.log("Generate request:", {
       requestId: id,
       styleName,
-      genderMode,
       ageTarget: ageTarget || null,
       hasStudioDirection: Boolean(customPrompt),
+      subjectAnalysis: subjectAnalysis.label,
       model: REPLICATE_MODEL,
     });
 
     const prompt = buildPortraitPrompt({
       styleName,
-      genderMode,
       customPrompt,
       ageTarget,
+      subjectAnalysis,
     });
 
     const result = await runImageEdit({
       imageBase64: req.body?.imageBase64,
       prompt,
-      promptStrength: customPrompt ? 0.98 : 0.9,
+      promptStrength: promptStrengthFor({
+        customPrompt,
+        styleName,
+        subjectAnalysis,
+      }),
     });
 
     console.log("Generated portrait:", {
@@ -454,8 +652,8 @@ app.post("/generate", async (req, res) => {
       error: null,
       studio: {
         styleName,
-        genderMode,
         ageTarget: ageTarget || null,
+        subjectAnalysis,
         studioDirectionApplied: Boolean(customPrompt),
         model: REPLICATE_MODEL,
         durationMs: Date.now() - startedAt,

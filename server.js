@@ -78,6 +78,9 @@ const STYLE_BASELINES = {
     "age-aware transformation of the exact uploaded subject or subjects, using human age editing only when the uploaded subject is human",
 };
 
+const DEFAULT_PROFESSIONAL_DIRECTION =
+  "premium catalog commercial photography, clean white or light-gray seamless studio background, softbox lighting, elegant professional presentation, sharp detail, high-end retouching, remove casual room clutter and household furniture from the background";
+
 const AGE_TARGETS = {
   "Younger Adult":
     "make each visible human look like a younger adult, with realistic adult facial maturity and natural polished skin texture",
@@ -735,26 +738,24 @@ function buildAnimePrompt({ customPrompt, subjectAnalysis }) {
 
 function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
   const studioDirection = normalizeString(customPrompt);
+  const effectiveStudioDirection =
+    studioDirection || DEFAULT_PROFESSIONAL_DIRECTION;
   const detected = subjectAnalysis?.promptLabel || "unknown subject";
   const composition =
     subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
-  const studioDirectionBlock = studioDirection
-    ? [
-        "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
-        "The user's Studio Direction is the primary creative instruction for this Professional result.",
-        "The final image must visibly reflect the exact Studio Direction text while still reading as polished professional photography.",
-        "Apply the user's Studio Direction strongly to wardrobe, materials, colors, background, pose, expression, lighting, mood, camera angle, composition, and final finish.",
-        "Do not ignore, soften, or hide the Studio Direction.",
-        "Studio Direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
-        `User Studio Direction: ${studioDirection}`,
-      ].join("\n")
-    : [
-        "DEFAULT PROFESSIONAL DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
-        "Use this default direction because the user did not enter Studio Direction.",
-        "Default Professional Direction: premium catalog commercial photography, clean white or light-gray seamless studio background, softbox lighting, elegant professional presentation, sharp detail, high-end retouching.",
-        "The final image must visibly reflect this default professional direction.",
-        "Replace casual snapshot context with a controlled studio, showroom, office, catalog, editorial, or premium commercial presentation appropriate to the uploaded subject.",
-      ].join("\n");
+  const studioDirectionBlock = [
+    studioDirection
+      ? "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY."
+      : "BUILT-IN PROFESSIONAL DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+    studioDirection
+      ? "The user's Studio Direction is the primary creative instruction for this Professional result."
+      : "Use the built-in Professional direction because the user did not enter Studio Direction.",
+    "The final image must visibly reflect the effective Professional direction while still preserving the uploaded source subject or subjects.",
+    "Apply the effective Professional direction strongly to wardrobe, materials, colors, background, pose, expression, lighting, mood, camera angle, composition, and final finish.",
+    "Do not ignore, soften, or hide the effective Professional direction.",
+    "The effective Professional direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
+    `Effective Professional Direction: ${effectiveStudioDirection}`,
+  ].join("\n");
 
   return [
     studioDirectionBlock,
@@ -762,7 +763,7 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Transform the uploaded image into a polished professional commercial-quality result.",
     "The output must look professionally produced, not casual, fantasy, cartoon, anime, cyberpunk, or over-stylized.",
     "Use realistic premium photography, clean composition, sharp focus, flattering controlled lighting, refined color grading, clean background treatment, natural detail, and high-end retouching.",
-    "Remove casual snapshot clutter, messy room context, harsh phone-camera lighting, and unpolished background distractions unless the user's Studio Direction asks to keep them.",
+    "Remove casual snapshot clutter, household furniture, messy room context, harsh phone-camera lighting, and unpolished background distractions unless the user's Studio Direction asks to keep them.",
     "Use a professional studio, editorial, commercial, office, catalog, showroom, or premium presentation background appropriate to the visible source subject.",
     "Apply professional styling only to subjects already visible in the uploaded source image.",
     "The uploaded source image is the authority for exactly what subjects may appear.",
@@ -1139,6 +1140,8 @@ app.post("/generate", async (req, res) => {
     const styleName = normalizeStyle(req.body?.styleName);
     const ageTarget = normalizeString(req.body?.ageTarget);
     const customPrompt = normalizeString(req.body?.customPrompt);
+    const hasBuiltInProfessionalDirection =
+      styleName === "Professional" && !customPrompt;
     const subjectAnalysis = await analyzeSubject(req.body?.imageBase64);
 
     console.log("Generate request:", {
@@ -1146,6 +1149,7 @@ app.post("/generate", async (req, res) => {
       styleName,
       ageTarget: ageTarget || null,
       hasStudioDirection: Boolean(customPrompt),
+      hasBuiltInProfessionalDirection,
       studioDirectionPreview: customPrompt ? customPrompt.slice(0, 120) : null,
       subjectAnalysis: subjectAnalysis.label,
       model: REPLICATE_MODEL,
@@ -1184,6 +1188,7 @@ app.post("/generate", async (req, res) => {
         ageTarget: ageTarget || null,
         subjectAnalysis,
         studioDirectionApplied: Boolean(customPrompt),
+        builtInProfessionalDirectionApplied: hasBuiltInProfessionalDirection,
         model: REPLICATE_MODEL,
         durationMs: Date.now() - startedAt,
       },

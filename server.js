@@ -61,7 +61,7 @@ const STYLE_BASELINES = {
   "AI Avatar":
     "premium AI-styled transformation of the exact uploaded subject or subjects",
   Cartoon:
-    "premium 3D animated movie-style transformation of the exact uploaded subject or subjects",
+    "fully redrawn cartoon illustration of the exact uploaded subject or subjects, cel-shaded animated style, simplified shapes, clean bold outlines, flat bright colors, smooth stylized materials, non-photorealistic rendering, not a camera photo",
   Headshot:
     "clean professional close-up studio presentation of the exact uploaded subject or subjects",
   Fantasy:
@@ -385,6 +385,7 @@ function buildSubjectInstruction(subjectAnalysis) {
     "Hard rule: do not drop extra people, animals, or objects from the input unless the user's Studio Direction explicitly asks to remove them.",
     "Hard rule: do not merge multiple people or objects into one subject. Keep separate subjects visually separate.",
     "Hard rule: never introduce a person, woman, man, child, face, body, hair, skin, or human portrait when the uploaded image does not clearly contain a human.",
+    "Hard rule: for non-human sources, do not add human-like heads, faces, eyes, mouths, noses, limbs, clothing, or character body parts unless those features already exist in the source.",
     "If the uploaded image is not clearly human, the output must remain non-human and preserve the original subject category.",
     "Only create a human result when the uploaded image clearly contains a human or the user's Studio Direction explicitly asks to transform the subject into a human.",
     "If the source contains multiple humans, preserve all visible people as separate people and apply the selected style consistently to the group.",
@@ -425,8 +426,11 @@ function styleBranchInstruction(styleName) {
       "For non-human sources, create a polished AI icon or stylized hero version of the same subject arrangement, not a human avatar.",
     ],
     Cartoon: [
-      "For human sources, create cartoon character versions of all visible people.",
-      "For non-human sources, create a cartoon version of the same subject arrangement with original structures preserved.",
+      "For human sources, create visibly cartoon character versions of all visible people with simplified facial features, clean outlines, bright animated colors, and a non-photorealistic 3D cartoon finish.",
+      "For non-human sources, create a visibly cartoon illustration of the same subject arrangement with original structures preserved, simplified geometry, smooth stylized surfaces, clean bold outlines, flat bright colors, cel shading, and non-photorealistic cartoon lighting.",
+      "For non-human sources, cartoonize the real shapes that are already present. Do not add human faces, eyes, mouths, noses, heads, arms, legs, clothing, mascot features, or character parts.",
+      "Cartoon must not look like an untouched realistic photo. The final image must read immediately as a cartoon illustration or animated-movie frame.",
+      "Redraw the image into cartoon form rather than lightly retouching the original photo. Remove realistic camera noise, realistic photo texture, natural camera lighting, and real-world background detail.",
     ],
     Headshot: [
       "For human sources, create a clean professional headshot or group headshot that preserves all visible people.",
@@ -461,6 +465,33 @@ function styleBranchInstruction(styleName) {
   return [...universal, ...(byStyle[styleName] || [])].join("\n");
 }
 
+function buildCartoonPrompt({ customPrompt, subjectAnalysis }) {
+  const studioDirection = normalizeString(customPrompt);
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+
+  return [
+    "Transform the uploaded image into a clearly non-photorealistic cartoon illustration.",
+    "Use cel-shaded animated style, clean bold outlines, simplified shapes, flat bright colors, smooth stylized surfaces, and playful cartoon lighting.",
+    "The output must look like a cartoon drawing or animated-movie frame, not a realistic camera photo.",
+    "",
+    `Detected source type: ${detected}.`,
+    `Composition: ${composition}.`,
+    "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
+    "Do not drop extra people, animals, or objects.",
+    "Do not merge multiple subjects into one.",
+    "If the source is not clearly human, do not add any human person.",
+    "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
+    "",
+    studioDirection
+      ? `User Studio Direction, while keeping the cartoon illustration requirement: ${studioDirection}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   const preserveFirstStyles = new Set([
     "AI Avatar",
@@ -471,6 +502,10 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
 
   if (subjectAnalysis?.subjectType === "unknown" && preserveFirstStyles.has(styleName)) {
     return Number(process.env.SUBJECT_PRESERVE_STRICT_PROMPT_STRENGTH || 0.52);
+  }
+
+  if (styleName === "Cartoon") {
+    return Number(process.env.CARTOON_PROMPT_STRENGTH || 0.98);
   }
 
   if (styleName === "Age Studio") {
@@ -494,6 +529,13 @@ function buildPortraitPrompt({
   ageTarget,
   subjectAnalysis,
 }) {
+  if (styleName === "Cartoon") {
+    return buildCartoonPrompt({
+      customPrompt,
+      subjectAnalysis,
+    });
+  }
+
   const baseline = STYLE_BASELINES[styleName] || STYLE_BASELINES["AI Avatar"];
   const studioDirection = normalizeString(customPrompt);
   const ageInstruction =

@@ -641,6 +641,52 @@ function buildHeadshotPrompt({ customPrompt, subjectAnalysis }) {
     .join("\n");
 }
 
+function buildCyberpunkPrompt({ customPrompt, subjectAnalysis }) {
+  const studioDirection = normalizeString(customPrompt);
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+  const studioDirectionBlock = studioDirection
+    ? [
+        "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+        "The user's Studio Direction is the primary creative instruction for this Cyberpunk result.",
+        "The final image must visibly reflect the exact Studio Direction text while still reading as clear cyberpunk.",
+        "Apply the user's Studio Direction strongly to neon colors, materials, background, lighting, mood, camera angle, composition, and final finish.",
+        "Do not ignore, soften, or hide the Studio Direction.",
+        "Studio Direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
+        `User Studio Direction: ${studioDirection}`,
+      ].join("\n")
+    : "";
+
+  return [
+    studioDirectionBlock,
+    "",
+    "Transform the uploaded image into a clearly cinematic cyberpunk result.",
+    "The output must look unmistakably cyberpunk, not a normal realistic photo with minor color changes.",
+    "Use neon magenta and cyan lighting, futuristic city atmosphere, holographic glow, chrome or black-tech materials, luminous circuitry, rain-slick reflections, LED accents, volumetric haze, and high-contrast sci-fi color grading.",
+    "Apply cyberpunk styling only to subjects already visible in the uploaded source image.",
+    "The uploaded source image is the authority for exactly what subjects may appear.",
+    "Inspect the uploaded source image first and preserve the visible subject category exactly.",
+    "Create the cyberpunk version from those same visible subjects only.",
+    "Do not invent, substitute, or add a new main subject category that is not visible in the uploaded image.",
+    "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
+    "Cyberpunk styling can be applied to any category: person, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
+    "Cyberpunk does not require a person. A valid cyberpunk result can be a neon-lit plant, futuristic product shot, cybernetic animal, sci-fi object scene, or city-lit environment.",
+    "If the source contains visible people, keep those same people and add cyberpunk wardrobe, lighting, environment, or tech styling while preserving identity and age category.",
+    "If the source contains no visible person, do not add a human, face, body, hair, skin, clothing, or character.",
+    "For non-human subjects, use cyberpunk materials and lighting appropriate to the same source category without adding person-specific features.",
+    "",
+    `Detected source type: ${detected}.`,
+    `Composition: ${composition}.`,
+    "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
+    "Do not drop extra people, animals, or objects.",
+    "Do not merge multiple subjects into one.",
+    "If a feature, anatomy, accessory, or subject category is not visible in the source image, do not add it.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   const preserveFirstStyles = new Set([
     "AI Avatar",
@@ -681,6 +727,14 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
       customPrompt
         ? process.env.HEADSHOT_DIRECTION_PROMPT_STRENGTH || 0.5
         : process.env.HEADSHOT_PROMPT_STRENGTH || 0.46
+    );
+  }
+
+  if (styleName === "Cyberpunk") {
+    return Number(
+      customPrompt
+        ? process.env.CYBERPUNK_DIRECTION_PROMPT_STRENGTH || 0.66
+        : process.env.CYBERPUNK_PROMPT_STRENGTH || 0.62
     );
   }
 
@@ -728,6 +782,13 @@ function buildPortraitPrompt({
 
   if (styleName === "Headshot") {
     return buildHeadshotPrompt({
+      customPrompt,
+      subjectAnalysis,
+    });
+  }
+
+  if (styleName === "Cyberpunk") {
+    return buildCyberpunkPrompt({
       customPrompt,
       subjectAnalysis,
     });

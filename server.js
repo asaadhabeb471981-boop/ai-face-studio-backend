@@ -59,7 +59,7 @@ const STYLE_NAMES = new Set([
 
 const STYLE_BASELINES = {
   "AI Avatar":
-    "premium AI avatar transformation of the exact uploaded subject or subjects, stylized digital avatar, polished app icon quality, expressive identity, clean high-end character or subject design",
+    "premium AI avatar transformation of the exact uploaded subject or subjects, semi-realistic digital avatar finish, refined cinematic lighting, smooth realistic materials, polished profile quality, not cartoon and not cel-shaded",
   Cartoon:
     "fully redrawn cartoon illustration of the exact uploaded subject or subjects, cel-shaded animated style, simplified shapes, clean bold outlines, flat bright colors, smooth stylized materials, non-photorealistic rendering, not a camera photo",
   Headshot:
@@ -422,8 +422,8 @@ function styleBranchInstruction(styleName) {
 
   const byStyle = {
     "AI Avatar": [
-      "For human sources, create AI avatars of all visible people.",
-      "For non-human sources, create a polished AI icon or stylized hero version of the same subject arrangement, not a human avatar.",
+      "For human sources, create semi-realistic premium AI avatars of all visible people, preserving identity with refined skin, realistic lighting, and polished profile quality.",
+      "For non-human sources, create a premium semi-realistic digital avatar representation of the same subject arrangement, not a human avatar and not a cartoon illustration.",
     ],
     Cartoon: [
       "For human sources, create visibly cartoon character versions of all visible people with simplified facial features, clean outlines, bright animated colors, and a non-photorealistic 3D cartoon finish.",
@@ -505,10 +505,11 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
     subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
 
   return [
-    "Transform the uploaded image into a premium AI-styled subject icon.",
+    "Transform the uploaded image into a premium AI Avatar result.",
     "The visible source subject or subjects must be the central artwork.",
-    "The output must look like a deliberate digital subject-icon representation, not an untouched realistic camera photo.",
-    "Use polished app-icon design, clean high-end lighting, refined stylization, enhanced subject identity, crisp detail, and a finished premium look.",
+    "The output must look like a polished semi-realistic digital avatar, not an untouched realistic camera photo and not a cartoon drawing.",
+    "Use refined cinematic lighting, smooth realistic materials, subtle premium stylization, enhanced subject identity, crisp detail, and a finished profile-quality look.",
+    "Avoid cartoon traits: no cel shading, no flat vector colors, no thick black outlines, no exaggerated cartoon proportions, no toy-like animated-movie finish.",
     "Create the result only from the subjects that already exist in the uploaded image.",
     "Do not invent a different category of subject.",
     "Do not create a human profile avatar unless the uploaded source image clearly shows a human person.",
@@ -519,7 +520,7 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
     "Do not drop extra people, animals, or objects.",
     "Do not merge multiple subjects into one.",
     "Do not replace the uploaded subject with a generic symbol, logo, abstract mark, letter, monogram, arrow, UI symbol, brand mark, or unrelated icon.",
-    "If the user asks for an app icon or logo-like finish, the uploaded subject itself must become the visible central icon artwork.",
+    "If the user asks for an app icon or logo-like finish, the uploaded subject itself must become the visible central artwork in a premium semi-realistic avatar style.",
     "Only create a human avatar when the uploaded source image clearly contains a human person.",
     "If the source is not clearly human, do not add any human person, portrait, face, head, body, hair, skin, or clothing.",
     "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
@@ -529,7 +530,7 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
           "STUDIO DIRECTION IS ACTIVE AND HAS CREATIVE PRIORITY.",
           "Apply the user's Studio Direction to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
           "Studio Direction must style the original uploaded subject; it must not erase or replace the source subject unless the user explicitly asks for replacement.",
-          "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central icon artwork.",
+          "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central artwork in a premium semi-realistic avatar style.",
           "If Studio Direction conflicts with the default AI Avatar look, keep the request but render it as a premium subject icon made from the uploaded source.",
           `User Studio Direction: ${studioDirection}`,
         ].join("\n")
@@ -556,7 +557,7 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   }
 
   if (styleName === "AI Avatar") {
-    return Number(process.env.AI_AVATAR_PROMPT_STRENGTH || 0.78);
+    return Number(process.env.AI_AVATAR_PROMPT_STRENGTH || 0.72);
   }
 
   if (styleName === "Cartoon") {

@@ -59,7 +59,7 @@ const STYLE_NAMES = new Set([
 
 const STYLE_BASELINES = {
   "AI Avatar":
-    "premium AI-styled transformation of the exact uploaded subject or subjects",
+    "premium AI avatar transformation of the exact uploaded subject or subjects, stylized digital avatar, polished app icon quality, expressive identity, clean high-end character or subject design",
   Cartoon:
     "fully redrawn cartoon illustration of the exact uploaded subject or subjects, cel-shaded animated style, simplified shapes, clean bold outlines, flat bright colors, smooth stylized materials, non-photorealistic rendering, not a camera photo",
   Headshot:
@@ -481,6 +481,7 @@ function buildCartoonPrompt({ customPrompt, subjectAnalysis }) {
     "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
     "Do not drop extra people, animals, or objects.",
     "Do not merge multiple subjects into one.",
+    "Do not replace the uploaded subject with a generic symbol, logo, abstract mark, or unrelated icon unless the user explicitly asks to replace the subject.",
     "If the source is not clearly human, do not add any human person.",
     "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
     "",
@@ -497,6 +498,47 @@ function buildCartoonPrompt({ customPrompt, subjectAnalysis }) {
     .join("\n");
 }
 
+function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
+  const studioDirection = normalizeString(customPrompt);
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+
+  return [
+    "Transform the uploaded image into a premium AI-styled subject icon.",
+    "The visible source subject or subjects must be the central artwork.",
+    "The output must look like a deliberate digital subject-icon representation, not an untouched realistic camera photo.",
+    "Use polished app-icon design, clean high-end lighting, refined stylization, enhanced subject identity, crisp detail, and a finished premium look.",
+    "Create the result only from the subjects that already exist in the uploaded image.",
+    "Do not invent a different category of subject.",
+    "Do not create a human profile avatar unless the uploaded source image clearly shows a human person.",
+    "",
+    `Detected source type: ${detected}.`,
+    `Composition: ${composition}.`,
+    "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
+    "Do not drop extra people, animals, or objects.",
+    "Do not merge multiple subjects into one.",
+    "Do not replace the uploaded subject with a generic symbol, logo, abstract mark, letter, monogram, arrow, UI symbol, brand mark, or unrelated icon.",
+    "If the user asks for an app icon or logo-like finish, the uploaded subject itself must become the visible central icon artwork.",
+    "Only create a human avatar when the uploaded source image clearly contains a human person.",
+    "If the source is not clearly human, do not add any human person, portrait, face, head, body, hair, skin, or clothing.",
+    "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
+    "",
+    studioDirection
+      ? [
+          "STUDIO DIRECTION IS ACTIVE AND HAS CREATIVE PRIORITY.",
+          "Apply the user's Studio Direction to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
+          "Studio Direction must style the original uploaded subject; it must not erase or replace the source subject unless the user explicitly asks for replacement.",
+          "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central icon artwork.",
+          "If Studio Direction conflicts with the default AI Avatar look, keep the request but render it as a premium subject icon made from the uploaded source.",
+          `User Studio Direction: ${studioDirection}`,
+        ].join("\n")
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   const preserveFirstStyles = new Set([
     "AI Avatar",
@@ -505,8 +547,16 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
     "Age Studio",
   ]);
 
-  if (subjectAnalysis?.subjectType === "unknown" && preserveFirstStyles.has(styleName)) {
+  if (
+    subjectAnalysis?.subjectType === "unknown" &&
+    preserveFirstStyles.has(styleName) &&
+    styleName !== "AI Avatar"
+  ) {
     return Number(process.env.SUBJECT_PRESERVE_STRICT_PROMPT_STRENGTH || 0.52);
+  }
+
+  if (styleName === "AI Avatar") {
+    return Number(process.env.AI_AVATAR_PROMPT_STRENGTH || 0.78);
   }
 
   if (styleName === "Cartoon") {
@@ -534,6 +584,13 @@ function buildPortraitPrompt({
   ageTarget,
   subjectAnalysis,
 }) {
+  if (styleName === "AI Avatar") {
+    return buildAiAvatarPrompt({
+      customPrompt,
+      subjectAnalysis,
+    });
+  }
+
   if (styleName === "Cartoon") {
     return buildCartoonPrompt({
       customPrompt,

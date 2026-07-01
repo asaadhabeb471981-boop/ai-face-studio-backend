@@ -485,7 +485,12 @@ function buildCartoonPrompt({ customPrompt, subjectAnalysis }) {
     "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
     "",
     studioDirection
-      ? `User Studio Direction, while keeping the cartoon illustration requirement: ${studioDirection}`
+      ? [
+          "STUDIO DIRECTION IS ACTIVE AND HAS CREATIVE PRIORITY.",
+          "Apply the user's Studio Direction to outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
+          "If the Studio Direction conflicts with the default Cartoon look, keep the request but render it as a clear cartoon illustration.",
+          `User Studio Direction: ${studioDirection}`,
+        ].join("\n")
       : "",
   ]
     .filter(Boolean)

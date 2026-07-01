@@ -79,7 +79,7 @@ const STYLE_BASELINES = {
 };
 
 const DEFAULT_PROFESSIONAL_DIRECTION =
-  "premium catalog commercial photography, clean white or light-gray seamless studio background, softbox lighting, elegant professional presentation, professional clothing for visible people, sharp detail, high-end retouching, remove casual room clutter and household furniture from the background";
+  "premium professional studio photography of the same visible subject, clean white or light-gray seamless studio background, softbox lighting, elegant age-appropriate professional presentation, sharp detail, high-end retouching; preserve the same face, apparent age, gender presentation, hairstyle length, hairline, clothing silhouette, and recognizable identity; for visible children or teens, keep the same child or teen and make the portrait professional through lighting, clean background, crop, and neat age-appropriate presentation without changing them into an adult; do not create an adult business headshot from a child source; remove casual room clutter and household furniture from the background";
 
 const AGE_TARGETS = {
   "Younger Adult":
@@ -759,17 +759,18 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Apply the effective Professional direction strongly to wardrobe, materials, colors, background, pose, expression, lighting, mood, camera angle, composition, and final finish.",
     "Do not ignore, soften, or hide the effective Professional direction.",
     "The effective Professional direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
+    "The effective Professional direction must not change a person's apparent age, gender presentation, face, hairstyle length, hairline, ethnicity, or recognizable identity.",
     `Effective Professional Direction: ${effectiveStudioDirection}`,
   ].join("\n");
 
   return [
     studioDirectionBlock,
     "",
-    "Transform the uploaded image into a polished professional commercial-quality result.",
+    "Transform the uploaded image into a polished professional studio-quality result.",
     "The output must look professionally produced, not casual, fantasy, cartoon, anime, cyberpunk, or over-stylized.",
     "Use realistic premium photography, clean composition, sharp focus, flattering controlled lighting, refined color grading, clean background treatment, natural detail, and high-end retouching.",
     "Remove casual snapshot clutter, household furniture, messy room context, harsh phone-camera lighting, and unpolished background distractions unless the user's Studio Direction asks to keep them.",
-    "Use a professional studio, editorial, commercial, office, catalog, showroom, or premium presentation background appropriate to the visible source subject.",
+    "Use a professional studio, editorial, catalog, showroom, school-portrait, talent-headshot, or premium presentation background appropriate to the visible source subject and apparent age.",
     "Apply professional styling only to subjects already visible in the uploaded source image.",
     "The uploaded source image is the authority for exactly what subjects may appear.",
     "Inspect the uploaded source image first and preserve the visible subject category exactly.",
@@ -777,13 +778,16 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Do not invent, substitute, or add a new main subject category that is not visible in the uploaded image.",
     "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
     "Professional styling can be applied to any category: person, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
-    "If the source contains visible people, create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
     ageLockInstruction,
     "Before changing clothing, inspect each visible person's apparent age: child, teen, young adult, adult, middle-aged adult, or senior adult.",
     "Preserve each visible person's apparent age range. Do not make anyone younger, older, more mature, more childish, or more adult-looking.",
-    "For visible people, change casual clothing into age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
+    "If the source contains a visible child or teen, create a professional child/teen studio portrait, school portrait, graduation-style portrait, talent headshot, or formal family-photo style result. It must still look professional, polished, and studio-lit, but the person must remain a child or teen.",
+    "For visible children or teens, preserve the same child/teen face, same gender presentation, same hair length, same hairline, same facial proportions, same clothing silhouette, and same child/teen body proportions.",
+    "For visible children or teens, keep the original outfit category when changing it would risk identity, age, or gender drift. You may clean up wrinkles, reduce distracting graphics, and make the outfit look neat and photo-ready, but do not convert the child into an adult business subject.",
+    "If the source contains visible adults, create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
+    "For visible adults, change casual clothing into age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
     "For visible people, preserve the same person, identity, face, apparent age range, age category, gender presentation, ethnicity, natural body proportions, and recognizable features.",
-    "For visible children or teens, use child-appropriate or teen-appropriate formal, school-photo, graduation, or smart casual clothing; do not add adult business suits, adult makeup, mature facial structure, mature body proportions, or adult styling.",
+    "For visible children or teens, do not add adult business suits, ties, adult makeup, earrings, long hair, mature facial structure, facial hair, mature jawline, adult body proportions, or adult styling unless those features already exist in the source image.",
     "For visible senior adults, preserve senior-adult facial maturity, hair, skin texture, and age-appropriate professional clothing; do not make them look young.",
     "If Studio Direction specifies clothing, follow that clothing while keeping it professional and preserving identity, apparent age, age category, and gender presentation.",
     "If the source contains multiple people, preserve every person as a separate person and create a professional group or team-style result.",
@@ -795,6 +799,8 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
     "Do not drop extra people, animals, or objects.",
     "Do not merge multiple subjects into one.",
+    "Hard rule for Professional people photos: professional means polished studio quality and appropriate clothing for that person's actual apparent age. It never means changing a child into an adult or an adult into a different age.",
+    "Hard rule for child sources: keep the same child face, child proportions, child skin texture, child apparent age, and child presentation. Make the photo professional through lighting, background, neat clothing, and composition only.",
     "If a feature, anatomy, accessory, or subject category is not visible in the source image, do not add it.",
   ]
     .filter(Boolean)
@@ -863,7 +869,7 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
     return Number(
       customPrompt
         ? process.env.PROFESSIONAL_DIRECTION_PROMPT_STRENGTH || 0.68
-        : process.env.PROFESSIONAL_PROMPT_STRENGTH || 0.68
+        : process.env.PROFESSIONAL_PROMPT_STRENGTH || 0.52
     );
   }
 

@@ -65,7 +65,7 @@ const STYLE_BASELINES = {
   Headshot:
     "clean professional close-up studio presentation of the exact uploaded subject or subjects",
   Fantasy:
-    "cinematic fantasy transformation of the exact uploaded subject or subjects",
+    "cinematic high-fantasy transformation of the exact uploaded subject or subjects, magical atmosphere, enchanted lighting, fantasy materials, mythic environment, visible fantasy styling",
   Anime:
     "high-end anime-style transformation of the exact uploaded subject or subjects",
   Cyberpunk:
@@ -437,8 +437,10 @@ function styleBranchInstruction(styleName) {
       "For non-human sources, treat Headshot as a clean centered close-up product or subject shot with studio lighting, preserving all prominent subjects, not a human headshot.",
     ],
     Fantasy: [
-      "For human sources, create a fantasy portrait or group fantasy scene preserving all visible people.",
-      "For non-human sources, create a fantasy-styled version of the same subject arrangement in a magical setting.",
+      "For human sources, create a cinematic fantasy portrait or group fantasy scene preserving all visible people.",
+      "For non-human sources, create a visibly fantasy-styled version of the same subject arrangement in a magical setting.",
+      "Fantasy must include clear fantasy cues such as enchanted lighting, magical atmosphere, mythic environment, fantasy wardrobe or materials, subtle runes, particles, castle/forest/realm ambience, or cinematic spell-like energy.",
+      "Fantasy must not look like a normal realistic photo with only minor color changes.",
     ],
     Anime: [
       "For human sources, create an anime portrait or anime group scene preserving all visible people.",
@@ -544,6 +546,52 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
     .join("\n");
 }
 
+function buildFantasyPrompt({ customPrompt, subjectAnalysis }) {
+  const studioDirection = normalizeString(customPrompt);
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+  const studioDirectionBlock = studioDirection
+    ? [
+        "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+        "The user's Studio Direction is the primary creative instruction for this Fantasy result.",
+        "The final image must visibly reflect the exact Studio Direction text.",
+        "Apply the user's Studio Direction strongly to materials, colors, magical effects, background, lighting, mood, composition, and final finish.",
+        "Do not ignore, soften, or hide the Studio Direction.",
+        "Studio Direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
+        `User Studio Direction: ${studioDirection}`,
+      ].join("\n")
+    : "";
+
+  return [
+    studioDirectionBlock,
+    "",
+    "The uploaded source image is the authority for exactly what subjects may appear.",
+    "Inspect the uploaded image first and identify every prominent visible subject category and its layout.",
+    "Create the fantasy version from those same visible subjects only.",
+    "Do not invent, substitute, or add a new main subject category that is not visible in the uploaded image.",
+    "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
+    "Fantasy styling can be applied to any category: living subject, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
+    "Fantasy does not require a character. A valid fantasy result can be an enchanted version of any visible source subject or environment.",
+    "",
+    "Transform the uploaded image into a clearly cinematic high-fantasy result.",
+    "The output must look like fantasy, not a normal realistic photo.",
+    "Use magical atmosphere, enchanted lighting, mythic environment, fantasy materials, rich cinematic color grading, glowing particles, ancient symbols, mist, enchanted nature, royal textures, crystal light, or realm ambience.",
+    "Apply fantasy styling only to the subjects already visible in the uploaded source image.",
+    "Only subjects that already have clothing, accessories, fur, leaves, bark, metal, glass, fabric, stone, food surface, product casing, or other visible materials may have those same materials fantasy-styled.",
+    "Do not add body parts, faces, clothing, props, tools, or character features to source subjects that do not already contain those kinds of features.",
+    "",
+    `Detected source type: ${detected}.`,
+    `Composition: ${composition}.`,
+    "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
+    "Do not drop extra people, animals, or objects.",
+    "Do not merge multiple subjects into one.",
+    "If a feature, anatomy, accessory, or subject category is not visible in the source image, do not add it.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   const preserveFirstStyles = new Set([
     "AI Avatar",
@@ -570,6 +618,14 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
 
   if (styleName === "Cartoon") {
     return Number(process.env.CARTOON_PROMPT_STRENGTH || 0.98);
+  }
+
+  if (styleName === "Fantasy") {
+    return Number(
+      customPrompt
+        ? process.env.FANTASY_DIRECTION_PROMPT_STRENGTH || 0.62
+        : process.env.FANTASY_PROMPT_STRENGTH || 0.58
+    );
   }
 
   if (styleName === "Age Studio") {
@@ -602,6 +658,13 @@ function buildPortraitPrompt({
 
   if (styleName === "Cartoon") {
     return buildCartoonPrompt({
+      customPrompt,
+      subjectAnalysis,
+    });
+  }
+
+  if (styleName === "Fantasy") {
+    return buildFantasyPrompt({
       customPrompt,
       subjectAnalysis,
     });

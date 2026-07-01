@@ -79,7 +79,13 @@ const STYLE_BASELINES = {
 };
 
 const DEFAULT_PROFESSIONAL_DIRECTION =
-  "premium professional studio photography of the same visible subject, clean white or light-gray seamless studio background, softbox lighting, elegant age-appropriate professional presentation, sharp detail, high-end retouching; preserve the same face, apparent age, gender presentation, hairstyle length, hairline, clothing silhouette, and recognizable identity; for visible children or teens, keep the same child or teen and make the portrait professional through lighting, clean background, crop, and neat age-appropriate presentation without changing them into an adult; do not create an adult business headshot from a child source; remove casual room clutter and household furniture from the background";
+  "premium professional studio photography of the same visible subject, clean white or light-gray seamless studio background, softbox lighting, elegant age-appropriate presentation, sharp detail, high-end retouching; preserve the same face, apparent age, gender presentation, hairstyle length, hairline, glasses, existing facial hair, bald scalp when present, clothing category, and recognizable identity; make the portrait professional through lighting, clean background, crop, neat presentation, and refined photo quality; do not create a stock portrait or replace the visible person; remove casual room clutter and household furniture from the background";
+
+const ADULT_PROFESSIONAL_DIRECTION =
+  "premium professional studio portrait of the same adult person, clean white or light-gray seamless studio background, softbox lighting, sharp detail, high-end retouching; preserve the same face, apparent age, gender presentation, glasses, existing facial hair, bald scalp when present, hairstyle, hairline, and recognizable identity; replace only casual torso clothing such as a t-shirt, hoodie, or graphic shirt with age-appropriate professional clothing such as a blazer, dress shirt, smart business-casual shirt, or professional jacket";
+
+const CHILD_PROFESSIONAL_DIRECTION =
+  "premium professional child or teen studio portrait of the same child or teen, clean white or light-gray seamless studio background, softbox lighting, sharp detail, high-end retouching; preserve the same child or teen face, apparent age, gender presentation, hairstyle length, hairline, clothing category, proportions, and recognizable identity; make the portrait professional through lighting, clean background, crop, and neat age-appropriate presentation; do not create an adult business headshot";
 
 const AGE_TARGETS = {
   "Younger Adult":
@@ -310,6 +316,19 @@ function fallbackSubjectAnalysis(reason = "vision_api_unavailable") {
   });
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getRetryDelayMs(error, attempt) {
+  const retryAfter = error.response?.headers?.["retry-after"];
+  const retryAfterSeconds = Number(retryAfter);
+  if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+    return Math.min(retryAfterSeconds * 1000, 10000);
+  }
+  return Math.min(1000 * 2 ** attempt, 5000);
+}
+
 async function analyzeSubject(imageBase64) {
   if (!OPENAI_API_KEY) {
     return fallbackSubjectAnalysis("openai_key_missing");
@@ -321,56 +340,77 @@ async function analyzeSubject(imageBase64) {
     ? raw
     : `data:${contentType};base64,${raw}`;
 
-  try {
-    const response = await axios.post(
-      `${OPENAI_API_BASE}/chat/completions`,
+  const payload = {
+    model: OPENAI_VISION_MODEL,
+    temperature: 0,
+    response_format: { type: "json_object" },
+    messages: [
       {
-        model: OPENAI_VISION_MODEL,
-        temperature: 0,
-        response_format: { type: "json_object" },
-        messages: [
+        role: "system",
+        content:
+          "You classify all prominent visible subjects in a user photo for an image-editing app. Return only compact JSON.",
+      },
+      {
+        role: "user",
+        content: [
           {
-            role: "system",
-            content:
-              "You classify all prominent visible subjects in a user photo for an image-editing app. Return only compact JSON.",
+            type: "text",
+            text:
+              "Classify the prominent subjects. subjectType must be human, animal, object, or unknown based on the overall image. Use object for any non-human and non-animal subject, including physical items, plants, products, scenes, vehicles, buildings, food, or abstract/non-living subjects. If human, humanCategory must be adult female, adult male, child female, child male, or unknown based on the most prominent visible human when clear. If animal, include animalKind when clear. If object, include objectKind when clear. Include subjectCount as the count of prominent people/animals/objects, hasMultipleSubjects as true when more than one prominent subject exists, subjectSummary as a short description of all prominent subjects and their layout, and confidence as high, medium, or low.",
           },
           {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text:
-                  "Classify the prominent subjects. subjectType must be human, animal, object, or unknown based on the overall image. Use object for any non-human and non-animal subject, including physical items, plants, products, scenes, vehicles, buildings, food, or abstract/non-living subjects. If human, humanCategory must be adult female, adult male, child female, child male, or unknown based on the most prominent visible human when clear. If animal, include animalKind when clear. If object, include objectKind when clear. Include subjectCount as the count of prominent people/animals/objects, hasMultipleSubjects as true when more than one prominent subject exists, subjectSummary as a short description of all prominent subjects and their layout, and confidence as high, medium, or low.",
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: dataUrl,
-                },
-              },
-            ],
+            type: "image_url",
+            image_url: {
+              url: dataUrl,
+            },
           },
         ],
       },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        timeout: 45000,
-      }
-    );
+    ],
+  };
 
-    const content = response.data?.choices?.[0]?.message?.content;
-    const parsed = content ? JSON.parse(content) : {};
-    return normalizeSubjectAnalysis(parsed);
-  } catch (error) {
-    console.warn("Subject analysis failed, using generation-time detection:", {
-      message: error.message,
-      status: error.response?.status,
-    });
-    return fallbackSubjectAnalysis("vision_api_failed");
+  const config = {
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    timeout: 45000,
+  };
+
+  let lastOpenAiError = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      if (attempt > 0) {
+        await wait(getRetryDelayMs(lastOpenAiError, attempt - 1));
+      }
+
+      const response = await axios.post(
+        `${OPENAI_API_BASE}/chat/completions`,
+        payload,
+        config
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      const parsed = content ? JSON.parse(content) : {};
+      return normalizeSubjectAnalysis(parsed);
+    } catch (error) {
+      lastOpenAiError = error;
+      if (error.response?.status !== 429 || attempt === 2) {
+        break;
+      }
+    }
   }
+
+  const openAiError = lastOpenAiError?.response?.data?.error || {};
+  console.warn("Subject analysis failed, using generation-time detection:", {
+    message: lastOpenAiError?.message,
+    status: lastOpenAiError?.response?.status,
+    type: openAiError.type,
+    code: openAiError.code,
+    openAiMessage: openAiError.message,
+  });
+  return fallbackSubjectAnalysis("vision_api_failed");
 }
 
 function buildSubjectInstruction(subjectAnalysis) {
@@ -738,17 +778,45 @@ function buildAnimePrompt({ customPrompt, subjectAnalysis }) {
 
 function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
   const studioDirection = normalizeString(customPrompt);
+  const detectedHumanCategory = subjectAnalysis?.humanCategory || "unknown";
+  const isDetectedAdult =
+    detectedHumanCategory === "adult female" || detectedHumanCategory === "adult male";
+  const isDetectedChild =
+    detectedHumanCategory === "child female" || detectedHumanCategory === "child male";
   const effectiveStudioDirection =
-    studioDirection || DEFAULT_PROFESSIONAL_DIRECTION;
+    studioDirection ||
+    (isDetectedAdult
+      ? ADULT_PROFESSIONAL_DIRECTION
+      : isDetectedChild
+        ? CHILD_PROFESSIONAL_DIRECTION
+        : DEFAULT_PROFESSIONAL_DIRECTION);
   const detected = subjectAnalysis?.promptLabel || "unknown subject";
   const composition =
     subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
-  const detectedHumanCategory = subjectAnalysis?.humanCategory || "unknown";
   const ageLockInstruction =
     detectedHumanCategory !== "unknown"
       ? `Server visible age/presentation analysis: ${detectedHumanCategory}. Preserve this visible category unless the user's Studio Direction explicitly asks for an age edit.`
       : "Server visible age/presentation analysis is unknown. The image model must inspect the uploaded source image and preserve each visible person's apparent age category.";
+  const professionalAgeModeInstruction = isDetectedAdult
+    ? [
+        "Backend analysis found an adult person. Adult Professional mode is active.",
+        "For this detected adult source, professional clothing change is allowed and expected, but only on the torso/outfit.",
+      ].join("\n")
+    : isDetectedChild
+      ? [
+          "Backend analysis found a child. Child Professional mode is active.",
+          "For this detected child source, adult business clothing is forbidden. Use child-appropriate studio portrait styling only.",
+        ].join("\n")
+      : [
+          "Backend age analysis is unknown. Safe Professional mode is active.",
+          "Because the backend did not confirm the apparent age, preserve apparent age, original presentation, and identity first.",
+        ].join("\n");
   const studioDirectionBlock = [
+    "STRICT SOURCE-IDENTITY EDIT MODE.",
+    "This is an edit of the uploaded person, not a request to generate a new stock portrait.",
+    "The output must keep the same visible person from the uploaded image.",
+    "Do not replace the source person with a different adult, different child, different gender presentation, different hairstyle length, different face, or generic professional model.",
+    "If the source has short hair, keep short hair. If the source has no long hair, do not add long hair. If the source has no makeup or earrings, do not add makeup or earrings.",
     studioDirection
       ? "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY."
       : "BUILT-IN PROFESSIONAL DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
@@ -759,7 +827,8 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Apply the effective Professional direction strongly to wardrobe, materials, colors, background, pose, expression, lighting, mood, camera angle, composition, and final finish.",
     "Do not ignore, soften, or hide the effective Professional direction.",
     "The effective Professional direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
-    "The effective Professional direction must not change a person's apparent age, gender presentation, face, hairstyle length, hairline, ethnicity, or recognizable identity.",
+    "The effective Professional direction must not change a person's apparent age, gender presentation, face, hairstyle length, hairline, glasses, bald scalp, beard, facial hair, ethnicity, or recognizable identity.",
+    professionalAgeModeInstruction,
     `Effective Professional Direction: ${effectiveStudioDirection}`,
   ].join("\n");
 
@@ -779,16 +848,31 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Keep each source subject in the same broad category, with the same subject count, scale relationships, and arrangement.",
     "Professional styling can be applied to any category: person, animal, object, plant, product, vehicle, food, building, landscape, document, artwork, or mixed scene.",
     ageLockInstruction,
-    "Before changing clothing, inspect each visible person's apparent age: child, teen, young adult, adult, middle-aged adult, or senior adult.",
+    "Before styling people, inspect each visible person's apparent age: child, teen, young adult, adult, middle-aged adult, or senior adult.",
     "Preserve each visible person's apparent age range. Do not make anyone younger, older, more mature, more childish, or more adult-looking.",
-    "If the source contains a visible child or teen, create a professional child/teen studio portrait, school portrait, graduation-style portrait, talent headshot, or formal family-photo style result. It must still look professional, polished, and studio-lit, but the person must remain a child or teen.",
-    "For visible children or teens, preserve the same child/teen face, same gender presentation, same hair length, same hairline, same facial proportions, same clothing silhouette, and same child/teen body proportions.",
-    "For visible children or teens, keep the original outfit category when changing it would risk identity, age, or gender drift. You may clean up wrinkles, reduce distracting graphics, and make the outfit look neat and photo-ready, but do not convert the child into an adult business subject.",
-    "If the source contains visible adults, create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
-    "For visible adults, change casual clothing into age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
     "For visible people, preserve the same person, identity, face, apparent age range, age category, gender presentation, ethnicity, natural body proportions, and recognizable features.",
-    "For visible children or teens, do not add adult business suits, ties, adult makeup, earrings, long hair, mature facial structure, facial hair, mature jawline, adult body proportions, or adult styling unless those features already exist in the source image.",
-    "For visible senior adults, preserve senior-adult facial maturity, hair, skin texture, and age-appropriate professional clothing; do not make them look young.",
+    ...(isDetectedAdult
+      ? [
+          "Backend analysis confirms this source is an adult. Create professional business, editorial, corporate, or commercial portrait photography with polished professional clothing.",
+          "For this confirmed adult source, replace casual t-shirts, graphic shirts, hoodies, sportswear, or loungewear with age-appropriate professional clothes such as a blazer, suit jacket, dress shirt, blouse, modest business dress, professional uniform, or smart business-casual outfit.",
+          "For this confirmed adult source, preserve baldness exactly when present. If the source person is bald or has a shaved head, keep them bald or shaved-headed. Do not add hair or change the hairline.",
+          "For this confirmed adult source, preserve glasses, existing beard, existing mustache, existing facial hair shape, facial structure, and expression as closely as possible.",
+        ]
+      : []),
+    ...(isDetectedChild
+      ? [
+          "Backend analysis confirms this source is a child. Create a professional child studio portrait, school portrait, talent headshot, or formal family-photo style result. It must still look professional, polished, and studio-lit, but the person must remain a child.",
+          "For this confirmed child source, preserve the same child face, same gender presentation, same hair length, same hairline, same facial proportions, same clothing silhouette, and same child body proportions.",
+          "For this confirmed child source, keep the original outfit category when changing it would risk identity, age, or gender drift. You may clean up wrinkles, reduce distracting graphics, and make the outfit look neat and photo-ready, but do not convert the child into an adult business subject.",
+          "For this confirmed child source, do not add adult business suits, ties, adult makeup, earrings, long hair, mature facial structure, facial hair, mature jawline, adult body proportions, or adult styling unless those features already exist in the source image.",
+        ]
+      : []),
+    ...(!isDetectedAdult && !isDetectedChild
+      ? [
+          "Backend age analysis is unknown. Safe source-preserving Professional mode is active.",
+          "For unknown-age people, make the image professional only through lighting, background cleanup, crop, composition, and subtle retouching. Preserve original clothing category, hairstyle, facial features, and presentation to avoid age or identity drift.",
+        ]
+      : []),
     "If Studio Direction specifies clothing, follow that clothing while keeping it professional and preserving identity, apparent age, age category, and gender presentation.",
     "If the source contains multiple people, preserve every person as a separate person and create a professional group or team-style result.",
     "If the source contains no visible person, create professional product, catalog, editorial, commercial, real estate, food, object, animal, plant, or subject photography for the same source category.",
@@ -801,6 +885,7 @@ function buildProfessionalPrompt({ customPrompt, subjectAnalysis }) {
     "Do not merge multiple subjects into one.",
     "Hard rule for Professional people photos: professional means polished studio quality and appropriate clothing for that person's actual apparent age. It never means changing a child into an adult or an adult into a different age.",
     "Hard rule for child sources: keep the same child face, child proportions, child skin texture, child apparent age, and child presentation. Make the photo professional through lighting, background, neat clothing, and composition only.",
+    "Hard rule for adult sources: keep the same head, face, glasses, baldness or hairstyle, beard or facial hair, and identity. Professional clothing edits should affect clothing and background, not who the person is.",
     "If a feature, anatomy, accessory, or subject category is not visible in the source image, do not add it.",
   ]
     .filter(Boolean)
@@ -866,10 +951,16 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   }
 
   if (styleName === "Professional") {
+    const isDetectedAdult =
+      subjectAnalysis?.humanCategory === "adult female" ||
+      subjectAnalysis?.humanCategory === "adult male";
+
     return Number(
       customPrompt
         ? process.env.PROFESSIONAL_DIRECTION_PROMPT_STRENGTH || 0.68
-        : process.env.PROFESSIONAL_PROMPT_STRENGTH || 0.52
+        : isDetectedAdult
+          ? process.env.PROFESSIONAL_ADULT_PROMPT_STRENGTH || 0.6
+          : process.env.PROFESSIONAL_PROMPT_STRENGTH || 0.52
     );
   }
 

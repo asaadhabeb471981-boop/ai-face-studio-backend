@@ -503,8 +503,23 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
   const detected = subjectAnalysis?.promptLabel || "unknown subject";
   const composition =
     subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+  const studioDirectionBlock = studioDirection
+    ? [
+        "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+        "The user's Studio Direction is the primary creative instruction for this AI Avatar result.",
+        "The final image must visibly reflect the exact Studio Direction text.",
+        "Apply the user's Studio Direction strongly to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
+        "Do not ignore, soften, or hide the Studio Direction.",
+        "Studio Direction must style the original uploaded subject; it must not erase or replace the source subject unless the user explicitly asks for replacement.",
+        "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central artwork in a premium semi-realistic avatar style.",
+        "If Studio Direction conflicts with the default AI Avatar look, keep the request but render it as a premium AI Avatar made from the uploaded source.",
+        `User Studio Direction: ${studioDirection}`,
+      ].join("\n")
+    : "";
 
   return [
+    studioDirectionBlock,
+    "",
     "Transform the uploaded image into a premium AI Avatar result.",
     "The visible source subject or subjects must be the central artwork.",
     "The output must look like a polished semi-realistic digital avatar, not an untouched realistic camera photo and not a cartoon drawing.",
@@ -524,19 +539,6 @@ function buildAiAvatarPrompt({ customPrompt, subjectAnalysis }) {
     "Only create a human avatar when the uploaded source image clearly contains a human person.",
     "If the source is not clearly human, do not add any human person, portrait, face, head, body, hair, skin, or clothing.",
     "If the source does not already have human-like faces, eyes, mouths, noses, heads, limbs, or clothing, do not add those features.",
-    "",
-    studioDirection
-      ? [
-          "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
-          "The user's Studio Direction is the primary creative instruction for the AI Avatar result.",
-          "Apply the user's Studio Direction strongly to identity styling, outfit, materials, colors, background, pose, lighting, mood, composition, and final finish.",
-          "The final image must visibly reflect the exact Studio Direction text.",
-          "Studio Direction must style the original uploaded subject; it must not erase or replace the source subject unless the user explicitly asks for replacement.",
-          "If Studio Direction asks for an icon, logo-like finish, or app-avatar look, keep the uploaded subject as the visible central artwork in a premium semi-realistic avatar style.",
-          "If Studio Direction conflicts with the default AI Avatar look, keep the request but render it as a premium subject icon made from the uploaded source.",
-          `User Studio Direction: ${studioDirection}`,
-        ].join("\n")
-      : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -561,7 +563,7 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   if (styleName === "AI Avatar") {
     return Number(
       customPrompt
-        ? process.env.AI_AVATAR_DIRECTION_PROMPT_STRENGTH || 0.88
+        ? process.env.AI_AVATAR_DIRECTION_PROMPT_STRENGTH || 0.94
         : process.env.AI_AVATAR_PROMPT_STRENGTH || 0.72
     );
   }
@@ -828,6 +830,7 @@ app.post("/generate", async (req, res) => {
       styleName,
       ageTarget: ageTarget || null,
       hasStudioDirection: Boolean(customPrompt),
+      studioDirectionPreview: customPrompt ? customPrompt.slice(0, 120) : null,
       subjectAnalysis: subjectAnalysis.label,
       model: REPLICATE_MODEL,
     });

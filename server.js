@@ -592,10 +592,58 @@ function buildFantasyPrompt({ customPrompt, subjectAnalysis }) {
     .join("\n");
 }
 
+function buildHeadshotPrompt({ customPrompt, subjectAnalysis }) {
+  const studioDirection = normalizeString(customPrompt);
+  const detected = subjectAnalysis?.promptLabel || "unknown subject";
+  const composition =
+    subjectAnalysis?.compositionLabel || "infer all visible subjects and layout from the source image";
+  const studioDirectionBlock = studioDirection
+    ? [
+        "STUDIO DIRECTION IS ACTIVE. FOLLOW IT VISIBLY.",
+        "The user's Studio Direction is the primary creative instruction for this studio close-up result.",
+        "The final image must visibly reflect the exact Studio Direction text while preserving the uploaded source subject or subjects.",
+        "Apply the user's Studio Direction strongly to visible styling, colors, background, lighting, mood, camera angle, crop, and final finish.",
+        "Do not ignore, soften, or hide the Studio Direction.",
+        "Studio Direction must style the original uploaded subject or subjects; it must not erase, replace, or add source subjects unless the user explicitly asks for that replacement.",
+        `User Studio Direction: ${studioDirection}`,
+      ].join("\n")
+    : "";
+
+  return [
+    studioDirectionBlock,
+    "",
+    "Edit the uploaded image into a professional studio close-up of the exact same visible source subject or subjects.",
+    "This is an image edit. The uploaded image controls the subject. Do not generate a stock portrait or a default person from the style name.",
+    "The selected style name describes the close-up crop and polished studio photography quality only.",
+    "Inspect the uploaded source image first and preserve the visible subject category exactly.",
+    "If the source subject is a plant, keep it a plant. If it is an object, keep it an object. If it is an animal, keep it an animal. If it is food, a vehicle, a building, artwork, a document, or a product, keep that same category.",
+    "If the source contains visible people, keep those same people and use a polished close-up studio crop appropriate for them.",
+    "If the source contains no visible person, create a clean centered close-up studio subject shot of the same non-human subject.",
+    "Close-up framing is required: the main visible subject must fill most of the frame.",
+    "For visible people, crop as head-and-shoulders or upper torso, with face and eyes as the main focus. Avoid full-body framing.",
+    "For non-human subjects, crop tightly around the main visible subject while keeping its category unchanged.",
+    "Use realistic professional photography, sharp focus, clean background separation, premium retouching, soft studio lighting, and shallow depth of field appropriate to the visible source subject.",
+    "The output must read immediately as a polished studio close-up of the uploaded source, not a casual snapshot, fantasy scene, cartoon, avatar, poster, or unrelated portrait.",
+    "",
+    `Detected source type: ${detected}.`,
+    `Composition: ${composition}.`,
+    "The uploaded source image is the authority for exactly what subjects may appear.",
+    "Preserve every prominent source subject, the number of subjects, object types, relative positions, and overall layout.",
+    "Do not drop extra people, animals, or objects.",
+    "Do not merge multiple subjects into one.",
+    "Do not invent, substitute, or add a new main subject category that is not visible in the uploaded image.",
+    "Only create a human result when the uploaded source image already contains a visible human.",
+    "The selected style name is never enough by itself to create a human person.",
+    "If the source has no visible person, do not add a person or any person-specific features.",
+    "If the source contains people, avoid changing gender presentation, age category, ethnicity, identity, or turning children into adults.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
   const preserveFirstStyles = new Set([
     "AI Avatar",
-    "Headshot",
     "Professional",
     "Age Studio",
   ]);
@@ -625,6 +673,14 @@ function promptStrengthFor({ customPrompt, styleName, subjectAnalysis }) {
       customPrompt
         ? process.env.FANTASY_DIRECTION_PROMPT_STRENGTH || 0.62
         : process.env.FANTASY_PROMPT_STRENGTH || 0.58
+    );
+  }
+
+  if (styleName === "Headshot") {
+    return Number(
+      customPrompt
+        ? process.env.HEADSHOT_DIRECTION_PROMPT_STRENGTH || 0.5
+        : process.env.HEADSHOT_PROMPT_STRENGTH || 0.46
     );
   }
 
@@ -665,6 +721,13 @@ function buildPortraitPrompt({
 
   if (styleName === "Fantasy") {
     return buildFantasyPrompt({
+      customPrompt,
+      subjectAnalysis,
+    });
+  }
+
+  if (styleName === "Headshot") {
+    return buildHeadshotPrompt({
       customPrompt,
       subjectAnalysis,
     });
